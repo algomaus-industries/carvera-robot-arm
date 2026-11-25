@@ -3,6 +3,12 @@ load("@intrinsic-core//bazel:python.bzl", "py_binary", "py_library")
 package(default_visibility = ["//visibility:public"])
 
 py_library(
+    name = "so101_ik",
+    srcs = ["so101_ik.py"],
+    deps = ["@ai_intrinsic_sdks_pip_deps//numpy"],
+)
+
+py_library(
     name = "move_bit_lib",
     srcs = ["move_bit.py"],
     data = [
@@ -10,6 +16,7 @@ py_library(
         "//models/makera_bits:makera_bits.json",
     ],
     deps = [
+        ":so101_ik",
         "//src/core:config",
         "//src/hardware:gripper",
         "//src/hardware:machine",
@@ -19,6 +26,7 @@ py_library(
         "@intrinsic-core//intrinsic_sdk/intrinsic/solutions:execution",
         "@intrinsic_apis//intrinsic/world/proto:object_world_refs_py_pb2",
         "@intrinsic-core//intrinsic_sdk/intrinsic/world/proto:object_world_updates_py_pb2",
+        "@intrinsic-core//intrinsic_sdk/intrinsic/world/python:object_world_resources",
     ],
 )
 

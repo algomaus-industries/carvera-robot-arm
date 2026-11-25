@@ -98,8 +98,16 @@ class Robot:
     self,
     joint_target: str | JointPosition | Sequence[float] | Any,
     name: str | None = None,
+    excluded_collision_pairs: Sequence[tuple[str, str]] | None = None,
+    motion_type: str = "JOINT",
   ) -> bt.Node:
-    """Builds an SBL move_robot joint motion task."""
+    """Builds an SBL move_robot joint motion task.
+
+    excluded_collision_pairs: world object pairs whose contacts the planner
+    ignores for this motion (as in build_move_cartesian_task).
+    motion_type: "JOINT" (straight line in joint space) or "ANY" (the planner
+    may route around obstacles).
+    """
     if isinstance(joint_target, str):
       task_name = name or f"Move to {joint_target}"
       target_pos = getattr(self.arm_part.joint_configurations, joint_target)
@@ -113,10 +121,18 @@ class Robot:
       task_name = name or "Move Joint"
       target_pos = joint_target
 
+    segment_kwargs: dict[str, Any] = {
+      "joint_position": target_pos,
+      "motion_type": self._motion_type_enum(motion_type),
+    }
+    collision_settings = self._build_collision_settings(
+      excluded_collision_pairs
+    )
+    if collision_settings is not None:
+      segment_kwargs["collision_settings"] = collision_settings
     motion_segment = (
       self._move_robot_skill.intrinsic_proto.skills.MotionSegment(
-        joint_position=target_pos,
-        motion_type=self._motion_type_enum("JOINT"),
+        **segment_kwargs
       )
     )
     skill_action = self._move_robot_skill(

@@ -55,11 +55,13 @@ from typing import Any
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import deployments, execution
 from intrinsic.world.proto import object_world_refs_pb2, object_world_updates_pb2
+from intrinsic.world.python import object_world_resources
 
 from src.core.config import AppConfig, load_app_config
 from src.hardware.gripper import GripperInterface, RobotiqGripper
 from src.hardware.machine import DioCncMachine
 from src.hardware.robot import Robot
+from tools.atc import so101_ik
 
 GRID_OBJECT = "bit_grid"
 GRID_N = 10
@@ -82,16 +84,21 @@ class GraspProfile:
       out of the seat bore.
   off_centre: True if the tool frame is on one jaw's face rather than centred
       between the jaws (then the tool moves half a shank along +x).
+  joint_ik: True to solve the arm's IK here (tools/atc/so101_ik.py) and send
+      joint targets, for arms the motion planner's IK cannot solve.
   """
 
   grasp_z: float
   pre_z: float
   off_centre: bool
+  joint_ik: bool = False
 
 
 PROFILES = {
     "robotiq": GraspProfile(grasp_z=0.006, pre_z=0.096, off_centre=False),
-    "so101": GraspProfile(grasp_z=0.006, pre_z=0.056, off_centre=True),
+    # The SO-101's fixed jaw reaches ~7 mm past its tool frame, so the tool
+    # frame stays 14 mm above the seat: jaw tips just above the 5 mm collar.
+    "so101": GraspProfile(grasp_z=0.014, pre_z=0.064, off_centre=True, joint_ik=True),
 }
 # Hand-E finger position when opening at a seat (12 mm per finger): clears a
 # 6 mm shank and stays off the neighbours on the 35 mm grid.
@@ -241,6 +248,56 @@ def _offset(z: float, yaw_deg: float, x_tool: float = 0.0):
           (math.cos(h), -math.sin(h), 0.0, 0.0))
 
 
+# Steps per LINEAR segment when moving by joint targets: the vertical approach
+# and lift stay within about a millimetre of the straight line.
+JOINT_IK_LINEAR_STEPS = 6
+
+
+class JointTargets:
+  """Turns seat-relative tool poses into SO-101 joint targets (so101_ik).
+
+  Solves in the arm's base frame from the live belief world, seeding each
+  target with the previous one so consecutive targets stay on one branch.
+  """
+
+  def __init__(self, world: Any, arm_name: str):
+    self._world = world
+    arm = world.get_kinematic_object(arm_name)
+    self._base_inv = _inverse(_matrix(world.get_transform(world.root, arm)))
+    self.q = list(arm.joint_positions)
+    self._last = None   # (obj, frame, z) of the previous target
+
+  def to(self, obj: str, frame: str, z: float, offset, linear: bool) -> list[list[float]]:
+    seat = _matrix(self._world.get_transform(
+      self._world.root, self._world.get_transform_node(_frame_ref(obj, frame))))
+    zs = [z]
+    if linear and self._last and self._last[:2] == (obj, frame):
+      z0 = self._last[2]
+      zs = [z0 + (z - z0) * (i + 1) / JOINT_IK_LINEAR_STEPS for i in range(JOINT_IK_LINEAR_STEPS)]
+    out = []
+    for zi in zs:
+      (x, y, _), (qx, qy, qz, w) = offset(zi)
+      target = self._base_inv @ seat @ so101_ik.pose_matrix((x, y, zi), (qx, qy, qz, w))
+      q = so101_ik.solve(target, self.q)
+      if q is None:
+        raise ValueError(f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m")
+      self.q = [float(v) for v in q]
+      out.append(self.q)
+    self._last = (obj, frame, z)
+    return out
+
+
+def _matrix(pose: Any):
+  return so101_ik.pose_matrix(
+    [float(v) for v in pose.translation],
+    [float(v) for v in pose.rotation.quaternion.xyzw])
+
+
+def _inverse(m):
+  import numpy as np  # pylint: disable=import-outside-toplevel
+  return np.linalg.inv(m)
+
+
 def build_move_tree(
   robot: Robot,
   gripper: GripperInterface,
@@ -252,8 +309,13 @@ def build_move_tree(
   yaw_deg: float,
   profile: GraspProfile,
   shank: float,
+  joints: JointTargets | None = None,
 ) -> bt.Node:
-  """Behavior tree moving `holder` from slot `src` to slot `dst`."""
+  """Behavior tree moving `holder` from slot `src` to slot `dst`.
+
+  With `joints`, every motion is a joint move (or several, for the LINEAR
+  ones) to IK solutions computed here instead of a Cartesian move.
+  """
   tool = config.robot.tool_object_name
   x_tool = shank / 2 if profile.off_centre else 0.0
   PRE_Z, GRASP_Z = profile.pre_z, profile.grasp_z
@@ -262,6 +324,23 @@ def build_move_tree(
   held = [(tool, holder)]
 
   def move(obj, frame, z, motion, pairs, label):
+    if joints is not None:
+      qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x_tool),
+                     linear=motion == "LINEAR")
+      # The jaw is hinged inside the gripper body (so101_arm.gripper_link), so
+      # the two always overlap; the planner would reject every configuration.
+      # The fixed jaw is part of the arm (gripper_link), so contacts allowed
+      # for the gripper object are allowed for the arm as well.
+      arm = config.robot.arm_part_name
+      jaw_pairs = [(tool, arm)] + list(pairs or []) + [
+        (arm, b) for a, b in (pairs or []) if a == tool]
+      steps = [robot.build_move_joint_task(
+                 object_world_resources.JointConfiguration(joint_position=q),
+                 name=f"{label} ({i + 1}/{len(qs)})",
+                 excluded_collision_pairs=jaw_pairs,
+                 motion_type="JOINT" if motion == "LINEAR" else "ANY")
+               for i, q in enumerate(qs)]
+      return steps[0] if len(steps) == 1 else bt.Sequence(name=label, children=steps)
     return robot.build_move_cartesian_task(
       target_frame_name=frame,
       target_object_name=obj,
@@ -276,7 +355,8 @@ def build_move_tree(
     tasks.append(machine.build_open_door_task(name="Open Carvera Lid"))
   tasks += [
     gripper.build_open_task(name="Open Gripper"),
-    move(src_obj, src_frame, PRE_Z, "ANY", None, f"Above {src}"),
+    # held: a stopped earlier run may have left the gripper touching this bit.
+    move(src_obj, src_frame, PRE_Z, "ANY", held, f"Above {src}"),
     move(src_obj, src_frame, GRASP_Z, "LINEAR", held, f"Descend onto {holder}"),
     gripper.build_close_task(name=f"Grip {holder}"),
     robot.build_attach_object_task(object_name=holder, name=f"Attach {holder}"),
@@ -317,18 +397,24 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     title = catalog.get(holder, {}).get("title", holder)
     print(f"Moving {holder} ({title}): {src} -> {dst} ...")
     gripper = make_gripper(solution, config, shank)
+    joints = (JointTargets(world, config.robot.arm_part_name)
+              if profile.joint_ik else None)
     try:
       solution.executive.run(
         build_move_tree(robot, gripper, machine, config, holder, src, dst, yaw_deg,
-                        profile, shank)
+                        profile, shank, joints)
       )
       print(f"[✓] {holder} is now in {dst}")
-    except execution.ExecutionFailedError as e:
+    except (execution.ExecutionFailedError, ValueError) as e:
       print(f"[!] Move failed: {e}")
       if hasattr(solution.executive, "get_errors"):
         print(f"Executive errors: {solution.executive.get_errors()}")
       return False
-  if home_frame:
+  if home_frame and profile.joint_ik:
+    solution.executive.run(robot.build_move_joint_task(
+      "home", name="Return to home", motion_type="ANY",
+      excluded_collision_pairs=[(config.robot.tool_object_name, config.robot.arm_part_name)]))
+  elif home_frame:
     solution.executive.run(
       robot.build_move_cartesian_task(
         target_frame_name=home_frame, target_object_name="root",
