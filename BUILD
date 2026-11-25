@@ -55,6 +55,8 @@ config_setting(
     },
 )
 
+BIT_HOLDER_INSTANCES = [":bit_%d%d" % (r, c) for r in range(10) for c in range(10)]
+
 _OMTS_SKILL_ASSETS = [
     ":hand_e_gripper_cmd_skill_asset",
     ":moveit_plan_grasp_skill_asset",
@@ -109,6 +111,7 @@ intrinsic_solution(
         "//conditions:default": [
             "@intrinsic-core//intrinsic_control/intrinsic/icon/hardware_modules/universal_robots:ur5e_hardware_module_core",
             "//models/camera_mount",
+            "//models/bit_grid",
             "//models/carvera_tool_holder",
             "//models/makera_carvera",
             "//models/omts_enclosure",
@@ -137,17 +140,15 @@ intrinsic_solution(
         ":is_lab_bracket": [":bracket"],
         "//conditions:default": [":raw_stock_2x3x5"],
     }) + select({
+        ":is_lab_bb_01": [],
+        "//conditions:default": BIT_HOLDER_INSTANCES,
+    }) + select({
         ":is_lab_bb_01": [
         ],
         "//conditions:default": [
             ":camera_mount",
             ":cnc_enclosure",
-            ":carvera_tool_holder_t1",
-            ":carvera_tool_holder_t2",
-            ":carvera_tool_holder_t3",
-            ":carvera_tool_holder_t4",
-            ":carvera_tool_holder_t5",
-            ":carvera_tool_holder_t6",
+            ":bit_grid",
             ":schunk_egp_64nnb",
         ],
     }),
@@ -180,6 +181,7 @@ intrinsic_solution(
             "//configs:omts/cnc_enclosure.updates.pbtxt",
             "//configs:omts/schunk.updates.pbtxt",
             "//configs:omts/carvera_atc.updates.pbtxt",
+            "//configs:omts/bit_grid.updates.pbtxt",
             "//configs:omts/camera_mount.updates.pbtxt",
             "//configs:omts/orbbec_gemini.updates.pbtxt",
         ],
@@ -214,42 +216,23 @@ intrinsic_asset_instance(
     instance_name = "cnc_enclosure",
 )
 
-# Carvera ATC tool holders, seated in slots T1..T6 (see carvera_atc.updates.pbtxt).
+# Tool-bit storage grid and the 100 Carvera ATC tool holders in it
+# (bit_RC in cell R,C; see configs/omts/bit_grid.updates.pbtxt).
 intrinsic_asset_instance(
-    name = "carvera_tool_holder_t1",
-    asset = "ai.intrinsic.carvera_tool_holder",
-    instance_name = "tool_holder_t1",
+    name = "bit_grid",
+    asset = "ai.intrinsic.bit_grid",
+    instance_name = "bit_grid",
 )
 
-intrinsic_asset_instance(
-    name = "carvera_tool_holder_t2",
-    asset = "ai.intrinsic.carvera_tool_holder",
-    instance_name = "tool_holder_t2",
-)
-
-intrinsic_asset_instance(
-    name = "carvera_tool_holder_t3",
-    asset = "ai.intrinsic.carvera_tool_holder",
-    instance_name = "tool_holder_t3",
-)
-
-intrinsic_asset_instance(
-    name = "carvera_tool_holder_t4",
-    asset = "ai.intrinsic.carvera_tool_holder",
-    instance_name = "tool_holder_t4",
-)
-
-intrinsic_asset_instance(
-    name = "carvera_tool_holder_t5",
-    asset = "ai.intrinsic.carvera_tool_holder",
-    instance_name = "tool_holder_t5",
-)
-
-intrinsic_asset_instance(
-    name = "carvera_tool_holder_t6",
-    asset = "ai.intrinsic.carvera_tool_holder",
-    instance_name = "tool_holder_t6",
-)
+[
+    intrinsic_asset_instance(
+        name = "bit_%d%d" % (r, c),
+        asset = "ai.intrinsic.carvera_tool_holder",
+        instance_name = "bit_%d%d" % (r, c),
+    )
+    for r in range(10)
+    for c in range(10)
+]
 
 intrinsic_asset_instance(
     name = "camera_mount",

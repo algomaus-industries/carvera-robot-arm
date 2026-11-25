@@ -59,7 +59,10 @@ SIDE_EDGE_TOP_Y = 0.130               # then folding straight back to this far b
                                        # the hood front at the top (Makera side photo)
 SIDE_FACET = 0.035                     # chamfer facet along the panel's front edge
 PANEL_TOP = H - 0.050                  # side panels stop under the hood's top band
-HINGE_Y = 0.248                        # hood hinge line: the rear edge (hood covers the whole top)
+HINGE_Y = 0.100                        # hood hinge line, ~1/3 back from the front: the manual's
+                                       # front view shows the open hood's front panel lying
+                                       # flat at ~0.86 m, i.e. ~90 deg about a hinge this far
+                                       # back; a fixed smoked panel covers the rear of the top
 H_LID_OPEN = 0.850                     # open hood height: ~0.86 m measured on the manual's
                                        # front view, published 0.84 m
 BED_TOP = 0.120
@@ -161,6 +164,14 @@ BODY = [
          collide_poly=SIDE_POLY),
     box("back", -hx + PANEL_T, hx - PANEL_T, hy - 0.020, hy, BASE_H, TOP_Z - 0.010, SILVER),
     # Dark interior back with the Y-axis cover band.
+    # Fixed smoked top and side wings behind the hood hinge.
+    box("top_rear", -hx, hx, HINGE_Y + 0.002, hy, TOP_Z - SHELL_T, TOP_Z, HOOD),
+    prism("rear_wing_left", -hx, -hx + SHELL_T,
+          [(HINGE_Y + 0.002, PANEL_TOP), (HINGE_Y + 0.002, TOP_Z), (hy, TOP_Z), (hy, PANEL_TOP)], HOOD,
+          bands=1),
+    prism("rear_wing_right", hx - SHELL_T, hx,
+          [(HINGE_Y + 0.002, PANEL_TOP), (HINGE_Y + 0.002, TOP_Z), (hy, TOP_Z), (hy, PANEL_TOP)], HOOD,
+          bands=1),
     box("inner_back", -hx + PANEL_T, hx - PANEL_T, hy - 0.030, hy - 0.020, BASE_H, TOP_Z - 0.03,
         SILVER, collide=False),
     # Clear dust bin at the rear left (manual: "Dust Bin").
@@ -574,6 +585,57 @@ def holder_sdf():
 """
 
 
+
+# ---------------------------------------------------------------- bit grid
+# Tool-bit storage block for the robot: GRID_N x GRID_N seats on a GRID_PITCH
+# pitch, each with a black seat disc and a bore for the cutter, matching the
+# Carvera ATC seats so one grasp works for both. Origin at the block's centre
+# on the table; frames cell_R_C on each seat (R along +Y, C along +X), z up.
+GRID_N = 10
+GRID_PITCH = 0.035                     # 35 mm: room for the open Hand-E fingers
+GRID_H = 0.030                         # block height
+GRID_SEAT_T = 0.002
+GRID_HALF = (GRID_N - 1) / 2 * GRID_PITCH + 0.022
+
+
+def grid_cell(r, c):
+  return ((c - (GRID_N - 1) / 2) * GRID_PITCH, (r - (GRID_N - 1) / 2) * GRID_PITCH,
+          GRID_H + GRID_SEAT_T)
+
+
+GRID = [box("grid_block", -GRID_HALF, GRID_HALF, -GRID_HALF, GRID_HALF, 0.0, GRID_H, SILVER,
+            bevel=0.003),
+        box("grid_marker", -GRID_HALF + 0.003, -GRID_HALF + 0.015, -GRID_HALF - 0.0005,
+            -GRID_HALF, 0.008, 0.022, (0.95, 0.45, 0.08, 1.0), collide=False)]
+for r in range(GRID_N):
+  for c in range(GRID_N):
+    x, y, _ = grid_cell(r, c)
+    GRID.append(dict(kind="cyl", name=f"seat_{r}_{c}", c=(x, y), z=(GRID_H, GRID_H + GRID_SEAT_T),
+                     r=0.011, color=DARK, collide=False, axis="z", verts=24))
+
+
+def grid_sdf():
+  frames = "\n".join(
+      f'    <frame name="cell_{r}_{c}" attached_to="base_link" intrinsic:create_entity="true">\n'
+      f'      <pose>{f3(grid_cell(r, c))} 0 0 0</pose>\n'
+      f'    </frame>' for r in range(GRID_N) for c in range(GRID_N))
+  return f"""<?xml version="1.0" ?>
+{LICENSE}
+<!-- Tool-bit storage grid: {GRID_N} x {GRID_N} seats on a {GRID_PITCH * 1000:.0f} mm pitch for
+     Carvera ATC tool holders. Frames cell_R_C sit on the seat discs (z up). -->
+<sdf xmlns:intrinsic="https://intrinsic.ai/" version="1.9">
+  <model name="bit_grid">
+    <static>true</static>
+    <link name="base_link">
+{visual("grid_visual", "bit_grid.glb")}
+{collisions(GRID)}
+    </link>
+{frames}
+  </model>
+</sdf>
+"""
+
+
 def main():
   out = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "out"
   cdir = os.path.join(out, "makera_carvera")
@@ -587,6 +649,12 @@ def main():
     fh.write(carvera_sdf())
   with open(os.path.join(hdir, "carvera_tool_holder.sdf"), "w") as fh:
     fh.write(holder_sdf())
+  gdir = os.path.join(out, "bit_grid")
+  os.makedirs(gdir, exist_ok=True)
+  export(GRID, os.path.abspath(os.path.join(gdir, "bit_grid.glb")))
+  with open(os.path.join(gdir, "bit_grid.sdf"), "w") as fh:
+    fh.write(grid_sdf())
+  print("GRID_HALF", round(GRID_HALF, 4), "SEAT_Z", GRID_H + GRID_SEAT_T)
   print("LID_OPEN_RAD", round(LID_OPEN, 4))
   print("BED_TOP", BED_TOP)
   for n, my in SLOT_MCS_Y.items():

@@ -3,7 +3,7 @@
 #
 # cnc_enclosure is a Makera Carvera (models/makera_carvera). Its back sits
 # against the cell's left wall with the lid opening towards the robot.
-# lid_joint: 0 = closed, 0.9338 rad = fully open.
+# lid_joint: 0 = closed, 1.4866 rad = fully open.
 
 updates: {
   update_transform {
@@ -50,6 +50,6 @@ updates: {
         object_name: "cnc_enclosure"
       }
     }
-    joint_positions: 0.9338
+    joint_positions: 1.4866
   }
 }

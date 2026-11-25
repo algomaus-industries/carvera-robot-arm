@@ -2,7 +2,7 @@
 import numpy; numpy.bool = bool
 import bpy, sys, math, os
 a = sys.argv[sys.argv.index("--") + 1:]
-out, png = a[0], a[1]; ang = float(a[2]) if len(a) > 2 else 0.9338
+out, png = a[0], a[1]; ang = float(a[2]) if len(a) > 2 else 1.4866
 bpy.ops.wm.read_factory_settings()
 for o in list(bpy.data.objects): bpy.data.objects.remove(o)
 def imp(p):
@@ -16,7 +16,7 @@ def imp(p):
     return new
 imp(f"{out}/makera_carvera/carvera_body.glb")
 piv = bpy.data.objects.new("pivot", None); bpy.context.scene.collection.objects.link(piv)
-piv.location = (0, 0.248, 0.541); bpy.context.view_layer.update()
+piv.location = (0, 0.100, 0.541); bpy.context.view_layer.update()
 for o in imp(f"{out}/makera_carvera/carvera_lid.glb"):
     if o.parent is None:
         mw = o.matrix_world.copy(); o.parent = piv; o.matrix_world = mw

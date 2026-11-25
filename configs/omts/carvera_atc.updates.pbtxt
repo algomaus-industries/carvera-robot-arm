@@ -2,25 +2,15 @@
 # proto-message: intrinsic_proto.world.ObjectWorldUpdates
 #
 # Makera Carvera ATC. The rack frames atc_slot_0 (probe) .. atc_slot_6 come
-# with the cnc_enclosure (makera_carvera) object; tool holders T1..T6
-# (tool_holder_t1..t6) are seated in them here. For each slot a top-down
+# with the cnc_enclosure (makera_carvera) object. The ATC starts empty: the
+# holders live in the bit grid (bit_grid.updates.pbtxt) and
+# //tools/atc:move_bit loads them. For each slot a top-down
 # approach / grasp pair is taught, in the same tool orientation as
 # vise_place: atc_tN_grasp puts the Hand-E fingertips (tool_frame) 6 mm above
 # the seat so the pads close on the 15 mm collet holder; atc_tN_pre_grasp is
 # 90 mm above that. Generated from models/makera_carvera/build_carvera.py
 # constants (RACK_CX, MCS_Y0, slot table) - regenerate if those change.
 
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "cnc_enclosure" } } }
-    node_b { by_name { object { object_name: "tool_holder_t1" } } }
-    node_to_update { by_name { object { object_name: "tool_holder_t1" } } }
-    a_t_b {
-      position { x: 0.20500 y: 0.03052 z: 0.15000 }
-      orientation { w: 1 }
-    }
-  }
-}
 updates {
   create_frame {
     new_frame_name: "atc_t1_pre_grasp"
@@ -39,17 +29,6 @@ updates {
       orientation { x: 0.7071068 y: -0.7071068 z: 0 w: 0 }
     }
     parent_object_with_filter { reference { by_name { object_name: "root" } } }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "cnc_enclosure" } } }
-    node_b { by_name { object { object_name: "tool_holder_t2" } } }
-    node_to_update { by_name { object { object_name: "tool_holder_t2" } } }
-    a_t_b {
-      position { x: 0.20500 y: 0.00052 z: 0.15000 }
-      orientation { w: 1 }
-    }
   }
 }
 updates {
@@ -73,17 +52,6 @@ updates {
   }
 }
 updates {
-  update_transform {
-    node_a { by_name { object { object_name: "cnc_enclosure" } } }
-    node_b { by_name { object { object_name: "tool_holder_t3" } } }
-    node_to_update { by_name { object { object_name: "tool_holder_t3" } } }
-    a_t_b {
-      position { x: 0.20500 y: -0.02948 z: 0.15000 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
   create_frame {
     new_frame_name: "atc_t3_pre_grasp"
     parent_t_new_frame {
@@ -101,17 +69,6 @@ updates {
       orientation { x: 0.7071068 y: -0.7071068 z: 0 w: 0 }
     }
     parent_object_with_filter { reference { by_name { object_name: "root" } } }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "cnc_enclosure" } } }
-    node_b { by_name { object { object_name: "tool_holder_t4" } } }
-    node_to_update { by_name { object { object_name: "tool_holder_t4" } } }
-    a_t_b {
-      position { x: 0.20500 y: -0.05948 z: 0.15000 }
-      orientation { w: 1 }
-    }
   }
 }
 updates {
@@ -135,17 +92,6 @@ updates {
   }
 }
 updates {
-  update_transform {
-    node_a { by_name { object { object_name: "cnc_enclosure" } } }
-    node_b { by_name { object { object_name: "tool_holder_t5" } } }
-    node_to_update { by_name { object { object_name: "tool_holder_t5" } } }
-    a_t_b {
-      position { x: 0.20500 y: -0.08948 z: 0.15000 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
   create_frame {
     new_frame_name: "atc_t5_pre_grasp"
     parent_t_new_frame {
@@ -163,17 +109,6 @@ updates {
       orientation { x: 0.7071068 y: -0.7071068 z: 0 w: 0 }
     }
     parent_object_with_filter { reference { by_name { object_name: "root" } } }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "cnc_enclosure" } } }
-    node_b { by_name { object { object_name: "tool_holder_t6" } } }
-    node_to_update { by_name { object { object_name: "tool_holder_t6" } } }
-    a_t_b {
-      position { x: 0.20500 y: -0.11948 z: 0.15000 }
-      orientation { w: 1 }
-    }
   }
 }
 updates {
