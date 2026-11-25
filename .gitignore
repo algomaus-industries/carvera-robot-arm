@@ -3,3 +3,5 @@ bazel-*
 venv*
 MODULE.bazel.lock
 logs/
+models/so101/official_meshes/
+__pycache__/
