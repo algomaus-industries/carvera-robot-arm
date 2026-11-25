@@ -251,6 +251,66 @@
    "angle": 30
   },
   {
+   "id": "eng18_30x0p1",
+   "title": "Single Flute Engraving 1/8\" 30deg x 0.1mm",
+   "kind": "vbit",
+   "d": 0.0001,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
+   "angle": 30
+  },
+  {
+   "id": "eng18_30x0p2",
+   "title": "Single Flute Engraving 1/8\" 30deg x 0.2mm",
+   "kind": "vbit",
+   "d": 0.0002,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
+   "angle": 30
+  },
+  {
+   "id": "eng18_30x0p3",
+   "title": "Single Flute Engraving 1/8\" 30deg x 0.3mm",
+   "kind": "vbit",
+   "d": 0.0003,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
+   "angle": 30
+  },
+  {
+   "id": "eng18_30x0p4",
+   "title": "Single Flute Engraving 1/8\" 30deg x 0.4mm",
+   "kind": "vbit",
+   "d": 0.0004,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
+   "angle": 30
+  },
+  {
+   "id": "eng18_30x0p5",
+   "title": "Single Flute Engraving 1/8\" 30deg x 0.5mm",
+   "kind": "vbit",
+   "d": 0.0005,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
+   "angle": 30
+  },
+  {
    "id": "engm4_30x0p3",
    "title": "Single Flute Engraving for Metal 4mm 30deg x 0.3mm",
    "kind": "vbit",

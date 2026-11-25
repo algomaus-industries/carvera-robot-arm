@@ -10,7 +10,8 @@ thread sizes, TiN coating. ESTIMATED (store does not say): overall length
 where marked est_len, helix pitch, the collar (OD / height / position on the
 shank), coating colour of the "for Metal" bits, thread-mill cutting
 diameters, corn-bit cutting lengths, the solder-mask tool's body.
-Not modelled: "Single Flute Engraving Bit 1/8"" (no sizes readable).
+Single Flute Engraving Bit 1/8": sizes from its product page (fetched later,
+after rate limiting).
 
 Each bit stands in an ATC / grid seat the way the Carvera holds it: a collar
 pressed on the shank rests on the seat, the cutter hangs down into the bore,
@@ -69,6 +70,9 @@ def catalog():
   for t in (0.1, 0.2, 0.3, 0.4, 0.5):
     b.append(bit(f"eng4_30x{t:g}".replace(".", "p"), f"Single Flute Engraving 4mm 30deg x {t:g}mm",
                  "vbit", t, 0.004, 0, 42, 1, angle=30))
+  for t in (0.1, 0.2, 0.3, 0.4, 0.5):   # store page: 3.175 mm shank, ~38 mm overall
+    b.append(bit(f"eng18_30x{t:g}".replace(".", "p"), f'Single Flute Engraving 1/8" 30deg x {t:g}mm',
+                 "vbit", t, SH18, 0, 38, 1, angle=30))
   for t in (0.3, 0.4, 0.5):
     b.append(bit(f"engm4_30x{t:g}".replace(".", "p"), f"Single Flute Engraving for Metal 4mm 30deg x {t:g}mm",
                  "vbit", t, 0.004, 0, 45, 1, METAL_COAT, angle=30))

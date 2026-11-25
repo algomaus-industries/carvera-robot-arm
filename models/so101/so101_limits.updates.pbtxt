@@ -4,7 +4,8 @@
 # SO-ARM101 start pose (= home: gripper 13 cm up, turned over the grid), home configuration and ICON joint limits.
 # Position limits are the URDF's; velocity / acceleration / jerk are
 # conservative for STS3215 hobby servos (no datasheet values for jerk).
-# Application limits: 99% of the position range, 95% of the dynamic limits.
+# Application limits: 99% of the position range, 90% of the dynamic limits
+# (ICON needs them strictly more than 5% below the system limits).
 updates: {
   update_joints {
     joint_positions { key: "shoulder_pan" value: 0.6 }
@@ -34,23 +35,23 @@ updates: {
     }
     joint_application_limits: {
       key: "shoulder_pan"
-      value: { min_position: -1.90066 max_position: 1.90066 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+      value: { min_position: -1.90066 max_position: 1.90066 max_velocity: 1.35 max_acceleration: 5.4 max_jerk: 180 max_effort: 2.25 }
     }
     joint_application_limits: {
       key: "shoulder_lift"
-      value: { min_position: -1.72788 max_position: 1.72788 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+      value: { min_position: -1.72788 max_position: 1.72788 max_velocity: 1.35 max_acceleration: 5.4 max_jerk: 180 max_effort: 2.25 }
     }
     joint_application_limits: {
       key: "elbow_flex"
-      value: { min_position: -1.6731 max_position: 1.6731 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+      value: { min_position: -1.6731 max_position: 1.6731 max_velocity: 1.35 max_acceleration: 5.4 max_jerk: 180 max_effort: 2.25 }
     }
     joint_application_limits: {
       key: "wrist_flex"
-      value: { min_position: -1.64148 max_position: 1.64148 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+      value: { min_position: -1.64148 max_position: 1.64148 max_velocity: 1.35 max_acceleration: 5.4 max_jerk: 180 max_effort: 2.25 }
     }
     joint_application_limits: {
       key: "wrist_roll"
-      value: { min_position: -2.71641 max_position: 2.8128 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+      value: { min_position: -2.71641 max_position: 2.8128 max_velocity: 1.35 max_acceleration: 5.4 max_jerk: 180 max_effort: 2.25 }
     }
   }
 }
