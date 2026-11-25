@@ -281,14 +281,22 @@ class JointTargets:
       z0 = self._last[2]
       zs = [z0 + (z - z0) * (i + 1) / JOINT_IK_LINEAR_STEPS for i in range(JOINT_IK_LINEAR_STEPS)]
     out = []
+    # The shank axis between the jaws (tool frame -x by half a shank, see
+    # GraspProfile.off_centre) goes onto the seat axis, tool straight down;
+    # the yaw about the shank is left free (round shank).
+    (ox, oy, _), _ = offset(0.0)
+    x_tool = math.hypot(ox, oy)
+    down = self._base_inv[:3, :3] @ (-seat[:3, 2])
     for zi in zs:
-      (x, y, _), (qx, qy, qz, w) = offset(zi)
-      target = self._base_inv @ seat @ so101_ik.pose_matrix((x, y, zi), (qx, qy, qz, w))
+      point = (self._base_inv @ seat @ [0.0, 0.0, zi, 1.0])[:3]
       # Free (ANY) targets take the elbow-up branch; LINEAR steps stay on the
       # branch of the step before.
-      q = so101_ik.solve(target, self.q, elbow_up=len(zs) == 1)
+      q = so101_ik.solve_down(point, (-x_tool, 0.0, 0.0), down, self.q,
+                              elbow_up=len(zs) == 1)
       if q is None:
-        raise ValueError(f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m")
+        raise ValueError(
+          f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m with the gripper "
+          "vertical (out of reach of this arm from where it stands)")
       self.q = [float(v) for v in q]
       if os.environ.get("MOVE_BIT_PRINT_JOINTS"):
         print(f"    {obj}.{frame} z={zi:.3f}: tool at "
@@ -514,16 +522,23 @@ def main(argv: Sequence[str] | None = None) -> None:
         print(f"  {slot:10s} {name or '-'}")
     return
 
-  moves = [parse_move(m) for m in args.move]
+  # Each batch is planned on the world as the batch before left it, so
+  # --fill_atc / --empty_atc see the slots the explicit --moves filled.
+  batches = [lambda: [parse_move(m) for m in args.move]]
   if args.fill_atc:
-    moves += plan_fill_atc(world)
+    batches.append(lambda: plan_fill_atc(world))
   if args.empty_atc:
-    moves += plan_empty_atc(world)
-  if not moves:
+    batches.append(lambda: plan_empty_atc(world))
+  ran = False
+  for plan in batches:
+    moves = plan()
+    if not moves:
+      continue
+    if not run_moves(solution, config, moves, args.yaw_deg, args.home_frame or None):
+      sys.exit(1)
+    ran = True
+  if not ran:
     print("Nothing to do: give --move, --fill_atc, --empty_atc or --list.")
-    return
-  if not run_moves(solution, config, moves, args.yaw_deg, args.home_frame or None):
-    sys.exit(1)
 
 
 if __name__ == "__main__":

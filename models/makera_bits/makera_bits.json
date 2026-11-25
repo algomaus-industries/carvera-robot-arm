@@ -166,7 +166,18 @@
    "cut": 0.012,
    "overall": 0.038,
    "flutes": 1,
-   "est_len": true
+   "est_len": false
+  },
+  {
+   "id": "oflm18_2p5x12",
+   "title": "Spiral O Single Flute for Metal 1/8\" 2.5x12mm",
+   "kind": "endmill",
+   "d": 0.0025,
+   "shank": 0.003175,
+   "cut": 0.012,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false
   },
   {
    "id": "oflm18_2x8",
@@ -177,7 +188,18 @@
    "cut": 0.008,
    "overall": 0.038,
    "flutes": 1,
-   "est_len": true
+   "est_len": false
+  },
+  {
+   "id": "oflm18_1p5x6",
+   "title": "Spiral O Single Flute for Metal 1/8\" 1.5x6mm",
+   "kind": "endmill",
+   "d": 0.0015,
+   "shank": 0.003175,
+   "cut": 0.006,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false
   },
   {
    "id": "oflm18_1x3",
@@ -188,7 +210,7 @@
    "cut": 0.003,
    "overall": 0.038,
    "flutes": 1,
-   "est_len": true
+   "est_len": false
   },
   {
    "id": "eng4_30x0p1",
@@ -355,7 +377,7 @@
    "cut": 0.0,
    "overall": 0.038,
    "flutes": 1,
-   "est_len": true,
+   "est_len": false,
    "angle": 60
   },
   {
@@ -367,7 +389,7 @@
    "cut": 0.0,
    "overall": 0.038,
    "flutes": 1,
-   "est_len": true,
+   "est_len": false,
    "angle": 30
   },
   {
@@ -379,7 +401,31 @@
    "cut": 0.0,
    "overall": 0.038,
    "flutes": 1,
-   "est_len": true,
+   "est_len": false,
+   "angle": 30
+  },
+  {
+   "id": "engm18_30x0p4",
+   "title": "Single Flute Engraving for Metal 1/8\" 30deg x 0.4mm",
+   "kind": "vbit",
+   "d": 0.0004,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
+   "angle": 30
+  },
+  {
+   "id": "engm18_30x0p5",
+   "title": "Single Flute Engraving for Metal 1/8\" 30deg x 0.5mm",
+   "kind": "vbit",
+   "d": 0.0005,
+   "shank": 0.003175,
+   "cut": 0.0,
+   "overall": 0.038,
+   "flutes": 1,
+   "est_len": false,
    "angle": 30
   },
   {
@@ -548,7 +594,18 @@
    "cut": 0.022,
    "overall": 0.038,
    "flutes": 2,
-   "est_len": true
+   "est_len": false
+  },
+  {
+   "id": "bn18_2p5x15",
+   "title": "Two Flute Ball Nose 1/8\" 2.5x15mm",
+   "kind": "ballnose",
+   "d": 0.0025,
+   "shank": 0.003175,
+   "cut": 0.015,
+   "overall": 0.038,
+   "flutes": 2,
+   "est_len": false
   },
   {
    "id": "bn18_2x12",
@@ -559,7 +616,18 @@
    "cut": 0.012,
    "overall": 0.038,
    "flutes": 2,
-   "est_len": true
+   "est_len": false
+  },
+  {
+   "id": "bn18_1p5x8",
+   "title": "Two Flute Ball Nose 1/8\" 1.5x8mm",
+   "kind": "ballnose",
+   "d": 0.0015,
+   "shank": 0.003175,
+   "cut": 0.008,
+   "overall": 0.038,
+   "flutes": 2,
+   "est_len": false
   },
   {
    "id": "bn18_1x4",
@@ -570,7 +638,7 @@
    "cut": 0.004,
    "overall": 0.038,
    "flutes": 2,
-   "est_len": true
+   "est_len": false
   },
   {
    "id": "bnm18_3p175x10",
@@ -581,7 +649,18 @@
    "cut": 0.01,
    "overall": 0.038,
    "flutes": 2,
-   "est_len": true
+   "est_len": false
+  },
+  {
+   "id": "bnm18_2p5x7p5",
+   "title": "Two Flute Ball Nose for Metal 1/8\" 2.5x7.5mm",
+   "kind": "ballnose",
+   "d": 0.0025,
+   "shank": 0.003175,
+   "cut": 0.0075,
+   "overall": 0.038,
+   "flutes": 2,
+   "est_len": false
   },
   {
    "id": "bnm18_2x6",
@@ -592,7 +671,18 @@
    "cut": 0.006,
    "overall": 0.038,
    "flutes": 2,
-   "est_len": true
+   "est_len": false
+  },
+  {
+   "id": "bnm18_1p5x4p5",
+   "title": "Two Flute Ball Nose for Metal 1/8\" 1.5x4.5mm",
+   "kind": "ballnose",
+   "d": 0.0015,
+   "shank": 0.003175,
+   "cut": 0.0045,
+   "overall": 0.038,
+   "flutes": 2,
+   "est_len": false
   },
   {
    "id": "bnm18_1x3",
@@ -603,7 +693,7 @@
    "cut": 0.003,
    "overall": 0.038,
    "flutes": 2,
-   "est_len": true
+   "est_len": false
   },
   {
    "id": "chamfer90_3p17",

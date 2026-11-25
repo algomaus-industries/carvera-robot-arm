@@ -82,6 +82,12 @@ updates {
   }
 }
 updates {
+  reparent_object {
+    object { by_name { object_name: "so101_gripper" } }
+    parent_frame { by_name { object_name: "so101_arm" frame_name: "flange" } }
+  }
+}
+updates {
   update_transform {
     node_a { by_name { frame { object_name: "so101_stand" frame_name: "grid_mount" } } }
     node_b { by_name { object { object_name: "bit_grid" } } }

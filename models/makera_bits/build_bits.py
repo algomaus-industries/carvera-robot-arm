@@ -10,8 +10,11 @@ thread sizes, TiN coating. ESTIMATED (store does not say): overall length
 where marked est_len, helix pitch, the collar (OD / height / position on the
 shank), coating colour of the "for Metal" bits, thread-mill cutting
 diameters, corn-bit cutting lengths, the solder-mask tool's body.
-Single Flute Engraving Bit 1/8": sizes from its product page (fetched later,
-after rate limiting).
+The 1/8" engraving (plain and for Metal), Spiral O for Metal and ball-nose
+(plain and for Metal) sizes and their ~38 mm length are from those product
+pages, fetched later after rate limiting.
+
+
 
 Each bit stands in an ATC / grid seat the way the Carvera holds it: a collar
 pressed on the shank rests on the seat, the cutter hangs down into the bore,
@@ -64,9 +67,9 @@ def catalog():
   for c in (25, 42):
     b.append(bit(f"ofl18_{c}", f'Spiral O Single Flute 1/8" x {c}mm', "endmill", 3.175, SH18, c,
                  max(38, c + 18), 1, est_len=True))
-  for d, c in ((3.175, 12), (2, 8), (1, 3)):
+  for d, c in ((3.175, 12), (2.5, 12), (2, 8), (1.5, 6), (1, 3)):
     b.append(bit(f"oflm18_{d:g}x{c}".replace(".", "p"), f'Spiral O Single Flute for Metal 1/8" {d:g}x{c}mm',
-                 "endmill", d, SH18, c, 38, 1, METAL_COAT, est_len=True))
+                 "endmill", d, SH18, c, 38, 1, METAL_COAT))
   for t in (0.1, 0.2, 0.3, 0.4, 0.5):
     b.append(bit(f"eng4_30x{t:g}".replace(".", "p"), f"Single Flute Engraving 4mm 30deg x {t:g}mm",
                  "vbit", t, 0.004, 0, 42, 1, angle=30))
@@ -76,10 +79,10 @@ def catalog():
   for t in (0.3, 0.4, 0.5):
     b.append(bit(f"engm4_30x{t:g}".replace(".", "p"), f"Single Flute Engraving for Metal 4mm 30deg x {t:g}mm",
                  "vbit", t, 0.004, 0, 45, 1, METAL_COAT, angle=30))
-  for a, t in ((60, 0.1), (30, 0.2), (30, 0.3)):
+  for a, t in ((60, 0.1), (30, 0.2), (30, 0.3), (30, 0.4), (30, 0.5)):
     b.append(bit(f"engm18_{a}x{t:g}".replace(".", "p"),
                  f'Single Flute Engraving for Metal 1/8" {a}deg x {t:g}mm', "vbit", t, SH18, 0, 38, 1,
-                 METAL_COAT, est_len=True, angle=a))
+                 METAL_COAT, angle=a))
   for t in (0.3, 0.4, 0.5):
     b.append(bit(f"eng6_20x{t:g}".replace(".", "p"), f"Two Flute Engraving 6mm 20deg x {t:g}mm",
                  "vbit", t, 0.006, 0, 50, 2, angle=20))
@@ -94,12 +97,12 @@ def catalog():
                coat=METAL_COAT))
   b.append(bit("bnm6_18", "Two Flute Ball Nose for Metal 6mm x 18mm", "ballnose", 6, 0.006, 18, 50,
                coat=METAL_COAT))
-  for d, c in ((3.175, 22), (2, 12), (1, 4)):
+  for d, c in ((3.175, 22), (2.5, 15), (2, 12), (1.5, 8), (1, 4)):
     b.append(bit(f"bn18_{d:g}x{c}".replace(".", "p"), f'Two Flute Ball Nose 1/8" {d:g}x{c}mm',
-                 "ballnose", d, SH18, c, 38, est_len=True))
-  for d, c in ((3.175, 10), (2, 6), (1, 3)):
-    b.append(bit(f"bnm18_{d:g}x{c}".replace(".", "p"), f'Two Flute Ball Nose for Metal 1/8" {d:g}x{c}mm',
-                 "ballnose", d, SH18, c, 38, coat=METAL_COAT, est_len=True))
+                 "ballnose", d, SH18, c, 38))
+  for d, c in ((3.175, 10), (2.5, 7.5), (2, 6), (1.5, 4.5), (1, 3)):
+    b.append(bit(f"bnm18_{d:g}x{c:g}".replace(".", "p"), f'Two Flute Ball Nose for Metal 1/8" {d:g}x{c:g}mm',
+                 "ballnose", d, SH18, c, 38, coat=METAL_COAT))
   for s, o in ((SH18, 38), (0.004, 50), (0.006, 50)):
     b.append(bit(f"chamfer90_{s * 1000:.3g}".replace(".", "p"), f"Chamfering Bit 90deg, {s * 1000:.3g}mm shank",
                  "chamfer", 0.3, s, 0, o, 2, angle=90))
