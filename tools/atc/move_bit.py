@@ -263,7 +263,8 @@ class JointTargets:
   def __init__(self, world: Any, arm_name: str):
     self._world = world
     arm = world.get_kinematic_object(arm_name)
-    self._base_inv = _inverse(_matrix(world.get_transform(world.root, arm)))
+    self._base = _matrix(world.get_transform(world.root, arm))
+    self._base_inv = _inverse(self._base)
     self.q = list(arm.joint_positions)
     self._last = None   # (obj, frame, z) of the previous target
 
@@ -278,10 +279,16 @@ class JointTargets:
     for zi in zs:
       (x, y, _), (qx, qy, qz, w) = offset(zi)
       target = self._base_inv @ seat @ so101_ik.pose_matrix((x, y, zi), (qx, qy, qz, w))
-      q = so101_ik.solve(target, self.q)
+      # Free (ANY) targets take the elbow-up branch; LINEAR steps stay on the
+      # branch of the step before.
+      q = so101_ik.solve(target, self.q, elbow_up=len(zs) == 1)
       if q is None:
         raise ValueError(f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m")
       self.q = [float(v) for v in q]
+      if os.environ.get("MOVE_BIT_PRINT_JOINTS"):
+        print(f"    {obj}.{frame} z={zi:.3f}: tool at "
+              f"{[round(float(v), 4) for v in (self._base @ so101_ik.fk(q))[:3, 3]]}"
+              f" q={[round(v, 3) for v in self.q]}")
       out.append(self.q)
     self._last = (obj, frame, z)
     return out
@@ -296,6 +303,20 @@ def _matrix(pose: Any):
 def _inverse(m):
   import numpy as np  # pylint: disable=import-outside-toplevel
   return np.linalg.inv(m)
+
+
+def _seat_in_world(world: Any, holder: str, slot: str) -> None:
+  """Puts `holder` exactly on `slot` in the belief world.
+
+  The SO-101's jaw is set through update_world only, so in Gazebo it never
+  closes on the bit and the bit stays where it was; detaching then reads that
+  Gazebo pose back. Seating the bit here keeps the belief world right.
+  """
+  obj, frame = parse_slot(slot)
+  seat = world.get_transform_node(_frame_ref(obj, frame))
+  bit = world.get_object(holder)
+  world.update_transform(node_a=world.root, node_b=bit,
+                         a_t_b=world.get_transform(world.root, seat), node_to_update=bit)
 
 
 def build_move_tree(
@@ -404,12 +425,17 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
         build_move_tree(robot, gripper, machine, config, holder, src, dst, yaw_deg,
                         profile, shank, joints)
       )
+      if profile.joint_ik:
+        _seat_in_world(world, holder, dst)
       print(f"[✓] {holder} is now in {dst}")
     except (execution.ExecutionFailedError, ValueError) as e:
       print(f"[!] Move failed: {e}")
       if hasattr(solution.executive, "get_errors"):
         print(f"Executive errors: {solution.executive.get_errors()}")
       return False
+  if profile.joint_ik and getattr(solution, "is_simulated", False) and solution.simulator:
+    # Copy the belief world (bits on their new seats) into Gazebo.
+    solution.simulator.reset()
   if home_frame and profile.joint_ik:
     solution.executive.run(robot.build_move_joint_task(
       "home", name="Return to home", motion_type="ANY",

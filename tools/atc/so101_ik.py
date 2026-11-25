@@ -93,25 +93,33 @@ def _solve_from(seed, target, iters=200, tol=1e-6):
   return q if np.linalg.norm(_error(q, target)) < 1e-4 else None
 
 
-def solve(target: np.ndarray, seed, attempts: int = 64):
+ELBOW_DOWN_PENALTY = 10.0
+
+
+def solve(target: np.ndarray, seed, attempts: int = 64, elbow_up: bool = False):
   """Joint positions placing the tool frame at `target`, closest to `seed`.
 
   Returns None when the pose is out of reach (the 5-DOF arm can still reach
   any yaw about a vertical tool axis, through shoulder_pan and wrist_roll).
+  elbow_up: prefer solutions with elbow_flex > 0 (lower arm raised, as at
+  home). Far targets such as the ATC also have elbow-down solutions that put
+  the lower arm into the machine.
   """
+  seed = np.asarray(seed, float)
   rng = np.random.default_rng(0)
-  seeds = [np.asarray(seed, float)] + [
-    rng.uniform(LIMITS[:, 0], LIMITS[:, 1]) for _ in range(attempts)
-  ]
+  seeds = [seed] + [rng.uniform(LIMITS[:, 0], LIMITS[:, 1]) for _ in range(attempts)]
   best = None
   for s in seeds:
     q = _solve_from(s, target)
-    if q is not None:
-      d = np.linalg.norm(q - np.asarray(seed, float))
-      if best is None or d < best[0]:
-        best = (d, q)
-      if d < 0.5:
-        break
+    if q is None:
+      continue
+    d = np.linalg.norm(q - seed)
+    if elbow_up and q[2] <= 0:
+      d += ELBOW_DOWN_PENALTY
+    if best is None or d < best[0]:
+      best = (d, q)
+    if d < 0.5:
+      break
   return None if best is None else best[1]
 
 
