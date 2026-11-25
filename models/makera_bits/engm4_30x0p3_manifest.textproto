@@ -1,0 +1,13 @@
+# proto-file: intrinsic/assets/scene_objects/proto/scene_object_manifest.proto
+# proto-message: intrinsic_proto.scene_objects.SceneObjectManifest
+
+metadata {
+  id {
+    name: "makera_bit_engm4_30x0p3"
+    package: "ai.intrinsic"
+  }
+  vendor {
+    display_name: "intrinsic"
+  }
+  display_name: "Makera Single Flute Engraving for Metal 4mm 30deg x 0.3mm"
+}

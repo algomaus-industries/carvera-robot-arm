@@ -1,0 +1,755 @@
+# proto-file: intrinsic/world/public/proto/object_world_updates.proto
+# proto-message: intrinsic_proto.world.ObjectWorldUpdates
+#
+# Bits in the SO-101 cell's 21 mm grid (models/bit_grid_21, instance bit_grid).
+# The 68 Makera bits (models/makera_bits), bit_<id>, in catalogue order
+# row by row from cell_0_0 (21 mm pitch, seats 47 mm above the
+# grid base). //tools/atc:move_bit moves them to and from the Carvera ATC.
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl4_22" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl4_22" } } }
+    a_t_b {
+      position { x: -0.09450 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl4_25" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl4_25" } } }
+    a_t_b {
+      position { x: -0.07350 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl4_32" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl4_32" } } }
+    a_t_b {
+      position { x: -0.05250 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm4_12" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm4_12" } } }
+    a_t_b {
+      position { x: -0.03150 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm4_17" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm4_17" } } }
+    a_t_b {
+      position { x: -0.01050 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm4_22" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm4_22" } } }
+    a_t_b {
+      position { x: 0.01050 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl6_22" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl6_22" } } }
+    a_t_b {
+      position { x: 0.03150 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl6_25" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl6_25" } } }
+    a_t_b {
+      position { x: 0.05250 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl6_32" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl6_32" } } }
+    a_t_b {
+      position { x: 0.07350 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm6_17" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm6_17" } } }
+    a_t_b {
+      position { x: 0.09450 y: -0.09450 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm6_25" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm6_25" } } }
+    a_t_b {
+      position { x: -0.09450 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm6_30" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm6_30" } } }
+    a_t_b {
+      position { x: -0.07350 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl18_25" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl18_25" } } }
+    a_t_b {
+      position { x: -0.05250 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_ofl18_42" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl18_42" } } }
+    a_t_b {
+      position { x: -0.03150 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm18_3p175x12" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm18_3p175x12" } } }
+    a_t_b {
+      position { x: -0.01050 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm18_2x8" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm18_2x8" } } }
+    a_t_b {
+      position { x: 0.01050 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_oflm18_1x3" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm18_1x3" } } }
+    a_t_b {
+      position { x: 0.03150 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p1" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p1" } } }
+    a_t_b {
+      position { x: 0.05250 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p2" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p2" } } }
+    a_t_b {
+      position { x: 0.07350 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p3" } } }
+    a_t_b {
+      position { x: 0.09450 y: -0.07350 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p4" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p4" } } }
+    a_t_b {
+      position { x: -0.09450 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p5" } } }
+    a_t_b {
+      position { x: -0.07350 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_engm4_30x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_engm4_30x0p3" } } }
+    a_t_b {
+      position { x: -0.05250 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_engm4_30x0p4" } } }
+    node_to_update { by_name { object { object_name: "bit_engm4_30x0p4" } } }
+    a_t_b {
+      position { x: -0.03150 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_engm4_30x0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_engm4_30x0p5" } } }
+    a_t_b {
+      position { x: -0.01050 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_engm18_60x0p1" } } }
+    node_to_update { by_name { object { object_name: "bit_engm18_60x0p1" } } }
+    a_t_b {
+      position { x: 0.01050 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_engm18_30x0p2" } } }
+    node_to_update { by_name { object { object_name: "bit_engm18_30x0p2" } } }
+    a_t_b {
+      position { x: 0.03150 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_engm18_30x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_engm18_30x0p3" } } }
+    a_t_b {
+      position { x: 0.05250 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng6_20x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_eng6_20x0p3" } } }
+    a_t_b {
+      position { x: 0.07350 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng6_20x0p4" } } }
+    node_to_update { by_name { object { object_name: "bit_eng6_20x0p4" } } }
+    a_t_b {
+      position { x: 0.09450 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_eng6_20x0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_eng6_20x0p5" } } }
+    a_t_b {
+      position { x: -0.09450 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bneng6_0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_bneng6_0p5" } } }
+    a_t_b {
+      position { x: -0.07350 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bneng6_1" } } }
+    node_to_update { by_name { object { object_name: "bit_bneng6_1" } } }
+    a_t_b {
+      position { x: -0.05250 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bneng6_2" } } }
+    node_to_update { by_name { object { object_name: "bit_bneng6_2" } } }
+    a_t_b {
+      position { x: -0.03150 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn4_12" } } }
+    node_to_update { by_name { object { object_name: "bit_bn4_12" } } }
+    a_t_b {
+      position { x: -0.01050 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn4_22" } } }
+    node_to_update { by_name { object { object_name: "bit_bn4_22" } } }
+    a_t_b {
+      position { x: 0.01050 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn4_32" } } }
+    node_to_update { by_name { object { object_name: "bit_bn4_32" } } }
+    a_t_b {
+      position { x: 0.03150 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn6_12" } } }
+    node_to_update { by_name { object { object_name: "bit_bn6_12" } } }
+    a_t_b {
+      position { x: 0.05250 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn6_22" } } }
+    node_to_update { by_name { object { object_name: "bit_bn6_22" } } }
+    a_t_b {
+      position { x: 0.07350 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn6_32" } } }
+    node_to_update { by_name { object { object_name: "bit_bn6_32" } } }
+    a_t_b {
+      position { x: 0.09450 y: -0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bnm4_12" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm4_12" } } }
+    a_t_b {
+      position { x: -0.09450 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bnm6_18" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm6_18" } } }
+    a_t_b {
+      position { x: -0.07350 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn18_3p175x22" } } }
+    node_to_update { by_name { object { object_name: "bit_bn18_3p175x22" } } }
+    a_t_b {
+      position { x: -0.05250 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn18_2x12" } } }
+    node_to_update { by_name { object { object_name: "bit_bn18_2x12" } } }
+    a_t_b {
+      position { x: -0.03150 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bn18_1x4" } } }
+    node_to_update { by_name { object { object_name: "bit_bn18_1x4" } } }
+    a_t_b {
+      position { x: -0.01050 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bnm18_3p175x10" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm18_3p175x10" } } }
+    a_t_b {
+      position { x: 0.01050 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bnm18_2x6" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm18_2x6" } } }
+    a_t_b {
+      position { x: 0.03150 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_bnm18_1x3" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm18_1x3" } } }
+    a_t_b {
+      position { x: 0.05250 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_chamfer90_3p17" } } }
+    node_to_update { by_name { object { object_name: "bit_chamfer90_3p17" } } }
+    a_t_b {
+      position { x: 0.07350 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_chamfer90_4" } } }
+    node_to_update { by_name { object { object_name: "bit_chamfer90_4" } } }
+    a_t_b {
+      position { x: 0.09450 y: -0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_chamfer90_6" } } }
+    node_to_update { by_name { object { object_name: "bit_chamfer90_6" } } }
+    a_t_b {
+      position { x: -0.09450 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread6_m6" } } }
+    node_to_update { by_name { object { object_name: "bit_thread6_m6" } } }
+    a_t_b {
+      position { x: -0.07350 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread6_m8" } } }
+    node_to_update { by_name { object { object_name: "bit_thread6_m8" } } }
+    a_t_b {
+      position { x: -0.05250 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m1" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m1" } } }
+    a_t_b {
+      position { x: -0.03150 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m2" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m2" } } }
+    a_t_b {
+      position { x: -0.01050 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m2p5" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m2p5" } } }
+    a_t_b {
+      position { x: 0.01050 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m3" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m3" } } }
+    a_t_b {
+      position { x: 0.03150 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m4" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m4" } } }
+    a_t_b {
+      position { x: 0.05250 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m5" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m5" } } }
+    a_t_b {
+      position { x: 0.07350 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_drill18_1" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_1" } } }
+    a_t_b {
+      position { x: 0.09450 y: 0.01050 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_drill18_2" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_2" } } }
+    a_t_b {
+      position { x: -0.09450 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_drill18_2p5" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_2p5" } } }
+    a_t_b {
+      position { x: -0.07350 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_drill18_3" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_3" } } }
+    a_t_b {
+      position { x: -0.05250 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_corn18_0p6" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_0p6" } } }
+    a_t_b {
+      position { x: -0.03150 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_corn18_1" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_1" } } }
+    a_t_b {
+      position { x: -0.01050 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_corn18_2" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_2" } } }
+    a_t_b {
+      position { x: 0.01050 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_corn18_3" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_3" } } }
+    a_t_b {
+      position { x: 0.03150 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}
+updates {
+  update_transform {
+    node_a { by_name { object { object_name: "bit_grid" } } }
+    node_b { by_name { object { object_name: "bit_uv_soldermask" } } }
+    node_to_update { by_name { object { object_name: "bit_uv_soldermask" } } }
+    a_t_b {
+      position { x: 0.05250 y: 0.03150 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+    }
+  }
+}

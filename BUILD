@@ -3,10 +3,15 @@ load("@intrinsic-core//intrinsic/assets/build_defs:solution.bzl", "intrinsic_sol
 load("@intrinsic-core//intrinsic_sdk/intrinsic/assets/build_defs:asset.bzl", "intrinsic_asset_instance")
 load("//bazel:imported_asset.bzl", "imported_asset_bundle")
 load("//bazel:solution_manifest.bzl", "solution_manifest_only")
+load("//models/makera_bits:bits.bzl", "MAKERA_BITS")
 
 package(default_visibility = ["//visibility:public"])
 
-# Flag to parameterize hardware setup (omts vs lab_bb_01).
+# Flag to parameterize hardware setup (omts vs lab_bb_01 vs carvera_so101).
+#
+# carvera_so101: simulation-only cell with an SO-ARM101 hobby arm tending the
+# Carvera ATC from a rolling cart (models/so101, configs/carvera_so101/). No
+# camera, perception, Hand-E or UR in it.
 #
 # configs/kr_10/ exists but is not a value here: the solution below is wired to
 # the UR hardware modules throughout, so selecting a KUKA cell would produce a
@@ -17,7 +22,15 @@ string_flag(
     values = [
         "omts",
         "lab_bb_01",
+        "carvera_so101",
     ],
+)
+
+config_setting(
+    name = "is_carvera_so101",
+    flag_values = {
+        ":setup": "carvera_so101",
+    },
 )
 
 config_setting(
@@ -55,7 +68,22 @@ config_setting(
     },
 )
 
-BIT_HOLDER_INSTANCES = [":bit_%d%d" % (r, c) for r in range(10) for c in range(10)]
+# Every bit Makera sells for the Carvera, one instance each (bit_<id>), placed
+# in the bit grid by configs/<cell>/bit_grid.updates.pbtxt / bits.updates.pbtxt.
+BIT_ASSETS = ["//models/makera_bits:" + bit for bit in MAKERA_BITS]
+
+BIT_INSTANCES = [":bit_" + bit for bit in MAKERA_BITS]
+
+_SO101_ASSETS = [
+    "//models/so101:so101_hardware_module",
+    "//models/so101_gripper",
+    "//models/so101_stand",
+    "//models/carvera_bench",
+    "//models/robot_cart",
+    "//models/bit_grid_21",
+    "//models/makera_carvera",
+    "//models/schunk_egp_64nnb",
+]
 
 _OMTS_SKILL_ASSETS = [
     ":hand_e_gripper_cmd_skill_asset",
@@ -108,42 +136,61 @@ intrinsic_solution(
             "@intrinsic-core//intrinsic/apps/bluebird_caw/resources:caw_enclosure",
             "@intrinsic-core//intrinsic_control/intrinsic/icon/hardware_modules/universal_robots:ur3e_hardware_module_core",
         ],
+        ":is_carvera_so101": _SO101_ASSETS,
         "//conditions:default": [
             "@intrinsic-core//intrinsic_control/intrinsic/icon/hardware_modules/universal_robots:ur5e_hardware_module_core",
             "//models/camera_mount",
             "//models/bit_grid",
-            "//models/carvera_tool_holder",
             "//models/makera_carvera",
             "//models/omts_enclosure",
             "//models/schunk_egp_64nnb",
         ],
+    }) + select({
+        ":is_lab_bb_01": [],
+        "//conditions:default": BIT_ASSETS,
     }),
     default_operation_mode = "real",
     instances = [
-        ":enclosure",
-        ":robotiq_pinch_gripper",
         ":gazebo_simulator",
-        ":charuco_9x12_30mm_22mm_dict_5x5",
-        ":charuco_9x14_20mm_15mm_dict_5x5",
-        ":calibration_service_instance",
         ":icon",
-        ":ur_module",
-        ":orbbec_camera",
-        ":orbbec_gemini_driver",
         ":motion_planner_service",
-        ":nvidia_pose_estimator_service",
-        ":train_service",
         ":flowstate_ros_bridge",
-        ":hand_e_gripper_service",
     ] + select({
+        ":is_carvera_so101": [
+            ":so101_arm",
+            ":so101_gripper",
+            ":so101_stand",
+            ":carvera_bench",
+            ":robot_cart",
+        ],
+        "//conditions:default": [
+            ":enclosure",
+            ":robotiq_pinch_gripper",
+            ":charuco_9x12_30mm_22mm_dict_5x5",
+            ":charuco_9x14_20mm_15mm_dict_5x5",
+            ":calibration_service_instance",
+            ":ur_module",
+            ":orbbec_camera",
+            ":orbbec_gemini_driver",
+            ":nvidia_pose_estimator_service",
+            ":train_service",
+            ":hand_e_gripper_service",
+        ],
+    }) + select({
         ":is_lab_banana": [":banana"],
         ":is_lab_bracket": [":bracket"],
+        ":is_carvera_so101": [],
         "//conditions:default": [":raw_stock_2x3x5"],
     }) + select({
         ":is_lab_bb_01": [],
-        "//conditions:default": BIT_HOLDER_INSTANCES,
+        "//conditions:default": BIT_INSTANCES,
     }) + select({
         ":is_lab_bb_01": [
+        ],
+        ":is_carvera_so101": [
+            ":cnc_enclosure",
+            ":bit_grid",
+            ":schunk_egp_64nnb",
         ],
         "//conditions:default": [
             ":camera_mount",
@@ -172,6 +219,11 @@ intrinsic_solution(
             "//configs:lab_bb_01/scene.updates.pbtxt",
             "//configs:lab_bb_01/align_robot.updates.pbtxt",
             "//configs:lab_bb_01/orbbec_gemini.updates.pbtxt",
+        ],
+        ":is_carvera_so101": [
+            "//configs:carvera_so101/cell.updates.pbtxt",
+            "//configs:omts/schunk.updates.pbtxt",
+            "//configs:carvera_so101/bits.updates.pbtxt",
         ],
         "//conditions:default": [
             "//configs:omts/ur_module.limits.updates.pbtxt",
@@ -216,23 +268,57 @@ intrinsic_asset_instance(
     instance_name = "cnc_enclosure",
 )
 
-# Tool-bit storage grid and the 100 Carvera ATC tool holders in it
-# (bit_RC in cell R,C; see configs/omts/bit_grid.updates.pbtxt).
+# Tool-bit storage grid (35 mm pitch for the Hand-E; 21 mm in the SO-101 cell)
+# and the Makera bits in it.
 intrinsic_asset_instance(
     name = "bit_grid",
-    asset = "ai.intrinsic.bit_grid",
+    asset = select({
+        ":is_carvera_so101": "ai.intrinsic.bit_grid_21",
+        "//conditions:default": "ai.intrinsic.bit_grid",
+    }),
     instance_name = "bit_grid",
 )
 
 [
     intrinsic_asset_instance(
-        name = "bit_%d%d" % (r, c),
-        asset = "ai.intrinsic.carvera_tool_holder",
-        instance_name = "bit_%d%d" % (r, c),
+        name = "bit_" + bit,
+        asset = "ai.intrinsic.makera_bit_" + bit,
+        instance_name = "bit_" + bit,
     )
-    for r in range(10)
-    for c in range(10)
+    for bit in MAKERA_BITS
 ]
+
+# SO-101 cell (--//:setup=carvera_so101).
+intrinsic_asset_instance(
+    name = "so101_arm",
+    asset = "ai.intrinsic.so101_hardware_module",
+    instance_name = "so101_arm",
+    service_config = "//configs:carvera_so101/so101_module_config.textproto",
+)
+
+intrinsic_asset_instance(
+    name = "so101_gripper",
+    asset = "ai.intrinsic.so101_gripper",
+    instance_name = "so101_gripper",
+)
+
+intrinsic_asset_instance(
+    name = "so101_stand",
+    asset = "ai.intrinsic.so101_stand",
+    instance_name = "so101_stand",
+)
+
+intrinsic_asset_instance(
+    name = "carvera_bench",
+    asset = "ai.intrinsic.carvera_bench",
+    instance_name = "carvera_bench",
+)
+
+intrinsic_asset_instance(
+    name = "robot_cart",
+    asset = "ai.intrinsic.robot_cart",
+    instance_name = "robot_cart",
+)
 
 intrinsic_asset_instance(
     name = "camera_mount",
@@ -287,6 +373,7 @@ intrinsic_asset_instance(
     instance_name = "icon",
     service_config = select({
         ":is_lab_bb_01": "//configs:lab_bb_01/icon_config.textproto",
+        ":is_carvera_so101": "//configs:carvera_so101/icon_config.textproto",
         "//conditions:default": "//configs:omts/icon_config.textproto",
     }),
 )

@@ -1,0 +1,92 @@
+# SO-101 cell (--//:setup=carvera_so101): Carvera on its bench, SO-ARM101 and
+# the Makera bits on a rolling cart. Simulation only. Copied from
+# configs/omts/app_config.yaml; robot, gripper and machine.device_name differ.
+# vision / grasp / cycle are kept so the file loads, but this cell has no
+# camera and no raw stock: use it with //tools/atc:move_bit.
+cell_name: "carvera_so101"
+
+robot:
+  arm_part_name: "so101_arm"
+  tool_object_name: "so101_gripper"
+  tool_frame_name: "tool_frame"
+  enclosure_object_name: "carvera_bench"
+
+gripper:
+  # SO-101 moving jaw, set through the world (move_bit.So101Jaw). Angles in
+  # rad: 0.10 = 24 mm gap, -0.17 = 3 mm (closed on a 1/8" shank).
+  type: "so101"
+  joint_name: "jaw_joint"
+  open_position: 0.10
+  close_position: -0.17
+
+machine:
+  door_open_pin: 2
+  door_close_pin: 3
+  vise_open_pin: 4
+  vise_close_pin: 5
+  cycle_start_pin: 6
+  cycle_complete_input_pin: null
+  device_name: "so101_arm"
+  enclosure_object_name: "cnc_enclosure"
+  vise_object_name: "schunk_egp_64nnb"
+  door_open_joints: [1.4866]  # Carvera lid_joint, fully open
+  door_closed_joints: [0.0]
+  vise_open_joints: [0.01, 0.01]
+  vise_closed_joints: [0.0, 0.0]
+  output_block_name: "standard_out"
+  input_block_name: "standard_in"
+
+vision:
+  camera_name: "orbbec_camera"
+  perception_service_name: "nvidia_pose_estimator_service"
+  pose_estimator_id: "ai.intrinsic.raw_stock_2x3x5_estimator_text"
+  scene_object_id: "ai.intrinsic.raw_stock_2x3x5"
+  sensor_ids: [1, 4]
+  min_num_instances: 1
+  infeed_mode: "perception"
+  min_safe_z: 0.95
+
+frames:
+  parent_object: "root"
+  view_frame: "view"
+  pregrasp_frame: "pre_grasp"
+  grasp_frame: "grasp"
+  transit_frame: "transit"
+  machine_approach_frame: "machine_approach"
+  preplace_vise_frame: "vise_pre_place"
+  place_vise_frame: "vise_place"
+
+grasp:
+  planner: "cuboid_center"
+  # moveit_* configurations below are only relevant when planner is "moveit"
+  moveit_tool_frame_name: "hande_tcp"
+  moveit_group_name: "ur_manipulator"
+  moveit_end_effector_group: "hand"
+  # raw_stock_2x3x5's long (127 mm) axis is Y, so 0,1,4,5 means "any long face,
+  # never an end cap": an end-cap grasp holds the part cantilevered by its tip.
+  moveit_surfaces: [0, 1, 4, 5]
+  moveit_num_rotations: 4
+  moveit_retract_dist_m: 0.05
+  moveit_timeout_ms: 15000.0
+  moveit_settle_seconds: 0.3
+  # Only relevant when planner is "antipodal_mesh"
+  antipodal_mesh_gripper: "robotiq_hande"
+
+cycle:
+  num_cycles: 1
+  workpiece_id: "raw_stock_2x3x5"
+  approach_offset_z: 0.08
+  standoff_distance_meters: 0.02
+  retract_distance_meters: 0.015
+  pick_touchdown_force_newtons: 10.0
+  load_seat_force_newtons: 10.0
+  unload_touchdown_force_newtons: 10.0
+  return_touchdown_force_newtons: 10.0
+  touchdown_timeout_seconds: 30.0
+  machining_timeout_seconds: 2.0
+  return_shift:
+    center_x: 0.45
+    center_y: 0.0
+    bounds_x: 0.1
+    bounds_y: 0.1
+    bounds_rz_degrees: 40.0

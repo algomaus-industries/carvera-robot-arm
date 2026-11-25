@@ -1,0 +1,13 @@
+# proto-file: intrinsic/assets/scene_objects/proto/scene_object_manifest.proto
+# proto-message: intrinsic_proto.scene_objects.SceneObjectManifest
+
+metadata {
+  id {
+    name: "makera_bit_thread6_m6"
+    package: "ai.intrinsic"
+  }
+  vendor {
+    display_name: "intrinsic"
+  }
+  display_name: "Makera Thread Milling 6mm M6 (d4.8 x 18mm)"
+}

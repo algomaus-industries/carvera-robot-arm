@@ -1,0 +1,7 @@
+# SO-101 hardware module, simulation only (see models/so101/BUILD).
+[type.googleapis.com/intrinsic_proto.icon.HardwareModuleConfig]:  {
+  name:  "so101_arm"
+  drives_realtime_clock:  true
+  control_frequency_hz:  500
+  simulation_module_config:  {}
+}

@@ -1,0 +1,13 @@
+# proto-file: intrinsic/assets/scene_objects/proto/scene_object_manifest.proto
+# proto-message: intrinsic_proto.scene_objects.SceneObjectManifest
+
+metadata {
+  id {
+    name: "makera_bit_oflm18_3p175x12"
+    package: "ai.intrinsic"
+  }
+  vendor {
+    display_name: "intrinsic"
+  }
+  display_name: "Makera Spiral O Single Flute for Metal 1/8 in 3.175x12mm"
+}

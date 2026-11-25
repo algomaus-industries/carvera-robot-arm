@@ -1,10 +1,10 @@
 # proto-file: intrinsic/world/public/proto/object_world_updates.proto
 # proto-message: intrinsic_proto.world.ObjectWorldUpdates
 #
-# Tool-bit storage grid (models/bit_grid) on the table, robot side, and the
-# 100 Carvera tool holders bit_00 .. bit_99 seated in its cells (bit_RC sits
-# in cell_R_C). //tools/atc:move_bit moves them to and from the Carvera ATC.
-# Pitch 35 mm, seats 32 mm above the table.
+# Tool-bit storage grid (models/bit_grid) on the table, robot side.
+# The 68 Makera bits (models/makera_bits), bit_<id>, in catalogue order
+# row by row from cell_0_0 (35 mm pitch, seats 47 mm above the
+# grid base). //tools/atc:move_bit moves them to and from the Carvera ATC.
 updates {
   update_transform {
     node_a { by_name { object { object_name: "enclosure" } } }
@@ -12,1107 +12,755 @@ updates {
     node_to_update { by_name { object { object_name: "bit_grid" } } }
     a_t_b {
       position { x: 0.13500 y: 0.30500 z: 1.02500 }
-      orientation { w: 1 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_00" } } }
-    node_to_update { by_name { object { object_name: "bit_00" } } }
+    node_b { by_name { object { object_name: "bit_ofl4_22" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl4_22" } } }
     a_t_b {
-      position { x: -0.15750 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_01" } } }
-    node_to_update { by_name { object { object_name: "bit_01" } } }
+    node_b { by_name { object { object_name: "bit_ofl4_25" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl4_25" } } }
     a_t_b {
-      position { x: -0.12250 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_02" } } }
-    node_to_update { by_name { object { object_name: "bit_02" } } }
+    node_b { by_name { object { object_name: "bit_ofl4_32" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl4_32" } } }
     a_t_b {
-      position { x: -0.08750 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_03" } } }
-    node_to_update { by_name { object { object_name: "bit_03" } } }
+    node_b { by_name { object { object_name: "bit_oflm4_12" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm4_12" } } }
     a_t_b {
-      position { x: -0.05250 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_04" } } }
-    node_to_update { by_name { object { object_name: "bit_04" } } }
+    node_b { by_name { object { object_name: "bit_oflm4_17" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm4_17" } } }
     a_t_b {
-      position { x: -0.01750 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_05" } } }
-    node_to_update { by_name { object { object_name: "bit_05" } } }
+    node_b { by_name { object { object_name: "bit_oflm4_22" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm4_22" } } }
     a_t_b {
-      position { x: 0.01750 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_06" } } }
-    node_to_update { by_name { object { object_name: "bit_06" } } }
+    node_b { by_name { object { object_name: "bit_ofl6_22" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl6_22" } } }
     a_t_b {
-      position { x: 0.05250 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_07" } } }
-    node_to_update { by_name { object { object_name: "bit_07" } } }
+    node_b { by_name { object { object_name: "bit_ofl6_25" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl6_25" } } }
     a_t_b {
-      position { x: 0.08750 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_08" } } }
-    node_to_update { by_name { object { object_name: "bit_08" } } }
+    node_b { by_name { object { object_name: "bit_ofl6_32" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl6_32" } } }
     a_t_b {
-      position { x: 0.12250 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.12250 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_09" } } }
-    node_to_update { by_name { object { object_name: "bit_09" } } }
+    node_b { by_name { object { object_name: "bit_oflm6_17" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm6_17" } } }
     a_t_b {
-      position { x: 0.15750 y: -0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.15750 y: -0.15750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_10" } } }
-    node_to_update { by_name { object { object_name: "bit_10" } } }
+    node_b { by_name { object { object_name: "bit_oflm6_25" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm6_25" } } }
     a_t_b {
-      position { x: -0.15750 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_11" } } }
-    node_to_update { by_name { object { object_name: "bit_11" } } }
+    node_b { by_name { object { object_name: "bit_oflm6_30" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm6_30" } } }
     a_t_b {
-      position { x: -0.12250 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_12" } } }
-    node_to_update { by_name { object { object_name: "bit_12" } } }
+    node_b { by_name { object { object_name: "bit_ofl18_25" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl18_25" } } }
     a_t_b {
-      position { x: -0.08750 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_13" } } }
-    node_to_update { by_name { object { object_name: "bit_13" } } }
+    node_b { by_name { object { object_name: "bit_ofl18_42" } } }
+    node_to_update { by_name { object { object_name: "bit_ofl18_42" } } }
     a_t_b {
-      position { x: -0.05250 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_14" } } }
-    node_to_update { by_name { object { object_name: "bit_14" } } }
+    node_b { by_name { object { object_name: "bit_oflm18_3p175x12" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm18_3p175x12" } } }
     a_t_b {
-      position { x: -0.01750 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_15" } } }
-    node_to_update { by_name { object { object_name: "bit_15" } } }
+    node_b { by_name { object { object_name: "bit_oflm18_2x8" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm18_2x8" } } }
     a_t_b {
-      position { x: 0.01750 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_16" } } }
-    node_to_update { by_name { object { object_name: "bit_16" } } }
+    node_b { by_name { object { object_name: "bit_oflm18_1x3" } } }
+    node_to_update { by_name { object { object_name: "bit_oflm18_1x3" } } }
     a_t_b {
-      position { x: 0.05250 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_17" } } }
-    node_to_update { by_name { object { object_name: "bit_17" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p1" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p1" } } }
     a_t_b {
-      position { x: 0.08750 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_18" } } }
-    node_to_update { by_name { object { object_name: "bit_18" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p2" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p2" } } }
     a_t_b {
-      position { x: 0.12250 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.12250 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_19" } } }
-    node_to_update { by_name { object { object_name: "bit_19" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p3" } } }
     a_t_b {
-      position { x: 0.15750 y: -0.12250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.15750 y: -0.12250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_20" } } }
-    node_to_update { by_name { object { object_name: "bit_20" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p4" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p4" } } }
     a_t_b {
-      position { x: -0.15750 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_21" } } }
-    node_to_update { by_name { object { object_name: "bit_21" } } }
+    node_b { by_name { object { object_name: "bit_eng4_30x0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_eng4_30x0p5" } } }
     a_t_b {
-      position { x: -0.12250 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_22" } } }
-    node_to_update { by_name { object { object_name: "bit_22" } } }
+    node_b { by_name { object { object_name: "bit_engm4_30x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_engm4_30x0p3" } } }
     a_t_b {
-      position { x: -0.08750 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_23" } } }
-    node_to_update { by_name { object { object_name: "bit_23" } } }
+    node_b { by_name { object { object_name: "bit_engm4_30x0p4" } } }
+    node_to_update { by_name { object { object_name: "bit_engm4_30x0p4" } } }
     a_t_b {
-      position { x: -0.05250 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_24" } } }
-    node_to_update { by_name { object { object_name: "bit_24" } } }
+    node_b { by_name { object { object_name: "bit_engm4_30x0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_engm4_30x0p5" } } }
     a_t_b {
-      position { x: -0.01750 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_25" } } }
-    node_to_update { by_name { object { object_name: "bit_25" } } }
+    node_b { by_name { object { object_name: "bit_engm18_60x0p1" } } }
+    node_to_update { by_name { object { object_name: "bit_engm18_60x0p1" } } }
     a_t_b {
-      position { x: 0.01750 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_26" } } }
-    node_to_update { by_name { object { object_name: "bit_26" } } }
+    node_b { by_name { object { object_name: "bit_engm18_30x0p2" } } }
+    node_to_update { by_name { object { object_name: "bit_engm18_30x0p2" } } }
     a_t_b {
-      position { x: 0.05250 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_27" } } }
-    node_to_update { by_name { object { object_name: "bit_27" } } }
+    node_b { by_name { object { object_name: "bit_engm18_30x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_engm18_30x0p3" } } }
     a_t_b {
-      position { x: 0.08750 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_28" } } }
-    node_to_update { by_name { object { object_name: "bit_28" } } }
+    node_b { by_name { object { object_name: "bit_eng6_20x0p3" } } }
+    node_to_update { by_name { object { object_name: "bit_eng6_20x0p3" } } }
     a_t_b {
-      position { x: 0.12250 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.12250 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_29" } } }
-    node_to_update { by_name { object { object_name: "bit_29" } } }
+    node_b { by_name { object { object_name: "bit_eng6_20x0p4" } } }
+    node_to_update { by_name { object { object_name: "bit_eng6_20x0p4" } } }
     a_t_b {
-      position { x: 0.15750 y: -0.08750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.15750 y: -0.08750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_30" } } }
-    node_to_update { by_name { object { object_name: "bit_30" } } }
+    node_b { by_name { object { object_name: "bit_eng6_20x0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_eng6_20x0p5" } } }
     a_t_b {
-      position { x: -0.15750 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_31" } } }
-    node_to_update { by_name { object { object_name: "bit_31" } } }
+    node_b { by_name { object { object_name: "bit_bneng6_0p5" } } }
+    node_to_update { by_name { object { object_name: "bit_bneng6_0p5" } } }
     a_t_b {
-      position { x: -0.12250 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_32" } } }
-    node_to_update { by_name { object { object_name: "bit_32" } } }
+    node_b { by_name { object { object_name: "bit_bneng6_1" } } }
+    node_to_update { by_name { object { object_name: "bit_bneng6_1" } } }
     a_t_b {
-      position { x: -0.08750 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_33" } } }
-    node_to_update { by_name { object { object_name: "bit_33" } } }
+    node_b { by_name { object { object_name: "bit_bneng6_2" } } }
+    node_to_update { by_name { object { object_name: "bit_bneng6_2" } } }
     a_t_b {
-      position { x: -0.05250 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_34" } } }
-    node_to_update { by_name { object { object_name: "bit_34" } } }
+    node_b { by_name { object { object_name: "bit_bn4_12" } } }
+    node_to_update { by_name { object { object_name: "bit_bn4_12" } } }
     a_t_b {
-      position { x: -0.01750 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_35" } } }
-    node_to_update { by_name { object { object_name: "bit_35" } } }
+    node_b { by_name { object { object_name: "bit_bn4_22" } } }
+    node_to_update { by_name { object { object_name: "bit_bn4_22" } } }
     a_t_b {
-      position { x: 0.01750 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_36" } } }
-    node_to_update { by_name { object { object_name: "bit_36" } } }
+    node_b { by_name { object { object_name: "bit_bn4_32" } } }
+    node_to_update { by_name { object { object_name: "bit_bn4_32" } } }
     a_t_b {
-      position { x: 0.05250 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_37" } } }
-    node_to_update { by_name { object { object_name: "bit_37" } } }
+    node_b { by_name { object { object_name: "bit_bn6_12" } } }
+    node_to_update { by_name { object { object_name: "bit_bn6_12" } } }
     a_t_b {
-      position { x: 0.08750 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_38" } } }
-    node_to_update { by_name { object { object_name: "bit_38" } } }
+    node_b { by_name { object { object_name: "bit_bn6_22" } } }
+    node_to_update { by_name { object { object_name: "bit_bn6_22" } } }
     a_t_b {
-      position { x: 0.12250 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.12250 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_39" } } }
-    node_to_update { by_name { object { object_name: "bit_39" } } }
+    node_b { by_name { object { object_name: "bit_bn6_32" } } }
+    node_to_update { by_name { object { object_name: "bit_bn6_32" } } }
     a_t_b {
-      position { x: 0.15750 y: -0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.15750 y: -0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_40" } } }
-    node_to_update { by_name { object { object_name: "bit_40" } } }
+    node_b { by_name { object { object_name: "bit_bnm4_12" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm4_12" } } }
     a_t_b {
-      position { x: -0.15750 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_41" } } }
-    node_to_update { by_name { object { object_name: "bit_41" } } }
+    node_b { by_name { object { object_name: "bit_bnm6_18" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm6_18" } } }
     a_t_b {
-      position { x: -0.12250 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_42" } } }
-    node_to_update { by_name { object { object_name: "bit_42" } } }
+    node_b { by_name { object { object_name: "bit_bn18_3p175x22" } } }
+    node_to_update { by_name { object { object_name: "bit_bn18_3p175x22" } } }
     a_t_b {
-      position { x: -0.08750 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_43" } } }
-    node_to_update { by_name { object { object_name: "bit_43" } } }
+    node_b { by_name { object { object_name: "bit_bn18_2x12" } } }
+    node_to_update { by_name { object { object_name: "bit_bn18_2x12" } } }
     a_t_b {
-      position { x: -0.05250 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_44" } } }
-    node_to_update { by_name { object { object_name: "bit_44" } } }
+    node_b { by_name { object { object_name: "bit_bn18_1x4" } } }
+    node_to_update { by_name { object { object_name: "bit_bn18_1x4" } } }
     a_t_b {
-      position { x: -0.01750 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_45" } } }
-    node_to_update { by_name { object { object_name: "bit_45" } } }
+    node_b { by_name { object { object_name: "bit_bnm18_3p175x10" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm18_3p175x10" } } }
     a_t_b {
-      position { x: 0.01750 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_46" } } }
-    node_to_update { by_name { object { object_name: "bit_46" } } }
+    node_b { by_name { object { object_name: "bit_bnm18_2x6" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm18_2x6" } } }
     a_t_b {
-      position { x: 0.05250 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_47" } } }
-    node_to_update { by_name { object { object_name: "bit_47" } } }
+    node_b { by_name { object { object_name: "bit_bnm18_1x3" } } }
+    node_to_update { by_name { object { object_name: "bit_bnm18_1x3" } } }
     a_t_b {
-      position { x: 0.08750 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_48" } } }
-    node_to_update { by_name { object { object_name: "bit_48" } } }
+    node_b { by_name { object { object_name: "bit_chamfer90_3p17" } } }
+    node_to_update { by_name { object { object_name: "bit_chamfer90_3p17" } } }
     a_t_b {
-      position { x: 0.12250 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.12250 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_49" } } }
-    node_to_update { by_name { object { object_name: "bit_49" } } }
+    node_b { by_name { object { object_name: "bit_chamfer90_4" } } }
+    node_to_update { by_name { object { object_name: "bit_chamfer90_4" } } }
     a_t_b {
-      position { x: 0.15750 y: -0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.15750 y: -0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_50" } } }
-    node_to_update { by_name { object { object_name: "bit_50" } } }
+    node_b { by_name { object { object_name: "bit_chamfer90_6" } } }
+    node_to_update { by_name { object { object_name: "bit_chamfer90_6" } } }
     a_t_b {
-      position { x: -0.15750 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_51" } } }
-    node_to_update { by_name { object { object_name: "bit_51" } } }
+    node_b { by_name { object { object_name: "bit_thread6_m6" } } }
+    node_to_update { by_name { object { object_name: "bit_thread6_m6" } } }
     a_t_b {
-      position { x: -0.12250 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_52" } } }
-    node_to_update { by_name { object { object_name: "bit_52" } } }
+    node_b { by_name { object { object_name: "bit_thread6_m8" } } }
+    node_to_update { by_name { object { object_name: "bit_thread6_m8" } } }
     a_t_b {
-      position { x: -0.08750 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_53" } } }
-    node_to_update { by_name { object { object_name: "bit_53" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m1" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m1" } } }
     a_t_b {
-      position { x: -0.05250 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_54" } } }
-    node_to_update { by_name { object { object_name: "bit_54" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m2" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m2" } } }
     a_t_b {
-      position { x: -0.01750 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_55" } } }
-    node_to_update { by_name { object { object_name: "bit_55" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m2p5" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m2p5" } } }
     a_t_b {
-      position { x: 0.01750 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_56" } } }
-    node_to_update { by_name { object { object_name: "bit_56" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m3" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m3" } } }
     a_t_b {
-      position { x: 0.05250 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_57" } } }
-    node_to_update { by_name { object { object_name: "bit_57" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m4" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m4" } } }
     a_t_b {
-      position { x: 0.08750 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_58" } } }
-    node_to_update { by_name { object { object_name: "bit_58" } } }
+    node_b { by_name { object { object_name: "bit_thread18_m5" } } }
+    node_to_update { by_name { object { object_name: "bit_thread18_m5" } } }
     a_t_b {
-      position { x: 0.12250 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.12250 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_59" } } }
-    node_to_update { by_name { object { object_name: "bit_59" } } }
+    node_b { by_name { object { object_name: "bit_drill18_1" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_1" } } }
     a_t_b {
-      position { x: 0.15750 y: 0.01750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.15750 y: 0.01750 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_60" } } }
-    node_to_update { by_name { object { object_name: "bit_60" } } }
+    node_b { by_name { object { object_name: "bit_drill18_2" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_2" } } }
     a_t_b {
-      position { x: -0.15750 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.15750 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_61" } } }
-    node_to_update { by_name { object { object_name: "bit_61" } } }
+    node_b { by_name { object { object_name: "bit_drill18_2p5" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_2p5" } } }
     a_t_b {
-      position { x: -0.12250 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.12250 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_62" } } }
-    node_to_update { by_name { object { object_name: "bit_62" } } }
+    node_b { by_name { object { object_name: "bit_drill18_3" } } }
+    node_to_update { by_name { object { object_name: "bit_drill18_3" } } }
     a_t_b {
-      position { x: -0.08750 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.08750 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_63" } } }
-    node_to_update { by_name { object { object_name: "bit_63" } } }
+    node_b { by_name { object { object_name: "bit_corn18_0p6" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_0p6" } } }
     a_t_b {
-      position { x: -0.05250 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.05250 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_64" } } }
-    node_to_update { by_name { object { object_name: "bit_64" } } }
+    node_b { by_name { object { object_name: "bit_corn18_1" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_1" } } }
     a_t_b {
-      position { x: -0.01750 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: -0.01750 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_65" } } }
-    node_to_update { by_name { object { object_name: "bit_65" } } }
+    node_b { by_name { object { object_name: "bit_corn18_2" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_2" } } }
     a_t_b {
-      position { x: 0.01750 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.01750 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_66" } } }
-    node_to_update { by_name { object { object_name: "bit_66" } } }
+    node_b { by_name { object { object_name: "bit_corn18_3" } } }
+    node_to_update { by_name { object { object_name: "bit_corn18_3" } } }
     a_t_b {
-      position { x: 0.05250 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.05250 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }
 updates {
   update_transform {
     node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_67" } } }
-    node_to_update { by_name { object { object_name: "bit_67" } } }
+    node_b { by_name { object { object_name: "bit_uv_soldermask" } } }
+    node_to_update { by_name { object { object_name: "bit_uv_soldermask" } } }
     a_t_b {
-      position { x: 0.08750 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_68" } } }
-    node_to_update { by_name { object { object_name: "bit_68" } } }
-    a_t_b {
-      position { x: 0.12250 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_69" } } }
-    node_to_update { by_name { object { object_name: "bit_69" } } }
-    a_t_b {
-      position { x: 0.15750 y: 0.05250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_70" } } }
-    node_to_update { by_name { object { object_name: "bit_70" } } }
-    a_t_b {
-      position { x: -0.15750 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_71" } } }
-    node_to_update { by_name { object { object_name: "bit_71" } } }
-    a_t_b {
-      position { x: -0.12250 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_72" } } }
-    node_to_update { by_name { object { object_name: "bit_72" } } }
-    a_t_b {
-      position { x: -0.08750 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_73" } } }
-    node_to_update { by_name { object { object_name: "bit_73" } } }
-    a_t_b {
-      position { x: -0.05250 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_74" } } }
-    node_to_update { by_name { object { object_name: "bit_74" } } }
-    a_t_b {
-      position { x: -0.01750 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_75" } } }
-    node_to_update { by_name { object { object_name: "bit_75" } } }
-    a_t_b {
-      position { x: 0.01750 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_76" } } }
-    node_to_update { by_name { object { object_name: "bit_76" } } }
-    a_t_b {
-      position { x: 0.05250 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_77" } } }
-    node_to_update { by_name { object { object_name: "bit_77" } } }
-    a_t_b {
-      position { x: 0.08750 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_78" } } }
-    node_to_update { by_name { object { object_name: "bit_78" } } }
-    a_t_b {
-      position { x: 0.12250 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_79" } } }
-    node_to_update { by_name { object { object_name: "bit_79" } } }
-    a_t_b {
-      position { x: 0.15750 y: 0.08750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_80" } } }
-    node_to_update { by_name { object { object_name: "bit_80" } } }
-    a_t_b {
-      position { x: -0.15750 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_81" } } }
-    node_to_update { by_name { object { object_name: "bit_81" } } }
-    a_t_b {
-      position { x: -0.12250 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_82" } } }
-    node_to_update { by_name { object { object_name: "bit_82" } } }
-    a_t_b {
-      position { x: -0.08750 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_83" } } }
-    node_to_update { by_name { object { object_name: "bit_83" } } }
-    a_t_b {
-      position { x: -0.05250 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_84" } } }
-    node_to_update { by_name { object { object_name: "bit_84" } } }
-    a_t_b {
-      position { x: -0.01750 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_85" } } }
-    node_to_update { by_name { object { object_name: "bit_85" } } }
-    a_t_b {
-      position { x: 0.01750 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_86" } } }
-    node_to_update { by_name { object { object_name: "bit_86" } } }
-    a_t_b {
-      position { x: 0.05250 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_87" } } }
-    node_to_update { by_name { object { object_name: "bit_87" } } }
-    a_t_b {
-      position { x: 0.08750 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_88" } } }
-    node_to_update { by_name { object { object_name: "bit_88" } } }
-    a_t_b {
-      position { x: 0.12250 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_89" } } }
-    node_to_update { by_name { object { object_name: "bit_89" } } }
-    a_t_b {
-      position { x: 0.15750 y: 0.12250 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_90" } } }
-    node_to_update { by_name { object { object_name: "bit_90" } } }
-    a_t_b {
-      position { x: -0.15750 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_91" } } }
-    node_to_update { by_name { object { object_name: "bit_91" } } }
-    a_t_b {
-      position { x: -0.12250 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_92" } } }
-    node_to_update { by_name { object { object_name: "bit_92" } } }
-    a_t_b {
-      position { x: -0.08750 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_93" } } }
-    node_to_update { by_name { object { object_name: "bit_93" } } }
-    a_t_b {
-      position { x: -0.05250 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_94" } } }
-    node_to_update { by_name { object { object_name: "bit_94" } } }
-    a_t_b {
-      position { x: -0.01750 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_95" } } }
-    node_to_update { by_name { object { object_name: "bit_95" } } }
-    a_t_b {
-      position { x: 0.01750 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_96" } } }
-    node_to_update { by_name { object { object_name: "bit_96" } } }
-    a_t_b {
-      position { x: 0.05250 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_97" } } }
-    node_to_update { by_name { object { object_name: "bit_97" } } }
-    a_t_b {
-      position { x: 0.08750 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_98" } } }
-    node_to_update { by_name { object { object_name: "bit_98" } } }
-    a_t_b {
-      position { x: 0.12250 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
-    }
-  }
-}
-updates {
-  update_transform {
-    node_a { by_name { object { object_name: "bit_grid" } } }
-    node_b { by_name { object { object_name: "bit_99" } } }
-    node_to_update { by_name { object { object_name: "bit_99" } } }
-    a_t_b {
-      position { x: 0.15750 y: 0.15750 z: 0.03200 }
-      orientation { w: 1 }
+      position { x: 0.08750 y: 0.05250 z: 0.04700 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
 }

@@ -1,0 +1,68 @@
+# proto-file: intrinsic/scene/proto/v1/scene_object_updates.proto
+# proto-message: intrinsic_proto.scene_object.v1.SceneObjectUpdates
+#
+# SO-ARM101 start pose (= home: gripper 13 cm up, turned over the grid), home configuration and ICON joint limits.
+# Position limits are the URDF's; velocity / acceleration / jerk are
+# conservative for STS3215 hobby servos (no datasheet values for jerk).
+# Application limits: 99% of the position range, 95% of the dynamic limits.
+updates: {
+  update_joints {
+    joint_positions { key: "shoulder_pan" value: 0.6 }
+    joint_positions { key: "shoulder_lift" value: -1.1 }
+    joint_positions { key: "elbow_flex" value: 0.5 }
+    joint_positions { key: "wrist_flex" value: 1.6 }
+    joint_positions { key: "wrist_roll" value: 0.0 }
+    joint_system_limits: {
+      key: "shoulder_pan"
+      value: { min_position: -1.91986 max_position: 1.91986 max_velocity: 1.5 max_acceleration: 6 max_jerk: 200 max_effort: 2.5 }
+    }
+    joint_system_limits: {
+      key: "shoulder_lift"
+      value: { min_position: -1.74533 max_position: 1.74533 max_velocity: 1.5 max_acceleration: 6 max_jerk: 200 max_effort: 2.5 }
+    }
+    joint_system_limits: {
+      key: "elbow_flex"
+      value: { min_position: -1.69 max_position: 1.69 max_velocity: 1.5 max_acceleration: 6 max_jerk: 200 max_effort: 2.5 }
+    }
+    joint_system_limits: {
+      key: "wrist_flex"
+      value: { min_position: -1.65806 max_position: 1.65806 max_velocity: 1.5 max_acceleration: 6 max_jerk: 200 max_effort: 2.5 }
+    }
+    joint_system_limits: {
+      key: "wrist_roll"
+      value: { min_position: -2.74385 max_position: 2.84121 max_velocity: 1.5 max_acceleration: 6 max_jerk: 200 max_effort: 2.5 }
+    }
+    joint_application_limits: {
+      key: "shoulder_pan"
+      value: { min_position: -1.90066 max_position: 1.90066 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+    }
+    joint_application_limits: {
+      key: "shoulder_lift"
+      value: { min_position: -1.72788 max_position: 1.72788 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+    }
+    joint_application_limits: {
+      key: "elbow_flex"
+      value: { min_position: -1.6731 max_position: 1.6731 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+    }
+    joint_application_limits: {
+      key: "wrist_flex"
+      value: { min_position: -1.64148 max_position: 1.64148 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+    }
+    joint_application_limits: {
+      key: "wrist_roll"
+      value: { min_position: -2.71641 max_position: 2.8128 max_velocity: 1.425 max_acceleration: 5.7 max_jerk: 190 max_effort: 2.375 }
+    }
+  }
+}
+updates {
+  set_named_configurations {
+    named_configurations_to_set {
+      name: "home"
+      joint_positions { key: "shoulder_pan" value: 0.6 }
+      joint_positions { key: "shoulder_lift" value: -1.1 }
+      joint_positions { key: "elbow_flex" value: 0.5 }
+      joint_positions { key: "wrist_flex" value: 1.6 }
+      joint_positions { key: "wrist_roll" value: 0.0 }
+    }
+  }
+}

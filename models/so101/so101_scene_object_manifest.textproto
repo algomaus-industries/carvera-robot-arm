@@ -1,0 +1,16 @@
+# proto-file: intrinsic/assets/scene_objects/proto/scene_object_manifest.proto
+# proto-message: intrinsic_proto.scene_objects.SceneObjectManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "so101_hardware_module_scene_object"
+  }
+  vendor {
+    display_name: "intrinsic"
+  }
+  documentation {
+    description: "SO-ARM101 (TheRobotStudio / Seeed Studio) 5-axis hobby arm. Simulation only: no hardware driver yet."
+  }
+  display_name: "SO-ARM101"
+}

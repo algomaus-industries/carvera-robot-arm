@@ -1,0 +1,27 @@
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "so101_hardware_module"
+  }
+  vendor {
+    display_name: "intrinsic"
+  }
+  documentation {
+    description: "SO-ARM101 (TheRobotStudio / Seeed Studio) 5-axis hobby arm. Simulation only: no hardware driver yet."
+  }
+  display_name: "SO-ARM101 Hardware Module (sim)"
+}
+graph {
+  nodes {
+    key: "scene_object"
+    value {
+      asset: "ai.intrinsic.so101_hardware_module_scene_object"
+    }
+  }
+  nodes {
+    key: "service"
+    value {
+      asset: "ai.intrinsic.so101_hardware_module_service"
+    }
+  }
+}

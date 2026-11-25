@@ -1,0 +1,9 @@
+# proto-file: intrinsic/icon/hal/proto/hardware_module_config.proto
+# proto-message: intrinsic_proto.icon.HardwareModuleConfig
+
+# Simulation only: Gazebo runs the module (joints inferred from the so101
+# scene object); the service image just forwards health. No real driver yet.
+name: "so101_arm"
+drives_realtime_clock: true
+control_frequency_hz: 500
+simulation_module_config {}

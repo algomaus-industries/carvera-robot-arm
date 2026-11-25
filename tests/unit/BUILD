@@ -136,6 +136,7 @@ py_test(
     data = [
         "//:omts_solution_manifest",
         "//configs:all_configs",
+        "//models/makera_bits:bits.bzl",
     ],
     deps = [
         "//src/behaviors:machine_tending_bt",

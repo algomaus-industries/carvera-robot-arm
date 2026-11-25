@@ -1210,7 +1210,7 @@ def _parse_build_solution_instances(
 
   instance_names: dict[str, str] = {}
   for match in re.finditer(
-    r"intrinsic_asset_instance\(\s*name\s*=\s*\"([^\"]+)\"(.*?)^\)",
+    r"intrinsic_asset_instance\(\s*name\s*=\s*\"([^\"]+)\"\s*,(.*?)^\)",
     build_content,
     flags=re.DOTALL | re.MULTILINE,
   ):
@@ -1219,6 +1219,23 @@ def _parse_build_solution_instances(
     instance_names[f":{target_name}"] = (
       inst_match.group(1) if inst_match else target_name
     )
+
+  # Instances declared in a list comprehension, e.g.
+  #   [intrinsic_asset_instance(name = "bit_" + bit, ...) for bit in MAKERA_BITS]
+  bits_path = _find_runfile("_main/models/makera_bits/bits.bzl")
+  constants: dict[str, object] = {}
+  with open(bits_path, encoding="utf-8") as f:
+    exec(f.read(), {}, constants)  # pylint: disable=exec-used
+  for match in re.finditer(
+    r"intrinsic_asset_instance\(\s*name\s*=\s*\"([^\"]+)\"\s*\+\s*(\w+),"
+    r".*?\)\s*for\s+(\w+)\s+in\s+([A-Z_][A-Z0-9_]*)\s*\]",
+    build_content,
+    flags=re.DOTALL,
+  ):
+    prefix, var, loop_var, iterable = match.groups()
+    if var == loop_var:
+      for item in constants[iterable]:
+        instance_names[f":{prefix}{item}"] = f"{prefix}{item}"
 
   sol_match = re.search(
     r"intrinsic_solution\(\s*name\s*=\s*\"omts_solution\"(.*?)^\)",
@@ -1231,19 +1248,40 @@ def _parse_build_solution_instances(
     )
   sol_body = sol_match.group(1)
 
-  # The first select swaps the lab_bb_01 workpiece; its default applies to
-  # both cells.
-  inst_block_match = re.search(
-    r"instances\s*=\s*\[(.*?)\]\s*\+\s*select\(\{[^)]*?\"//conditions:default\"\s*:\s*\[(.*?)\]\s*,?\s*\}\)\s*\+\s*select\(\{\s*\":is_lab_bb_01\"\s*:\s*\[(.*?)\]\s*,\s*\"//conditions:default\"\s*:\s*\[(.*?)\]",
+  # Evaluate the instances expression (a list plus select()s and list
+  # constants such as BIT_INSTANCES) once per cell, the way Bazel would for
+  # that --//:setup value with the default workpiece.
+  inst_match = re.search(
+    r"^    instances\s*=\s*(.*?),\n    [a-z_]+\s*=",
     sol_body,
-    flags=re.DOTALL,
+    flags=re.DOTALL | re.MULTILINE,
   )
-  if not inst_block_match:
+  if not inst_match:
     raise AssertionError("Could not parse instances block of omts_solution")
+  inst_expr = inst_match.group(1)
 
-  def _extract_names(block: str) -> list[str]:
-    resolved = []
-    for label in re.findall(r"\"(:[^\"]+)\"", block):
+  for const in re.finditer(
+    r"^([A-Z_][A-Z0-9_]*)\s*=\s*(\[.*?\])\n",
+    build_content,
+    flags=re.DOTALL | re.MULTILINE,
+  ):
+    if re.search(rf"\b{const.group(1)}\b", inst_expr):
+      constants[const.group(1)] = eval(  # pylint: disable=eval-used
+        const.group(2), {}, dict(constants)
+      )
+
+  def _resolve(conditions: set[str]) -> list[str]:
+    def select(branches: dict[str, list[str]]) -> list[str]:
+      for cond, value in branches.items():
+        if cond in conditions:
+          return value
+      return branches["//conditions:default"]
+
+    labels = eval(  # pylint: disable=eval-used
+      inst_expr, {"select": select}, dict(constants)
+    )
+    resolved = ["root"]
+    for label in labels:
       if label not in instance_names:
         raise AssertionError(
           f"omts_solution references undeclared instance target '{label}'"
@@ -1251,17 +1289,10 @@ def _parse_build_solution_instances(
       resolved.append(instance_names[label])
     return resolved
 
-  common = (
-    ["root"]
-    + _extract_names(inst_block_match.group(1))
-    + _extract_names(inst_block_match.group(2))
-  )
-  lab_extra = _extract_names(inst_block_match.group(3))
-  omts_extra = _extract_names(inst_block_match.group(4))
-
   return {
-    "omts": tuple(common + omts_extra),
-    "lab_bb_01": tuple(common + lab_extra),
+    "omts": tuple(_resolve(set())),
+    "lab_bb_01": tuple(_resolve({":is_lab_bb_01"})),
+    "carvera_so101": tuple(_resolve({":is_carvera_so101"})),
   }
 
 

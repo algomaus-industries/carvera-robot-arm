@@ -330,6 +330,10 @@ class WorldUpdateConfigsTest(absltest.TestCase):
             ur_cfg = ur_module_config_pb2.UniversalRobotsModuleConfig()
             self.assertTrue(hw_cfg.module_config.Unpack(ur_cfg))
             self.assertTrue(ur_cfg.robot_ip)
+          elif path.endswith("so101_module_config.textproto"):
+            hw_cfg = hardware_module_config_pb2.HardwareModuleConfig()
+            self.assertTrue(any_msg.Unpack(hw_cfg))
+            self.assertEqual(hw_cfg.name, "so101_arm")
           elif path.endswith("gemini_device_config.textproto"):
             cam_cfg = camera_config_pb2.CameraConfig()
             self.assertTrue(any_msg.Unpack(cam_cfg))
