@@ -244,15 +244,80 @@ def export_stand(path):
 BEECH = (0.80, 0.62, 0.42, 1.0)
 FRAME = (0.22, 0.23, 0.25, 1.0)
 RUBBER = (0.10, 0.10, 0.11, 1.0)
-BENCH_TOP_Z = 0.90
+# carvera_bench: Sarah's Kuepper workshop bench, 60 cm model with one door and
+# one drawer (retailer listing: 60 x 60 cm, 84 cm working height, 30 mm solid
+# beech top, adjustable feet). Panel thicknesses, drawer / door heights and
+# the plinth recess are ESTIMATED from product photos. Front (door) faces -y.
+BENCH_TOP_Z = 0.84
 BENCHES = {
-    "carvera_bench": dict(w=0.56, d=0.62, h=BENCH_TOP_Z, casters=False),
+    "carvera_bench": dict(w=0.60, d=0.60, h=BENCH_TOP_Z, casters=False, style="kuepper",
+                          drawers=1),
     "robot_cart": dict(w=0.355, d=0.435, h=BENCH_TOP_Z + 0.150 - 0.047, casters=True),
 }
+KUEPPER_GREY = (0.47, 0.50, 0.53, 1.0)
+KUEPPER_RED = (0.60, 0.07, 0.06, 1.0)
+CHROME = (0.80, 0.81, 0.83, 1.0)
+
+
+def kuepper_boxes(b):
+  """Kuepper bench: steel cabinet (grey frame, red door and drawers), beech top."""
+  w, d, h = b["w"], b["d"], b["h"]
+  top_t, over = 0.030, 0.020            # top thickness, overhang past the body
+  bw, bd = w - 2 * over, d - 2 * over   # cabinet body
+  foot, plinth = 0.035, 0.095           # adjustable feet; recessed plinth height
+  side_t, top_rail = 0.030, 0.035
+  zb = foot                              # body bottom
+  zt = h - top_t                         # body top
+  fy = -bd / 2                           # front face of the body
+  out = [("top", "box", (0, 0, h - top_t / 2), (w, d, top_t), BEECH, True)]
+  # Side frames (full height, standing on the feet) and back panel.
+  for sx in (-1, 1):
+    out.append((f"side_{sx}", "box", (sx * (bw - side_t) / 2, 0, (zb + zt) / 2),
+                (side_t, bd, zt - zb), KUEPPER_GREY, False))
+  out.append(("back", "box", (0, bd / 2 - 0.008, (zb + plinth + zt) / 2),
+              (bw - 2 * side_t, 0.016, zt - zb - plinth), KUEPPER_GREY, False))
+  # Plinth: recessed front, grey cross rail on top of it.
+  out.append(("plinth", "box", (0, 0.03, zb + plinth / 2),
+              (bw - 2 * side_t, bd - 0.06, plinth), KUEPPER_GREY, False))
+  out.append(("bottom_rail", "box", (0, fy + 0.015, zb + plinth + 0.015),
+              (bw - 2 * side_t, 0.03, 0.03), KUEPPER_GREY, False))
+  # Front: top rail, two drawers, middle rail, door.
+  inner_w = bw - 2 * side_t - 0.006
+  z = zt - top_rail
+  out.append(("top_rail", "box", (0, fy + 0.015, z + top_rail / 2),
+              (bw - 2 * side_t, 0.03, top_rail), KUEPPER_GREY, False))
+  n = b.get("drawers", 1)
+  for i in range(n):
+    dh = 0.085 if n == 1 else 0.068
+    z -= dh + 0.004
+    out.append((f"drawer_{i}", "box", (0, fy - 0.004, z + dh / 2), (inner_w, 0.02, dh),
+                KUEPPER_RED, False))
+    out.append((f"handle_{i}", "box", (0, fy - 0.022, z + dh / 2), (0.14, 0.018, 0.018),
+                CHROME, False))
+    out.append((f"label_{i}", "box", (-0.13, fy - 0.0145, z + dh / 2), (0.05, 0.003, 0.018),
+                CHROME, False))
+  mid = 0.035
+  z -= mid + 0.004
+  out.append(("mid_rail", "box", (0, fy + 0.015, z + mid / 2),
+              (bw - 2 * side_t, 0.03, mid), KUEPPER_GREY, False))
+  door_bot = zb + plinth + 0.035
+  out.append(("door", "box", (0, fy - 0.004, (door_bot + z - 0.004) / 2),
+              (inner_w, 0.02, z - 0.004 - door_bot), KUEPPER_RED, False))
+  out.append(("lock", "cyl", (-inner_w / 2 + 0.035, fy - 0.016, z - 0.05), (0.008, 0.008),
+              CHROME, False))
+  # Body as one collision box ("collision_only": not drawn).
+  out.append(("collision_only_body", "box", (0, 0, (zb + zt) / 2), (bw, bd, zt - zb),
+              KUEPPER_GREY, True))
+  for i, (sx, sy) in enumerate([(-1, -1), (1, -1), (-1, 1), (1, 1)]):
+    out.append((f"foot_{i}", "box", (sx * (bw / 2 - side_t / 2), sy * (bd / 2 - 0.03), foot / 2),
+                (0.035, 0.035, foot), RUBBER, False))
+  return out
 
 
 def bench_boxes(b):
   """(name, kind, centre, size, colour, collide); kind box or cyl (size r, len, axis y)."""
+  if b.get("style") == "kuepper":
+    return kuepper_boxes(b)
   w, d, h, top_t, leg = b["w"], b["d"], b["h"], 0.035, 0.040
   wheel = 0.075 if b["casters"] else 0.0
   hw, hd, ins = w / 2, d / 2, 0.035
@@ -278,6 +343,8 @@ def bench_boxes(b):
 def export_bench(b, path):
   reset()
   for name, kind, c, sz, color, _ in bench_boxes(b):
+    if name.startswith("collision_only"):
+      continue
     if kind == "box":
       bpy.ops.mesh.primitive_cube_add(size=1, location=c)
       o = bpy.context.object
@@ -300,10 +367,12 @@ def bench_sdf(name, b):
       f'      <collision name="{n}_collision">\n        <pose>{f3(c)} 0 0 0</pose>\n'
       f'        <geometry><box><size>{f3(sz)}</size></box></geometry>\n      </collision>'
       for n, kind, c, sz, _, col in bench_boxes(b) if col and kind == "box")
-  what = "Rolling cart on four casters" if b["casters"] else "Workshop bench"
+  what = ("Rolling cart on four casters" if b["casters"] else
+          "Kuepper workshop bench (one door, one drawer)" if b.get("style") == "kuepper" else
+          "Workshop bench")
   return f"""<?xml version="1.0" ?>
 <!-- Generated by build_so101.py. {what}, {b['w']} x {b['d']} m, top at
-     {b['h']:.3f} m: beech top, steel frame, lower shelf. Origin on the floor
+     {b['h']:.3f} m: beech top, steel frame. Origin on the floor
      under the centre of the top; frame top_center on the work surface. -->
 <sdf version="1.10" xmlns:intrinsic="https://intrinsic.ai/">
   <model name="{name}">

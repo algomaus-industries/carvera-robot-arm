@@ -268,6 +268,11 @@ class JointTargets:
     self.q = list(arm.joint_positions)
     self._last = None   # (obj, frame, z) of the previous target
 
+  def via_home(self) -> None:
+    """The next target is solved from the home configuration."""
+    self.q = list(so101_ik.HOME)
+    self._last = None
+
   def to(self, obj: str, frame: str, z: float, offset, linear: bool) -> list[list[float]]:
     seat = _matrix(self._world.get_transform(
       self._world.root, self._world.get_transform_node(_frame_ref(obj, frame))))
@@ -371,6 +376,15 @@ def build_move_tree(
       name=label,
     )
 
+  def via_home(label):
+    # SO-101: the planner's free path between grid and ATC can swing the
+    # gripper into the Carvera, so carries go through the (high) home pose.
+    joints.via_home()
+    arm = config.robot.arm_part_name
+    return robot.build_move_joint_task(
+      "home", name=label, motion_type="ANY",
+      excluded_collision_pairs=[(tool, arm), (arm, holder)] + held)
+
   tasks: list[bt.Node] = []
   if machine is not None and ATC_OBJECT in (src_obj, dst_obj):
     tasks.append(machine.build_open_door_task(name="Open Carvera Lid"))
@@ -383,6 +397,7 @@ def build_move_tree(
     robot.build_attach_object_task(object_name=holder, name=f"Attach {holder}"),
     move(src_obj, src_frame, PRE_Z, "LINEAR", held + [(holder, src_obj)],
          f"Lift {holder} out of {src}"),
+    *([] if joints is None else [via_home(f"Carry {holder} via home")]),
     move(dst_obj, dst_frame, PRE_Z, "ANY", held, f"Carry {holder} above {dst}"),
     move(dst_obj, dst_frame, GRASP_Z, "LINEAR", held + [(holder, dst_obj)],
          f"Seat {holder} in {dst}"),

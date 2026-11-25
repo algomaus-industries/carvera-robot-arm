@@ -1,8 +1,8 @@
 # proto-file: intrinsic/world/public/proto/object_world_updates.proto
 # proto-message: intrinsic_proto.world.ObjectWorldUpdates
 #
-# SO-101 cell (--//:setup=carvera_so101): the Carvera on its own bench
-# (models/carvera_bench, top 0.9 m) and, in front of it, a rolling cart
+# SO-101 cell (--//:setup=carvera_so101): the Carvera on a Kuepper workshop
+# bench (models/carvera_bench, 60 x 60 cm, top 0.84 m) and, in front of it, a rolling cart
 # (models/robot_cart) carrying the SO-101 on a plywood pedestal and the 21 mm
 # bit grid. The cart top is level with the ATC seats; the pedestal puts the
 # arm base 5 cm above the grip height, so the ATC and the grid are inside the
@@ -15,8 +15,8 @@ updates {
     node_b { by_name { object { object_name: "carvera_bench" } } }
     node_to_update { by_name { object { object_name: "carvera_bench" } } }
     a_t_b {
-      position { x: -0.46000 y: -0.23000 z: 0.00000 }
-      orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
+      position { x: -0.50000 y: -0.23000 z: 0.00000 }
+      orientation { x: 0.000000 y: 0.000000 z: 0.707107 w: 0.707107 }
     }
   }
 }
@@ -26,7 +26,7 @@ updates {
     node_b { by_name { object { object_name: "cnc_enclosure" } } }
     node_to_update { by_name { object { object_name: "cnc_enclosure" } } }
     a_t_b {
-      position { x: -0.46000 y: -0.23000 z: 0.90000 }
+      position { x: -0.46000 y: -0.23000 z: 0.84000 }
       orientation { x: 0.000000 y: 0.000000 z: 0.707107 w: 0.707107 }
     }
   }
@@ -54,7 +54,7 @@ updates {
     node_b { by_name { object { object_name: "so101_stand" } } }
     node_to_update { by_name { object { object_name: "so101_stand" } } }
     a_t_b {
-      position { x: -0.17500 y: -0.02500 z: 1.00300 }
+      position { x: -0.17500 y: -0.02500 z: 0.94300 }
       orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
@@ -98,7 +98,7 @@ updates {
   create_frame {
     new_frame_name: "view"
     parent_t_new_frame {
-      position { x: -0.19906 y: 0.10333 z: 1.24082 }
+      position { x: -0.19906 y: 0.10333 z: 1.18082 }
       orientation { x: -0.723267 y: 0.630570 z: 0.220968 w: 0.174469 }
     }
     parent_object_with_filter { reference { by_name { object_name: "root" } } }
