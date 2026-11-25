@@ -143,6 +143,11 @@ intrinsic_solution(
             ":camera_mount",
             ":cnc_enclosure",
             ":carvera_tool_holder_t1",
+            ":carvera_tool_holder_t2",
+            ":carvera_tool_holder_t3",
+            ":carvera_tool_holder_t4",
+            ":carvera_tool_holder_t5",
+            ":carvera_tool_holder_t6",
             ":schunk_egp_64nnb",
         ],
     }),
@@ -209,11 +214,41 @@ intrinsic_asset_instance(
     instance_name = "cnc_enclosure",
 )
 
-# One Carvera ATC tool holder, seated in slot T1 (see carvera_atc.updates.pbtxt).
+# Carvera ATC tool holders, seated in slots T1..T6 (see carvera_atc.updates.pbtxt).
 intrinsic_asset_instance(
     name = "carvera_tool_holder_t1",
     asset = "ai.intrinsic.carvera_tool_holder",
     instance_name = "tool_holder_t1",
+)
+
+intrinsic_asset_instance(
+    name = "carvera_tool_holder_t2",
+    asset = "ai.intrinsic.carvera_tool_holder",
+    instance_name = "tool_holder_t2",
+)
+
+intrinsic_asset_instance(
+    name = "carvera_tool_holder_t3",
+    asset = "ai.intrinsic.carvera_tool_holder",
+    instance_name = "tool_holder_t3",
+)
+
+intrinsic_asset_instance(
+    name = "carvera_tool_holder_t4",
+    asset = "ai.intrinsic.carvera_tool_holder",
+    instance_name = "tool_holder_t4",
+)
+
+intrinsic_asset_instance(
+    name = "carvera_tool_holder_t5",
+    asset = "ai.intrinsic.carvera_tool_holder",
+    instance_name = "tool_holder_t5",
+)
+
+intrinsic_asset_instance(
+    name = "carvera_tool_holder_t6",
+    asset = "ai.intrinsic.carvera_tool_holder",
+    instance_name = "tool_holder_t6",
 )
 
 intrinsic_asset_instance(

@@ -49,21 +49,24 @@ SLOT_MCS_Y = {0: -0.02448, 1: -0.08448, 2: -0.11448, 3: -0.14448,
 FOOT_H = 0.012                         # rubber feet
 BASE_H = 0.085                         # top of the white plinth
 BASE_FRONT_LIP = 0.025                 # plinth sticks out in front of the hood
-PANEL_T = 0.022                        # side panel thickness
+PANEL_T = 0.035                        # side panel thickness (manual front view)
 SHELL_T = 0.005                        # hood acrylic
-HOOD_BULGE = 0.030                     # hood front: convex curve, this far proud of a
+HOOD_BULGE = 0.015                     # hood front: convex curve, this far proud of a
 HOOD_ROLL = 0.200                      # straight line; rolls into the flat top this far
                                        # behind the front (Makera / workshop photos)
-SIDE_GAP = 0.032                       # side panel front edge follows the hood curve,
-                                       # this far behind it
+SIDE_KNEE_Z = 0.270                    # side panel front edge: vertical up to here,
+SIDE_EDGE_TOP_Y = 0.130               # then folding straight back to this far behind
+                                       # the hood front at the top (Makera side photo)
+SIDE_FACET = 0.035                     # chamfer facet along the panel's front edge
+PANEL_TOP = H - 0.050                  # side panels stop under the hood's top band
 HINGE_Y = 0.248                        # hood hinge line: the rear edge (hood covers the whole top)
-H_LID_OPEN = 0.980                     # open hood height: photos show the hood top near
-                                       # vertical; capped below the OMTS cell roof
+H_LID_OPEN = 0.850                     # open hood height: ~0.86 m measured on the manual's
+                                       # front view, published 0.84 m
 BED_TOP = 0.120
 BED_T = 0.016
-BED_CX, BED_CY = -0.065, -0.010        # bed centre (left of centre: ATC on right)
-RACK_CX = 0.190                        # ATC rack centre X
-RACK_W, RACK_TOP = 0.050, 0.150
+BED_CX, BED_CY = -0.010, -0.010        # bed centre (manual front view: centred)
+RACK_CX = 0.205                        # ATC rack centre X (manual front view)
+RACK_W, RACK_TOP = 0.034, 0.148    # bar top ~28 mm above the bed (ATC photo)
 MCS_Y0 = 0.115                         # model Y of machine Y=0 (rear home)
 
 hx, hy = W / 2, D / 2
@@ -79,6 +82,7 @@ HOOD = (0.20, 0.22, 0.25, 0.45)        # smoked acrylic
 STEEL = (0.62, 0.63, 0.65, 1.0)
 BRASS = (0.80, 0.65, 0.30, 1.0)
 HOSE = (0.55, 0.56, 0.58, 1.0)
+BED_PLATE = (0.24, 0.24, 0.25, 1.0)    # dark drilled bed plate
 LED = (0.55, 0.85, 1.00, 1.0)
 
 
@@ -108,7 +112,7 @@ def arc(cy, cz, r, a0, a1, n):
 # the flat top (cubic Bezier), then flat back to the hinge at the rear edge.
 def hood_curve(n=16, back=0.0):
   p0 = (FRONT_Y + 0.012, BASE_H + 0.004)
-  p1 = (FRONT_Y - HOOD_BULGE, BASE_H + 0.45 * (TOP_Z - BASE_H))
+  p1 = (FRONT_Y - HOOD_BULGE, BASE_H + 0.70 * (TOP_Z - BASE_H))
   p2 = (FRONT_Y + 0.02, TOP_Z)
   p3 = (FRONT_Y + HOOD_ROLL, TOP_Z)
   pts = []
@@ -124,17 +128,21 @@ HOOD_CURVE = hood_curve()
 HOOD_LINE = HOOD_CURVE + [(HINGE_Y, TOP_Z)]
 
 
-# Side panel front edge: the hood curve, SIDE_GAP behind it, stopping just
-# under the hood top.
+# Side panel front edge: vertical from the plinth to the knee, then a
+# straight fold back to the top. The outer face starts SIDE_FACET behind
+# that edge, so a chamfer facet runs along it (the crease in the photos).
 def side_edge(back=0.0):
-  return [(y, min(z, TOP_Z - 0.010)) for y, z in hood_curve(back=SIDE_GAP + back)
-          if z <= TOP_Z - 0.004]
+  y0 = FRONT_Y + 0.020 + back
+  y1 = FRONT_Y + SIDE_EDGE_TOP_Y + back
+  return [(y0, BASE_H), (y0, SIDE_KNEE_Z + back * 0.5), (y1, PANEL_TOP)]
 
 
 SIDE_EDGE = side_edge()
-SIDE_POLY = SIDE_EDGE + [(hy, TOP_Z - 0.010), (hy, BASE_H)]
-# Hood side wing: the strip between the hood curve and the side panel edge.
-WING_POLY = HOOD_CURVE + [(SIDE_EDGE[-1][0], TOP_Z)] + list(reversed(SIDE_EDGE))
+SIDE_POLY = SIDE_EDGE + [(hy, PANEL_TOP), (hy, BASE_H)]
+SIDE_POLY_OUTER = side_edge(SIDE_FACET) + [(hy, PANEL_TOP), (hy, BASE_H)]
+# Hood side wing: between the hood curve and the side panel's folded edge.
+# The wing also runs as a band above the panel top back to the hinge.
+WING_POLY = HOOD_CURVE + [(HINGE_Y, TOP_Z), (HINGE_Y, PANEL_TOP)] + list(reversed(SIDE_EDGE))
 
 beam_z0 = BED_TOP + GANTRY_CLEARANCE
 SPX, SPY = -0.150, 0.075               # parked spindle axis (rear left)
@@ -147,20 +155,26 @@ BODY = [
     *[cyl(f"foot_{i}", sx * (hx - 0.05), sy * (hy - 0.05), 0.0, FOOT_H, 0.018, DARK,
           collide=False) for i, (sx, sy) in enumerate([(-1, -1), (1, -1), (-1, 1), (1, 1)])],
     # Side panels and back.
-    prism("side_left", -hx, -hx + PANEL_T, SIDE_POLY, SILVER, bevel=0.005),
-    prism("side_right", hx - PANEL_T, hx, SIDE_POLY, SILVER, bevel=0.005),
+    dict(prism("side_left", -hx, -hx + PANEL_T, SIDE_POLY_OUTER, SILVER), poly1=SIDE_POLY,
+         collide_poly=SIDE_POLY),
+    dict(prism("side_right", hx - PANEL_T, hx, SIDE_POLY, SILVER), poly1=SIDE_POLY_OUTER,
+         collide_poly=SIDE_POLY),
     box("back", -hx + PANEL_T, hx - PANEL_T, hy - 0.020, hy, BASE_H, TOP_Z - 0.010, SILVER),
     # Dark interior back with the Y-axis cover band.
     box("inner_back", -hx + PANEL_T, hx - PANEL_T, hy - 0.030, hy - 0.020, BASE_H, TOP_Z - 0.03,
-        DARK, collide=False),
+        SILVER, collide=False),
+    # Clear dust bin at the rear left (manual: "Dust Bin").
+    box("dust_bin", -hx + PANEL_T + 0.010, -hx + PANEL_T + 0.085, 0.120, 0.200, BASE_H, BASE_H + 0.200,
+        (0.80, 0.85, 0.90, 0.35)),
     box("back_strip", -hx + PANEL_T, hx - PANEL_T, hy - 0.0305, hy - 0.030, BASE_H + 0.20,
         BASE_H + 0.215, SILVER, collide=False),
     box("cable_chain", -hx + PANEL_T + 0.02, SPX + 0.04, 0.115, 0.140, beam_z0 + 0.15, beam_z0 + 0.175,
         DARK, collide=False),
-    box("y_cover", -hx + PANEL_T, hx - PANEL_T, 0.140, hy - 0.030, BASE_H, BASE_H + 0.09, DARK),
     # Bed: carriage + aluminium plate with a darker spoil board.
     box("bed_carriage", bx0 + 0.02, bx1 - 0.02, by0 + 0.01, by1 - 0.01, BASE_H, BED_TOP - BED_T, GREY),
-    box("bed", bx0, bx1, by0, by1, BED_TOP - BED_T, BED_TOP, ALU, bevel=0.0015),
+    box("bed_frame", bx0 - 0.006, bx1 + 0.006, by0 - 0.006, by1 + 0.006, BED_TOP - BED_T - 0.008,
+        BED_TOP - BED_T + 0.002, SILVER, collide=False, bevel=0.002),
+    box("bed", bx0, bx1, by0, by1, BED_TOP - BED_T, BED_TOP, BED_PLATE, bevel=0.0015),
     # Origin anchor: the L-shaped block in the bed's front-left corner that
     # Carvera jobs zero against (anodised dark grey).
     box("anchor_x", bx0 + 0.004, bx0 + 0.064, by0 + 0.004, by0 + 0.016, BED_TOP, BED_TOP + 0.008,
@@ -177,23 +191,23 @@ BODY = [
     cyl("collet_nut", SPX, SPY, beam_z0 - 0.015, beam_z0 + 0.005, 0.011, BRASS),
     box("fan_box", SPX - 0.038, SPX + 0.038, SPY - 0.035, 0.085, beam_z0 + 0.13, beam_z0 + 0.20,
         STEEL, bevel=0.003),
-    box("fan_grille", SPX - 0.030, SPX + 0.030, SPY - 0.0355, SPY - 0.035, beam_z0 + 0.137,
+    box("fan_grille", SPX + 0.038, SPX + 0.0385, SPY - 0.028, 0.080, beam_z0 + 0.137,
         beam_z0 + 0.193, DARK, collide=False),
-    cyl("fan_hub", SPX, SPY - 0.036, beam_z0 + 0.155, beam_z0 + 0.175, 0.010, STEEL,
-        collide=False, axis="y"),
     # ATC rack along the right of the bed, tool length sensor between T0 and T1.
     box("atc_rack", RACK_CX - RACK_W / 2, RACK_CX + RACK_W / 2,
-        MCS_Y0 + SLOT_MCS_Y[6] - 0.020, MCS_Y0 + SLOT_MCS_Y[0] + 0.020, BASE_H, RACK_TOP, GREY,
+        MCS_Y0 + SLOT_MCS_Y[6] - 0.020, MCS_Y0 + SLOT_MCS_Y[0] + 0.020, BASE_H, RACK_TOP, SILVER,
         bevel=0.003),
-    cyl("tool_length_sensor", RACK_CX, MCS_Y0 - 0.05448, RACK_TOP, RACK_TOP + 0.018, 0.009, STEEL),
+    # Wireless 3D probe parked in slot T0.
+    cyl("probe_body", RACK_CX, MCS_Y0 + SLOT_MCS_Y[0], RACK_TOP + 0.002, RACK_TOP + 0.030, 0.0085,
+        BRASS),
+    cyl("probe_shank", RACK_CX, MCS_Y0 + SLOT_MCS_Y[0], RACK_TOP + 0.030, RACK_TOP + 0.045, 0.003,
+        STEEL, collide=False),
+    cyl("tool_length_sensor", RACK_CX, MCS_Y0 - 0.05448, RACK_TOP, RACK_TOP + 0.012, 0.0065, STEEL),
     # Front of the plinth: power button with LED ring, side USB/status slot.
     cyl("power_ring", 0.215, FRONT_Y - BASE_FRONT_LIP - 0.001, 0.040, 0.054, 0.009, LED,
         collide=False, axis="y"),
     cyl("power_button", 0.215, FRONT_Y - BASE_FRONT_LIP - 0.002, 0.040, 0.054, 0.0065, WHITE,
         collide=False, axis="y"),
-    *[prism(f"groove_{side}", sx * hx - (0.0008 if sx < 0 else 0), sx * hx + (0.0008 if sx > 0 else 0),
-            side_edge(back=0.022) + list(reversed(side_edge(back=0.027))), GREY, collide=False)
-      for side, sx in (("left", -1), ("right", 1))],
     # Rounded aluminium rail along the plinth's front edge.
     box("front_rail", -hx + 0.004, hx - 0.004, -hy, -hy + 0.022, BASE_H - 0.010, BASE_H + 0.008,
         SILVER, collide=False, bevel=0.008),
@@ -210,15 +224,17 @@ for i in range(int((bx1 - bx0) / HOLE_PITCH)):
                      z=(BED_TOP - 0.0006, BED_TOP + 0.0003), r=0.0034, color=DARK,
                      collide=False, axis="z", verts=12))
 for n, my in SLOT_MCS_Y.items():
-  BODY.append(cyl(f"slot_ring_{n}", RACK_CX, MCS_Y0 + my, RACK_TOP, RACK_TOP + 0.0008,
-                  0.0135, DARK, collide=False))
+  BODY.append(cyl(f"seat_{n}", RACK_CX, MCS_Y0 + my, RACK_TOP, RACK_TOP + 0.002,
+                  0.011, DARK, collide=False))
 
+# ATC tool holder (Makera ATC photo): collet holder standing on the rack's
+# rubber seat, bit shank sticking up, cutter down in the rack bore. Origin on
+# the seat disc top (atc_slot_N frame). Collision only above the seat.
 HOLDER = [
-    cyl("bit", 0, 0, -0.045, -0.022, 0.0016, STEEL, collide=False),
-    cyl("collet_nut", 0, 0, -0.022, 0.0, 0.0095, STEEL, collide=False),
-    cyl("collar", 0, 0, 0.0005, 0.008, 0.0125, DARK),
-    cyl("grip", 0, 0, 0.008, 0.030, 0.0100, STEEL),
-    cyl("pull_taper", 0, 0, 0.030, 0.045, 0.0080, STEEL),
+    cyl("cutter", 0, 0, -0.026, -0.001, 0.0016, STEEL, collide=False),
+    cyl("holder", 0, 0, 0.0005, 0.018, 0.0075, STEEL),
+    cyl("nut_ring", 0, 0, 0.0005, 0.004, 0.0078, DARK, collide=False),
+    cyl("shank", 0, 0, 0.018, 0.034, 0.0016, STEEL),
 ]
 
 
@@ -278,13 +294,14 @@ def collision_shapes(parts):
              % (p["r"], z1 - z0))
     elif p["kind"] == "prism":
       x0, x1 = p["x"]
-      zs = [q[1] for q in p["poly"]]
+      poly = p.get("collide_poly", p["poly"])
+      zs = [q[1] for q in poly]
       zmin, zmax = min(zs), max(zs)
       n = p["bands"]
       for i in range(n):
         z0 = zmin + (zmax - zmin) * i / n
         z1 = zmin + (zmax - zmin) * (i + 1) / n
-        seg = clip_band(p["poly"], z0, z1)
+        seg = clip_band(poly, z0, z1)
         if not seg:
           continue
         y0, y1 = min(q[0] for q in seg), max(q[0] for q in seg)
@@ -308,6 +325,9 @@ LID = [
     dict(kind="shell", name="hood", line=HOOD_LINE, color=HOOD, collide=True),
     prism("wing_left", -hx, -hx + SHELL_T, WING_POLY, HOOD, bands=4),
     prism("wing_right", hx - SHELL_T, hx, WING_POLY, HOOD, bands=4),
+    # Silver trim along the hood's front (bottom) edge, as in the manual render.
+    box("front_trim", -hx, hx, FRONT_Y - 0.004, FRONT_Y + 0.020, BASE_H + 0.004, BASE_H + 0.020,
+        SILVER, collide=False, bevel=0.003),
     box("hinge_bar", -hx + 0.01, hx - 0.01, HINGE_Y - 0.010, hy, TOP_Z - 0.004, TOP_Z + 0.004,
         SILVER, collide=False),
 ]
@@ -354,7 +374,7 @@ def make_prism(p):
   bm = bmesh.new()
   x0, x1 = p["x"]
   a = [bm.verts.new((x0, y, z)) for y, z in p["poly"]]
-  b = [bm.verts.new((x1, y, z)) for y, z in p["poly"]]
+  b = [bm.verts.new((x1, y, z)) for y, z in p.get("poly1", p["poly"])]
   bm.faces.new(list(reversed(a)))
   bm.faces.new(b)
   n = len(a)
@@ -494,7 +514,7 @@ def carvera_sdf():
   for n, my in SLOT_MCS_Y.items():
     frames.append(
         f'    <frame name="atc_slot_{n}" attached_to="base_link" intrinsic:create_entity="true">\n'
-        f'      <pose>{f3((RACK_CX, MCS_Y0 + my, RACK_TOP))} 0 0 0</pose>\n'
+        f'      <pose>{f3((RACK_CX, MCS_Y0 + my, RACK_TOP + 0.002))} 0 0 0</pose>\n'
         f'    </frame>')
   frames.append(
       f'    <frame name="bed_center" attached_to="base_link" intrinsic:create_entity="true">\n'
@@ -547,7 +567,7 @@ def holder_sdf():
 {collisions(HOLDER)}
     </link>
     <frame name="grip_frame" attached_to="base_link" intrinsic:create_entity="true">
-      <pose>0 0 0.019 0 0 0</pose>
+      <pose>0 0 0.010 0 0 0</pose>
     </frame>
   </model>
 </sdf>
@@ -570,7 +590,7 @@ def main():
   print("LID_OPEN_RAD", round(LID_OPEN, 4))
   print("BED_TOP", BED_TOP)
   for n, my in SLOT_MCS_Y.items():
-    print("SLOT", n, round(RACK_CX, 4), round(MCS_Y0 + my, 4), round(RACK_TOP, 4))
+    print("SLOT", n, round(RACK_CX, 4), round(MCS_Y0 + my, 4), round(RACK_TOP + 0.002, 4))
 
 
 main()
