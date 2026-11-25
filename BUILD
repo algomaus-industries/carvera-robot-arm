@@ -109,7 +109,8 @@ intrinsic_solution(
         "//conditions:default": [
             "@intrinsic-core//intrinsic_control/intrinsic/icon/hardware_modules/universal_robots:ur5e_hardware_module_core",
             "//models/camera_mount",
-            "//models/cnc_enclosure",
+            "//models/carvera_tool_holder",
+            "//models/makera_carvera",
             "//models/omts_enclosure",
             "//models/schunk_egp_64nnb",
         ],
@@ -141,6 +142,7 @@ intrinsic_solution(
         "//conditions:default": [
             ":camera_mount",
             ":cnc_enclosure",
+            ":carvera_tool_holder_t1",
             ":schunk_egp_64nnb",
         ],
     }),
@@ -172,6 +174,7 @@ intrinsic_solution(
             "//configs:omts/align_robot.updates.pbtxt",
             "//configs:omts/cnc_enclosure.updates.pbtxt",
             "//configs:omts/schunk.updates.pbtxt",
+            "//configs:omts/carvera_atc.updates.pbtxt",
             "//configs:omts/camera_mount.updates.pbtxt",
             "//configs:omts/orbbec_gemini.updates.pbtxt",
         ],
@@ -198,9 +201,19 @@ intrinsic_asset_instance(
     instance_name = "enclosure",
 )
 
+# The CNC is a Makera Carvera. The instance keeps the name "cnc_enclosure" so
+# app_config.yaml, the tools and the workshop guide refer to it unchanged.
 intrinsic_asset_instance(
     name = "cnc_enclosure",
-    asset = "ai.intrinsic.cnc_enclosure",
+    asset = "ai.intrinsic.makera_carvera",
+    instance_name = "cnc_enclosure",
+)
+
+# One Carvera ATC tool holder, seated in slot T1 (see carvera_atc.updates.pbtxt).
+intrinsic_asset_instance(
+    name = "carvera_tool_holder_t1",
+    asset = "ai.intrinsic.carvera_tool_holder",
+    instance_name = "tool_holder_t1",
 )
 
 intrinsic_asset_instance(

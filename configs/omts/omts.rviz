@@ -44,8 +44,8 @@ Visualization Manager:
         camera_mount/base_link: true
         charuco_9x12_30mm_22mm_dict_5x5/body: true
         charuco_9x14_20mm_15mm_dict_5x5/body: true
-        cnc_enclosure/door_link: true
-        cnc_enclosure/enclosure_link: true
+        cnc_enclosure/lid_link: true
+        cnc_enclosure/base_link: true
         enclosure/base_link: true
         gripper/gripper_body: true
         gripper/gripper_finger1: true
@@ -82,11 +82,11 @@ Visualization Manager:
           Value: true
         charuco_9x14_20mm_15mm_dict_5x5/body:
           Value: true
-        cnc_enclosure/door_joint_prismatic:
+        cnc_enclosure/lid_joint:
           Value: true
-        cnc_enclosure/door_link:
+        cnc_enclosure/lid_link:
           Value: true
-        cnc_enclosure/enclosure_link:
+        cnc_enclosure/base_link:
           Value: true
         enclosure/base_link:
           Value: true
@@ -195,9 +195,9 @@ Visualization Manager:
             {}
           charuco_9x14_20mm_15mm_dict_5x5/body:
             {}
-          cnc_enclosure/enclosure_link:
-            cnc_enclosure/door_joint_prismatic:
-              cnc_enclosure/door_link:
+          cnc_enclosure/base_link:
+            cnc_enclosure/lid_joint:
+              cnc_enclosure/lid_link:
                 {}
           enclosure/base_link:
             enclosure/robot_frame:
