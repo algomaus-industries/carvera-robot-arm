@@ -251,6 +251,8 @@ def _offset(z: float, yaw_deg: float, x_tool: float = 0.0):
 # Steps per LINEAR segment when moving by joint targets: the vertical approach
 # and lift stay within about a millimetre of the straight line.
 JOINT_IK_LINEAR_STEPS = 6
+GRID_CELL_PREFIX = "cell_"
+SQRT_HALF = math.sqrt(0.5)
 
 
 class JointTargets:
@@ -287,12 +289,24 @@ class JointTargets:
     (ox, oy, _), _ = offset(0.0)
     x_tool = math.hypot(ox, oy)
     down = self._base_inv[:3, :3] @ (-seat[:3, 2])
+    # In the bit grid the neighbours stand only one pitch away, closer than
+    # the bulky moving jaw reaches when it opens, so the jaw opens along a
+    # grid diagonal (sqrt(2) pitch): tool x (the jaw axis, the moving jaw is
+    # on -x) along one of the four diagonals, the one nearest the seed.
+    diagonals = []
+    if frame.startswith(GRID_CELL_PREFIX):
+      for sx, sy in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+        x_axis = self._base_inv[:3, :3] @ seat[:3, :3] @ [sx * SQRT_HALF, sy * SQRT_HALF, 0.0]
+        diagonals.append(x_axis)
     for zi in zs:
       point = (self._base_inv @ seat @ [0.0, 0.0, zi, 1.0])[:3]
       # Free (ANY) targets take the elbow-up branch; LINEAR steps stay on the
       # branch of the step before.
-      q = so101_ik.solve_down(point, (-x_tool, 0.0, 0.0), down, self.q,
-                              elbow_up=len(zs) == 1)
+      if diagonals:
+        q = self._solve_diagonal(point, x_tool, down, diagonals, elbow_up=len(zs) == 1)
+      else:
+        q = so101_ik.solve_down(point, (-x_tool, 0.0, 0.0), down, self.q,
+                                elbow_up=len(zs) == 1)
       if q is None:
         raise ValueError(
           f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m with the gripper "
@@ -305,6 +319,26 @@ class JointTargets:
       out.append(self.q)
     self._last = (obj, frame, z)
     return out
+
+  def _solve_diagonal(self, point, x_tool, down, diagonals, elbow_up):
+    import numpy as np  # pylint: disable=import-outside-toplevel
+    z_axis = np.asarray(down, float)
+    best = None
+    for x_axis in diagonals:
+      x_axis = np.asarray(x_axis, float)
+      target = np.eye(4)
+      target[:3, :3] = np.column_stack([x_axis, np.cross(z_axis, x_axis), z_axis])
+      # Shank axis at tool -x by half a shank: the tool frame goes +x of it.
+      target[:3, 3] = np.asarray(point, float) + x_tool * x_axis
+      q = so101_ik.solve(target, self.q, elbow_up=elbow_up)
+      if q is None:
+        continue
+      d = float(np.linalg.norm(np.asarray(q) - np.asarray(self.q)))
+      if elbow_up and not 0 < q[2] <= so101_ik.ELBOW_FOLD_MAX:
+        d += so101_ik.ELBOW_DOWN_PENALTY
+      if best is None or d < best[0]:
+        best = (d, q)
+    return None if best is None else best[1]
 
 
 def _matrix(pose: Any):
