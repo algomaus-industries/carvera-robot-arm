@@ -1,8 +1,8 @@
 """Writes the bit-placement and SO-101 cell world updates.
 
-Generates configs/carvera_so101/cell.updates.pbtxt, configs/carvera_so101/
-bits.updates.pbtxt and configs/omts/bit_grid.updates.pbtxt from the bit
-catalogue (models/makera_bits/makera_bits.json) and the SO-101 kinematics.
+Generates configs/carvera_so101/cell.updates.pbtxt and configs/carvera_so101/
+bits.updates.pbtxt from the bit catalogue (models/makera_bits/makera_bits.json),
+the carousel layout and the SO-101 kinematics.
 
   python3 configs/carvera_so101/gen_cell_configs.py
 """
@@ -16,7 +16,6 @@ import carousel_layout
 os.chdir(REPO)
 
 bits = json.load(open("models/makera_bits/makera_bits.json"))["bits"]
-SEAT_Z = 0.047
 HDR = ("# proto-file: intrinsic/world/public/proto/object_world_updates.proto\n"
        "# proto-message: intrinsic_proto.world.ObjectWorldUpdates\n#\n")
 
@@ -31,12 +30,11 @@ def place(parent, child, xyz=(0, 0, 0), q=(0, 0, 0, 1), frame=None):
           f"    a_t_b {{\n      position {{ x: {x:.5f} y: {y:.5f} z: {z:.5f} }}\n"
           f"      orientation {{ x: {qx:.6f} y: {qy:.6f} z: {qz:.6f} w: {qw:.6f} }}\n    }}\n  }}\n}}\n")
 
-def bits_in_grid(pitch):
-  out = []
-  for i, b in enumerate(bits):
-    r, c = divmod(i, 10)
-    out.append(place("bit_grid", "bit_" + b["id"], ((c - 4.5) * pitch, (r - 4.5) * pitch, SEAT_Z)))
-  return "".join(out)
+def reparent(child, parent, frame):
+  return ("updates {\n  reparent_object {\n"
+          f'    object {{ by_name {{ object_name: "{child}" }} }}\n'
+          f'    parent_frame {{ by_name {{ object_name: "{parent}" frame_name: "{frame}" }} }}\n'
+          "  }\n}\n")
 
 def bits_in_rack():
   """Bits on the carousel's seat frames, ring by ring from the inside."""
@@ -50,16 +48,6 @@ def bits_in_rack():
                  f'    parent_frame {{ by_name {{ object_name: "bit_grid" frame_name: "cell_{r}_{c}" }} }}\n'
                  "  }\n}\n"
                  for b, (r, c, *_rest) in zip(bits, cells))
-
-def bit_comment(pitch):
-  return (f"# The {len(bits)} Makera bits (models/makera_bits), bit_<id>, in catalogue order\n"
-          f"# row by row from cell_0_0 ({pitch * 1000:.0f} mm pitch, seats {SEAT_Z * 1000:.0f} mm above the\n"
-          "# grid base). //tools/atc:move_bit moves them to and from the Carvera ATC.\n")
-
-# UR5e cell: same grid placement as before, new bits.
-open("configs/omts/bit_grid.updates.pbtxt", "w").write(
-    HDR + "# Tool-bit storage grid (models/bit_grid) on the table, robot side.\n" + bit_comment(0.035)
-    + place("enclosure", "bit_grid", (0.135, 0.305, 1.025)) + bits_in_grid(0.035))
 
 # SO-101 cell: Carvera on its own bench, arm + grid on a rolling cart.
 BENCH_Z = 0.84                         # carvera_bench (Kuepper, 60 x 60 cm) top
@@ -98,7 +86,6 @@ f"""# SO-101 cell (--//:setup=carvera_so101): the Carvera on a Kuepper workshop
 # carousel's pick positions 0.16..0.225 m from the pan axis, all inside the
 # SO-101's vertical-gripper reach. move_bit turns the carousel
 # (carousel_joint) to bring a seat to its ring's pick position.
-# The vise comes from configs/omts/schunk.updates.pbtxt (relative to the Carvera).
 """ + place("root", "carvera_bench", (BENCH_C[0], BENCH_C[1], 0.0), (0, 0, s2, s2))
     + place("root", "cnc_enclosure", (CARVERA[0], CARVERA[1], BENCH_Z), (0, 0, s2, s2))
     + """updates {
@@ -122,6 +109,11 @@ f"""# SO-101 cell (--//:setup=carvera_so101): the Carvera on a Kuepper workshop
 }
 """
     + place("so101_stand", "bit_grid", frame="grid_mount")
+    # Everything on the cart rides with it (move_bit --park / --dock): the
+    # pedestal on the cart top, the arm and the carousel on the pedestal.
+    + reparent("so101_stand", "robot_cart", "top_center")
+    + reparent("so101_arm", "so101_stand", "arm_mount")
+    + reparent("bit_grid", "so101_stand", "grid_mount")
     + f"""# Home: tool frame at the arm's start / home configuration {HOME}
 # (gripper 13 cm up, turned over the grid). move_bit returns here.
 updates {{

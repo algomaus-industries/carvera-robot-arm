@@ -230,9 +230,14 @@ PEDESTAL = dict(lo=(-0.020, -0.035, 0.0), hi=(0.050, 0.075, ARM_BASE_H))
 GRID_CENTER = carousel_layout.CENTER_IN_PAN   # bit_carousel turntable axis, on the cart top
 
 
+# The printed pedestal (fab/pedestal) rests on the cart only from its front
+# edge (pan frame x 0.025) on, so a foot reaches back onto the cart to x 0.085.
+PEDESTAL_FOOT = dict(lo=(0.025, -0.027, 0.0), hi=(0.085, 0.067, 0.006))
+
+
 def stand_boxes():
-  return [("pedestal", (Vector(PEDESTAL["lo"]) + Vector(PEDESTAL["hi"])) / 2,
-           Vector(PEDESTAL["hi"]) - Vector(PEDESTAL["lo"]))]
+  return [(n, (Vector(b["lo"]) + Vector(b["hi"])) / 2, Vector(b["hi"]) - Vector(b["lo"]))
+          for n, b in (("pedestal", PEDESTAL), ("pedestal_foot", PEDESTAL_FOOT))]
 
 
 def export_stand(path):
@@ -332,24 +337,34 @@ def bench_boxes(b):
   """(name, kind, centre, size, colour, collide); kind box or cyl (size r, len, axis y)."""
   if b.get("style") == "kuepper":
     return kuepper_boxes(b)
-  w, d, h, top_t, leg = b["w"], b["d"], b["h"], 0.035, 0.040
+  # Rolling cart, as built from fab/cart: 18 mm birch-ply top, aprons and
+  # shelf, 40 x 40 mm legs, four 50 mm braked swivel casters (75 mm high).
+  w, d, h, top_t, leg = b["w"], b["d"], b["h"], 0.018, 0.040
   wheel = 0.075 if b["casters"] else 0.0
-  hw, hd, ins = w / 2, d / 2, 0.035
+  hw, hd, ins, apron = w / 2, d / 2, 0.035, 0.060
   out = [("top", "box", (0, 0, h - top_t / 2), (w, d, top_t), BEECH, True)]
   for i, (sx, sy) in enumerate([(-1, -1), (1, -1), (-1, 1), (1, 1)]):
     x, y = sx * (hw - ins), sy * (hd - ins)
     out.append((f"leg_{i}", "box", (x, y, (h - top_t + wheel) / 2), (leg, leg, h - top_t - wheel),
-                FRAME, True))
+                BEECH, True))
     if b["casters"]:
-      out.append((f"fork_{i}", "box", (x, y, wheel - 0.012), (0.03, 0.045, 0.024), FRAME, False))
-      out.append((f"wheel_{i}", "cyl", (x, y, 0.032), (0.032, 0.025), RUBBER, False))
+      # plate, swivel housing, fork, 50 mm wheel (axle along x), brake pedal
+      out.append((f"caster_plate_{i}", "box", (x, y, wheel - 0.002), (0.060, 0.045, 0.004), CHROME, False))
+      out.append((f"caster_swivel_{i}", "cyl", (x, y, wheel - 0.010), (0.022, 0.012, "z"), CHROME, False))
+      for fx in (-1, 1):
+        out.append((f"caster_fork_{i}_{fx}", "box", (x + fx * 0.013, y + 0.008, 0.042),
+                    (0.003, 0.030, 0.042), CHROME, False))
+      out.append((f"caster_wheel_{i}", "cyl", (x, y + 0.008, 0.025), (0.025, 0.020, "x"), RUBBER, False))
+      out.append((f"caster_hub_{i}", "cyl", (x, y + 0.008, 0.025), (0.010, 0.022, "x"), CHROME, False))
+      out.append((f"caster_brake_{i}", "box", (x, y - 0.016, 0.052), (0.016, 0.018, 0.004),
+                  KUEPPER_RED, False))
   for sy in (-1, 1):
-    out.append((f"rail_{sy}", "box", (0, sy * (hd - ins), h - top_t - 0.035),
-                (w - 2 * ins, 0.030, 0.06), FRAME, False))
+    out.append((f"apron_{sy}", "box", (0, sy * (hd - ins + leg / 2 - top_t / 2), h - top_t - apron / 2),
+                (w - 2 * ins - leg, top_t, apron), BEECH, False))
   for sx in (-1, 1):
-    out.append((f"rail_x{sx}", "box", (sx * (hw - ins), 0, h - top_t - 0.035),
-                (0.030, d - 2 * ins, 0.06), FRAME, False))
-  out.append(("shelf", "box", (0, 0, wheel + 0.15), (w - 2 * ins + 0.03, d - 2 * ins + 0.03, 0.018),
+    out.append((f"apron_x{sx}", "box", (sx * (hw - ins + leg / 2 - top_t / 2), 0, h - top_t - apron / 2),
+                (top_t, d - 2 * ins - leg, apron), BEECH, False))
+  out.append(("shelf", "box", (0, 0, 0.150 + top_t / 2), (w - 2 * ins + 0.03, d - 2 * ins + 0.03, top_t),
               BEECH, True))
   return out
 
@@ -367,8 +382,10 @@ def export_bench(b, path):
       mod = o.modifiers.new("bevel", "BEVEL")
       mod.width, mod.segments = (0.004 if color == BEECH else 0.002), 3
     else:
+      axis = sz[2] if len(sz) > 2 else "y"
+      rot = {"x": (0, math.pi / 2, 0), "y": (math.pi / 2, 0, 0), "z": (0, 0, 0)}[axis]
       bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=sz[0], depth=sz[1], location=c,
-                                          rotation=(math.pi / 2, 0, 0))
+                                          rotation=rot)
       o = bpy.context.object
     o.name = name
     o.data.materials.append(material(color))

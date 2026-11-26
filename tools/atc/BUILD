@@ -22,6 +22,7 @@ py_library(
         "//src/hardware:gripper",
         "//src/hardware:machine",
         "//src/hardware:robot",
+        "@intrinsic-core//intrinsic_sdk/intrinsic/math/python:data_types",
         "@intrinsic-core//intrinsic_sdk/intrinsic/solutions:behavior_tree",
         "@intrinsic-core//intrinsic_sdk/intrinsic/solutions:deployments",
         "@intrinsic-core//intrinsic_sdk/intrinsic/solutions:execution",

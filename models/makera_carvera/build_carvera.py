@@ -5,7 +5,7 @@ Run with Blender 3.4+ (headless):
     blender -b --python build_carvera.py -- <models_dir>
 
 Writes <models_dir>/makera_carvera/{makera_carvera.sdf,carvera_body.glb,carvera_lid.glb}
-and <models_dir>/carvera_tool_holder/{carvera_tool_holder.sdf,carvera_tool_holder.glb}.
+and <models_dir>/bit_carousel/{bit_carousel.sdf,carousel_base.glb,carousel_platter.glb}.
 
 One parts list drives both the visual meshes and the SDF collision geometry, so
 the two cannot drift apart. Visuals are shaped after Makera's product photos
@@ -25,7 +25,7 @@ Published (makera.com product page / manual):
   (M889: all slots at one X, T0 at Y-24.48, T1 at Y-84.48, T2..T6 every 30 mm
   to Y-234.48).
 Everything else (plinth height, hood radius, hinge line, side-panel slope,
-gantry / spindle shape, rack size, tool holder shape) is ESTIMATED from photos:
+gantry / spindle shape, rack size) is ESTIMATED from photos:
 check against the real machine and adjust the constants below.
 """
 
@@ -238,17 +238,6 @@ for i in range(int((bx1 - bx0) / HOLE_PITCH)):
 for n, my in SLOT_MCS_Y.items():
   BODY.append(cyl(f"seat_{n}", RACK_CX, MCS_Y0 + my, RACK_TOP, RACK_TOP + 0.002,
                   0.011, DARK, collide=False))
-
-# ATC tool holder (Makera ATC photo): collet holder standing on the rack's
-# rubber seat, bit shank sticking up, cutter down in the rack bore. Origin on
-# the seat disc top (atc_slot_N frame). Collision only above the seat.
-HOLDER = [
-    cyl("cutter", 0, 0, -0.026, -0.001, 0.0016, STEEL, collide=False),
-    cyl("holder", 0, 0, 0.0005, 0.018, 0.0075, STEEL),
-    cyl("nut_ring", 0, 0, 0.0005, 0.004, 0.0078, DARK, collide=False),
-    cyl("shank", 0, 0, 0.018, 0.034, 0.0016, STEEL),
-]
-
 
 # ---------------------------------------------------------------- lid angle
 def rot_about_hinge(p, th):
@@ -568,87 +557,6 @@ def carvera_sdf():
 """
 
 
-def holder_sdf():
-  return f"""<?xml version="1.0" ?>
-{LICENSE}
-<!-- Makera Carvera ATC tool holder with collet nut and bit (estimated shape).
-     Origin on the rack seat (atc_slot_N frame); collision only above the seat.
-     grip_frame is the centre of the grip band. -->
-<sdf xmlns:intrinsic="https://intrinsic.ai/" version="1.9">
-  <model name="carvera_tool_holder">
-    <link name="base_link">
-      <inertial><mass>0.06</mass></inertial>
-{visual("holder_visual", "carvera_tool_holder.glb")}
-{collisions(HOLDER)}
-    </link>
-    <frame name="grip_frame" attached_to="base_link" intrinsic:create_entity="true">
-      <pose>0 0 0.010 0 0 0</pose>
-    </frame>
-  </model>
-</sdf>
-"""
-
-
-
-# ---------------------------------------------------------------- bit grid
-# Tool-bit storage block for the robot: GRID_N x GRID_N seats, each with a
-# black seat disc, matching the Carvera ATC seats so one grasp works for both.
-# Origin at the block's centre on the table; frames cell_R_C on each seat
-# (R along +Y, C along +X), z up. Two pitches:
-#   bit_grid     35 mm, room for the open Hand-E fingers (UR5e cell)
-#   bit_grid_21  21 mm, sized for the SO-101's reach; its jaws grip across the
-#                diagonal, where neighbouring holders are 15 mm apart
-GRID_N = 10
-GRID_H = 0.045                         # block height: bits hang up to ~40 mm below the collar
-GRID_SEAT_T = 0.002
-GRIDS = {"bit_grid": 0.035, "bit_grid_21": 0.021}
-
-
-def grid_cell(r, c, pitch):
-  return ((c - (GRID_N - 1) / 2) * pitch, (r - (GRID_N - 1) / 2) * pitch,
-          GRID_H + GRID_SEAT_T)
-
-
-def grid_half(pitch):
-  return (GRID_N - 1) / 2 * pitch + (0.022 if pitch > 0.03 else 0.014)
-
-
-def grid_parts(pitch):
-  gh = grid_half(pitch)
-  parts = [box("grid_block", -gh, gh, -gh, gh, 0.0, GRID_H, SILVER, bevel=0.003),
-           box("grid_marker", -gh + 0.003, -gh + 0.015, -gh - 0.0005,
-               -gh, 0.008, 0.022, (0.95, 0.45, 0.08, 1.0), collide=False)]
-  for r in range(GRID_N):
-    for c in range(GRID_N):
-      x, y, _ = grid_cell(r, c, pitch)
-      parts.append(dict(kind="cyl", name=f"seat_{r}_{c}", c=(x, y),
-                        z=(GRID_H, GRID_H + GRID_SEAT_T), r=min(0.011, pitch / 2 - 0.001),
-                        color=DARK, collide=False, axis="z", verts=24))
-  return parts
-
-
-def grid_sdf(name, pitch):
-  frames = "\n".join(
-      f'    <frame name="cell_{r}_{c}" attached_to="base_link" intrinsic:create_entity="true">\n'
-      f'      <pose>{f3(grid_cell(r, c, pitch))} 0 0 0</pose>\n'
-      f'    </frame>' for r in range(GRID_N) for c in range(GRID_N))
-  return f"""<?xml version="1.0" ?>
-{LICENSE}
-<!-- Tool-bit storage grid: {GRID_N} x {GRID_N} seats on a {pitch * 1000:.0f} mm pitch for
-     Carvera ATC tool holders. Frames cell_R_C sit on the seat discs (z up). -->
-<sdf xmlns:intrinsic="https://intrinsic.ai/" version="1.9">
-  <model name="{name}">
-    <static>true</static>
-    <link name="base_link">
-{visual("grid_visual", name + ".glb")}
-{collisions(grid_parts(pitch))}
-    </link>
-{frames}
-  </model>
-</sdf>
-"""
-
-
 # Bit carousel for the SO-101 cell (models/bit_carousel): a turning seat plate
 # with every Makera bit, on a base on the cart; layout in carousel_layout.py,
 # fabrication files in models/bit_carousel/fab/. platter_link turns about the
@@ -659,25 +567,34 @@ import carousel_layout as cl  # noqa: E402  pylint: disable=wrong-import-positio
 PLY = (0.78, 0.64, 0.45, 1.0)          # birch plywood
 PRINT = (0.18, 0.42, 0.75, 1.0)        # printed PETG parts
 SERVO = (0.06, 0.06, 0.07, 1.0)        # Feetech STS3215
-CAROUSEL_BASE_T = 0.006
-CAROUSEL_BASE_R = 0.170
-RIM_R = (0.156, 0.162)                 # printed rim, rides on the rollers
-RIM_Z0 = 0.020                         # rim bottom (on the 608 rollers)
-ROLLER_R = 0.159                       # roller (608 bearing) circle
-HUB_R = 0.022
+CAROUSEL_BASE_T, CAROUSEL_BASE_R = cl.BASE_T, cl.BASE_R
+RIM_R, RIM_Z0, ROLLER_R, HUB_R = cl.RIM_R, cl.RIM_Z0, cl.ROLLER_R, cl.HUB_R
 
 
 def carousel_base_parts():
   z0 = CAROUSEL_BASE_T
-  parts = [cyl("base_plate", 0, 0, 0.0, z0, CAROUSEL_BASE_R, PLY, collide=True),
-           # STS3215 upright under the turntable axis, output shaft up
-           box("servo", -0.0123, 0.0123, -0.0226, 0.0226, z0, z0 + 0.035, SERVO, collide=False)]
-  for k in range(4):
-    a = math.pi / 4 + k * math.pi / 2
-    x, y = ROLLER_R * math.cos(a), ROLLER_R * math.sin(a)
-    parts.append(box(f"roller_bracket_{k}", x - 0.012, x + 0.012, y - 0.012, y + 0.012,
-                     z0, RIM_Z0 - 0.011, PRINT, collide=False))
-    parts.append(cyl(f"roller_{k}", x, y, RIM_Z0 - 0.011, RIM_Z0, 0.011, STEEL, collide=False))
+  parts = [cyl("base_plate", 0, 0, 0.0, z0, CAROUSEL_BASE_R, PLY, collide=True)]
+  # STS3215 upright, output shaft on the turntable axis, in its printed cradle
+  sw, sl, sh = cl.SERVO_BODY
+  y0 = -cl.SERVO_SHAFT_FROM_END
+  parts.append(box("servo_cradle", -sw / 2 - 0.003, sw / 2 + 0.003, y0 - 0.003, y0 + sl + 0.003,
+                   z0, z0 + 0.015, PRINT, collide=False))
+  parts.append(box("servo", -sw / 2, sw / 2, y0, y0 + sl, z0 + 0.0015, z0 + 0.0015 + sh, SERVO,
+                   collide=False))
+  parts.append(cyl("horn", 0, 0, z0 + 0.0015 + sh, cl.HORN_TOP, 0.010, WHITE, collide=False))
+  # 608 rollers on radial axles in printed brackets; the rim rides on them
+  rc = RIM_Z0 - cl.BEARING_OD / 2
+  for k in range(cl.ROLLERS):
+    a = math.pi / 4 + k * 2 * math.pi / cl.ROLLERS
+    for side in (-1, 1):
+      parts.append(dict(kind="box", name=f"roller_cheek_{k}_{side}",
+                        lo=(ROLLER_R - 0.014, side * 0.0065 - 0.002, z0),
+                        hi=(ROLLER_R + 0.014, side * 0.0065 + 0.002, rc + 0.007),
+                        color=PRINT, collide=False, bevel=0.0, yaw=a))
+    parts.append(dict(kind="box", name=f"roller_{k}",
+                      lo=(ROLLER_R - cl.BEARING_OD / 2, -cl.BEARING_W / 2, rc - cl.BEARING_OD / 2),
+                      hi=(ROLLER_R + cl.BEARING_OD / 2, cl.BEARING_W / 2, rc + cl.BEARING_OD / 2),
+                      color=STEEL, collide=False, bevel=0.004, yaw=a))
   return parts
 
 
@@ -685,7 +602,7 @@ def carousel_platter_parts():
   top = cl.SEAT_Z
   plate0 = top - cl.PLATE_T
   parts = [cyl("seat_plate", 0, 0, plate0, top, cl.PLATE_R, PLY, collide=True),
-           cyl("hub", 0, 0, CAROUSEL_BASE_T + 0.040, plate0, HUB_R, PRINT, collide=False)]
+           cyl("hub", 0, 0, cl.HORN_TOP, plate0, HUB_R, PRINT, collide=False)]
   n = 48
   for k in range(n):
     a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
@@ -747,23 +664,11 @@ def carousel_sdf():
 def main():
   out = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "out"
   cdir = os.path.join(out, "makera_carvera")
-  hdir = os.path.join(out, "carvera_tool_holder")
   os.makedirs(cdir, exist_ok=True)
-  os.makedirs(hdir, exist_ok=True)
   export(BODY, os.path.abspath(os.path.join(cdir, "carvera_body.glb")), (add_logo, add_hose))
   export(LID, os.path.abspath(os.path.join(cdir, "carvera_lid.glb")))
-  export(HOLDER, os.path.abspath(os.path.join(hdir, "carvera_tool_holder.glb")))
   with open(os.path.join(cdir, "makera_carvera.sdf"), "w") as fh:
     fh.write(carvera_sdf())
-  with open(os.path.join(hdir, "carvera_tool_holder.sdf"), "w") as fh:
-    fh.write(holder_sdf())
-  for gname, pitch in GRIDS.items():
-    gdir = os.path.join(out, gname)
-    os.makedirs(gdir, exist_ok=True)
-    export(grid_parts(pitch), os.path.abspath(os.path.join(gdir, gname + ".glb")))
-    with open(os.path.join(gdir, gname + ".sdf"), "w") as fh:
-      fh.write(grid_sdf(gname, pitch))
-    print("GRID", gname, "HALF", round(grid_half(pitch), 4), "SEAT_Z", GRID_H + GRID_SEAT_T)
   kdir = os.path.join(out, "bit_carousel")
   os.makedirs(kdir, exist_ok=True)
   export(carousel_base_parts(), os.path.abspath(os.path.join(kdir, "carousel_base.glb")))

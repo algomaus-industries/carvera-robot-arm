@@ -69,7 +69,7 @@ config_setting(
 )
 
 # Every bit Makera sells for the Carvera, one instance each (bit_<id>), placed
-# in the bit grid by configs/<cell>/bit_grid.updates.pbtxt / bits.updates.pbtxt.
+# on the SO-101 cell's carousel by configs/carvera_so101/bits.updates.pbtxt.
 BIT_ASSETS = ["//models/makera_bits:" + bit for bit in MAKERA_BITS]
 
 BIT_INSTANCES = [":bit_" + bit for bit in MAKERA_BITS]
@@ -82,7 +82,6 @@ _SO101_ASSETS = [
     "//models/robot_cart",
     "//models/bit_carousel",
     "//models/makera_carvera",
-    "//models/schunk_egp_64nnb",
 ]
 
 _OMTS_SKILL_ASSETS = [
@@ -140,14 +139,13 @@ intrinsic_solution(
         "//conditions:default": [
             "@intrinsic-core//intrinsic_control/intrinsic/icon/hardware_modules/universal_robots:ur5e_hardware_module_core",
             "//models/camera_mount",
-            "//models/bit_grid",
-            "//models/makera_carvera",
+            "//models/cnc_enclosure",
             "//models/omts_enclosure",
             "//models/schunk_egp_64nnb",
         ],
     }) + select({
-        ":is_lab_bb_01": [],
-        "//conditions:default": BIT_ASSETS,
+        ":is_carvera_so101": BIT_ASSETS,
+        "//conditions:default": [],
     }),
     default_operation_mode = "real",
     instances = [
@@ -182,20 +180,19 @@ intrinsic_solution(
         ":is_carvera_so101": [],
         "//conditions:default": [":raw_stock_2x3x5"],
     }) + select({
-        ":is_lab_bb_01": [],
-        "//conditions:default": BIT_INSTANCES,
+        ":is_carvera_so101": BIT_INSTANCES,
+        "//conditions:default": [],
     }) + select({
         ":is_lab_bb_01": [
         ],
+        # No vise: the SO-101 cell only changes tools.
         ":is_carvera_so101": [
-            ":cnc_enclosure",
+            ":carvera",
             ":bit_grid",
-            ":schunk_egp_64nnb",
         ],
         "//conditions:default": [
             ":camera_mount",
             ":cnc_enclosure",
-            ":bit_grid",
             ":schunk_egp_64nnb",
         ],
     }),
@@ -222,7 +219,6 @@ intrinsic_solution(
         ],
         ":is_carvera_so101": [
             "//configs:carvera_so101/cell.updates.pbtxt",
-            "//configs:omts/schunk.updates.pbtxt",
             "//configs:carvera_so101/bits.updates.pbtxt",
         ],
         "//conditions:default": [
@@ -232,8 +228,6 @@ intrinsic_solution(
             "//configs:omts/align_robot.updates.pbtxt",
             "//configs:omts/cnc_enclosure.updates.pbtxt",
             "//configs:omts/schunk.updates.pbtxt",
-            "//configs:omts/carvera_atc.updates.pbtxt",
-            "//configs:omts/bit_grid.updates.pbtxt",
             "//configs:omts/camera_mount.updates.pbtxt",
             "//configs:omts/orbbec_gemini.updates.pbtxt",
         ],
@@ -260,22 +254,25 @@ intrinsic_asset_instance(
     instance_name = "enclosure",
 )
 
-# The CNC is a Makera Carvera. The instance keeps the name "cnc_enclosure" so
-# app_config.yaml, the tools and the workshop guide refer to it unchanged.
+# UR5e cell: OMTS's generic CNC enclosure.
 intrinsic_asset_instance(
     name = "cnc_enclosure",
+    asset = "ai.intrinsic.cnc_enclosure",
+)
+
+# SO-101 cell: the CNC is a Makera Carvera. The instance keeps the name
+# "cnc_enclosure" so app_config.yaml and the tools refer to it unchanged.
+intrinsic_asset_instance(
+    name = "carvera",
     asset = "ai.intrinsic.makera_carvera",
     instance_name = "cnc_enclosure",
 )
 
-# Tool-bit storage grid (35 mm pitch for the Hand-E; 21 mm in the SO-101 cell)
-# and the Makera bits in it.
+# SO-101 cell: the bit carousel (instance name kept from the earlier bit grid)
+# and the Makera bits on it.
 intrinsic_asset_instance(
     name = "bit_grid",
-    asset = select({
-        ":is_carvera_so101": "ai.intrinsic.bit_carousel",
-        "//conditions:default": "ai.intrinsic.bit_grid",
-    }),
+    asset = "ai.intrinsic.bit_carousel",
     instance_name = "bit_grid",
 )
 

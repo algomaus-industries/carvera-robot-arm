@@ -1,9 +1,5 @@
 # proto-file: intrinsic/world/public/proto/object_world_updates.proto
 # proto-message: intrinsic_proto.world.ObjectWorldUpdates
-#
-# cnc_enclosure is a Makera Carvera (models/makera_carvera). Its back sits
-# against the cell's left wall with the lid opening towards the robot.
-# lid_joint: 0 = closed, 1.4866 rad = fully open.
 
 updates: {
   update_transform {
@@ -30,9 +26,9 @@ updates: {
     }
     a_t_b {
       position {
-        x: -0.46
-        y: -0.23
-        z: 1.025
+        x: -0.57
+        y: -0.10
+        z: 1.02
       }
       orientation {
         x: 0
@@ -50,6 +46,6 @@ updates: {
         object_name: "cnc_enclosure"
       }
     }
-    joint_positions: 1.4866
+    joint_positions: 0.4
   }
 }

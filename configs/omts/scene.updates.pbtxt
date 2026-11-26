@@ -6,9 +6,9 @@ updates {
     new_frame_name: "vise_pre_place"
     parent_t_new_frame {
       position {
-        x: -0.4076
+        x: -0.5326
         y: -0.3021
-        z: 1.3706
+        z: 1.2956
       }
       orientation {
         x: 0.6762
@@ -31,9 +31,9 @@ updates {
     new_frame_name: "vise_place"
     parent_t_new_frame {
       position {
-        x: -0.4055
+        x: -0.5305
         y: -0.3020
-        z: 1.3360
+        z: 1.2610
       }
       orientation {
         x: 0.6842
@@ -56,9 +56,9 @@ updates {
     new_frame_name: "machine_approach"
     parent_t_new_frame {
       position {
-        x: -0.0936
+        x: -0.2186
         y: -0.3135
-        z: 1.4238
+        z: 1.3488
       }
       orientation {
         x: 0.6822
@@ -156,9 +156,9 @@ updates {
     new_frame_name: "vise_view"
     parent_t_new_frame {
       position {
-        x: -0.2107
+        x: -0.3357
         y: -0.3787
-        z: 1.4113
+        z: 1.3363
       }
       orientation {
         x: 0.5704

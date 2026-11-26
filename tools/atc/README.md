@@ -1,17 +1,41 @@
 # ATC tools (`tools/atc/`)
 
-`move_bit` moves Makera bits between the 10 × 10 bit rack (`bit_grid`, slots
-`grid:R,C`) and the Makera Carvera's tool rack (`atc:1` … `atc:6`; slot 0 is
-the probe). It finds the bit at the source slot in the belief world, opens the
-Carvera hood when the ATC is involved, and picks and places top-down.
+`move_bit` drives the SO-101 cell (`--//:setup=carvera_so101`): it moves
+Makera bits between the bit carousel (`bit_grid`, slots `grid:R,C`: ring R,
+seat C) and the Makera Carvera's tool rack (`atc:1` … `atc:6`; slot 0 is the
+probe). It finds the bit at the source slot in the belief world, turns the
+carousel, opens the Carvera hood when the ATC is involved, and picks and
+places top-down.
 
 ```bash
-CFG=--config=configs/carvera_so101/app_config.yaml   # omit for the UR5e cell
-bazel run -c opt //tools/atc:move_bit -- $CFG --list
-bazel run -c opt //tools/atc:move_bit -- $CFG --move=grid:4,4:atc:4   # repeatable
-bazel run -c opt //tools/atc:move_bit -- $CFG --fill_atc    # empty T1..T6 <- rack
-bazel run -c opt //tools/atc:move_bit -- $CFG --empty_atc   # T1..T6 -> free cells
+bazel run -c opt //tools/atc:move_bit -- --list
+bazel run -c opt //tools/atc:move_bit -- --move=grid:2,10:atc:3   # repeatable
+bazel run -c opt //tools/atc:move_bit -- --fill_atc    # empty T1..T6 <- carousel
+bazel run -c opt //tools/atc:move_bit -- --empty_atc   # T1..T6 -> free seats
+bazel run -c opt //tools/atc:move_bit -- --turn=grid:2,10
+bazel run -c opt //tools/atc:move_bit -- --park        # arm home, cart away, hood shut
+bazel run -c opt //tools/atc:move_bit -- --dock        # hood open, cart in
+bazel run -c opt //tools/atc:move_bit -- --set_atc='1=ofl4_22,2=,6=bn4_12'   # see below
+bazel run -c opt //tools/atc:move_bit -- --list_json   # ATC contents as JSON
 ```
+
+## ATC picker
+
+[`atc_picker.py`](atc_picker.py) is a small window for choosing which bit goes
+in which ATC slot: it shows what T1–T6 hold now, offers all of Makera's bits
+per slot (or empty), and on **Apply** runs `move_bit --set_atc`, which first
+returns every bit that should not stay to the carousel (its own seat if
+free) and then fetches each wanted bit, from the carousel or another slot.
+Watch the moves in RViz next to it. It uses the system Python's Tk, so run
+it inside the omts container on the VNC desktop:
+
+```bash
+bazel build -c opt //tools/atc:move_bit
+DISPLAY=:1 python3 tools/atc/atc_picker.py
+```
+
+`--demo='1=<bit id>,…'` picks those bits one by one and presses Apply by
+itself (the demo video uses it).
 
 Explicit `--move`s run first, then `--fill_atc` and `--empty_atc`, each planned
 against the world as the earlier moves left it.
@@ -20,21 +44,39 @@ against the world as the earlier moves left it.
 
 Each move is a behaviour tree: above the source, down, close the jaw and
 attach the bit to the gripper, lift, carry, down into the target, open, detach,
-lift. The robot's grasp profile decides the heights and how the targets are
-computed:
+lift.
 
-- **UR5e + Hand-E** (`--//:setup=omts`): Cartesian targets at frames on the
-  bit, planned by the motion planner.
-- **SO-101** (`--//:setup=carvera_so101`): the planner's generic IK does not
-  converge for this 5-axis arm, so [`so101_ik.py`](so101_ik.py) solves for
-  joint positions that keep the gripper vertical (yaw free) and grip the shank
-  off-centre on the fixed jaw. `move_bit` sends those as joint moves, which the
-  planner still collision-checks. Carries go via the `home` configuration with
-  the elbow up, clear of the Carvera.
+The planner's generic IK does not converge for this 5-axis arm, so
+[`so101_ik.py`](so101_ik.py) solves for joint positions that keep the gripper
+vertical (yaw free) and grip the shank off-centre on the fixed jaw.
+`move_bit` sends those as joint moves, which the planner still
+collision-checks. Carries go via the `home` configuration with the elbow up,
+clear of the Carvera.
 
 A slot the arm cannot reach with the gripper vertical fails before anything
-moves ("SO-101 cannot reach … with the gripper vertical"). With the current
-SO-101 layout that is ATC T1–T2 and the far cells of the rack.
+moves ("SO-101 cannot reach … with the gripper vertical"). In the SO-101
+cell all six ATC slots and every carousel ring's pick position are in reach.
+
+**Carousel.** The SO-101 cell's bits sit on a turning seat plate
+(`models/bit_carousel`). Before a move, `move_bit` turns its
+`carousel_joint` so the seat involved comes to its ring's pick position
+(`carousel_layout.platter_angle_for`); bits are reparented to their seat
+frames, so they turn with the plate. A move between two carousel seats goes
+via a free ATC slot. `--turn=grid:R,C` only turns the carousel.
+
+**Jaw direction.** On the carousel the neighbouring bits stand closer than
+the open jaw is wide, so for each seat `move_bit` turns the jaw axis (wrist
+roll) to the direction that leaves the jaws most room to the neighbouring
+seats. `fab/check_layout.py` checks that every seat leaves at least 12 mm.
+
+**Cart.** `--park` sends the arm home, rolls the cart (and everything on it)
+away from the Carvera and shuts the hood; `--dock` opens the hood and rolls
+the cart back in. The sim animates both; on the real cell they ask you to do
+it by hand and wait for Enter.
+
+**Stuck arm.** A move that fails part-way leaves the arm where it stopped,
+and a world reset does not move it. `joint_probe 'SET:[q...]'` puts it at
+given joints (e.g. home) in the world and resets the simulator.
 
 In simulation, after the moves `move_bit` writes each bit's new seat into the
 world and resets the simulator, because the SO-101 jaw never closes on the
@@ -47,7 +89,4 @@ Set `MOVE_BIT_PRINT_JOINTS=1` to print every SO-101 joint target.
 - SO-101 cell: [`configs/carvera_so101/`](../../configs/carvera_so101/)
   (`cell.updates.pbtxt`, `bits.updates.pbtxt`, generated by
   `gen_cell_configs.py`).
-- UR5e cell: `configs/omts/bit_grid.updates.pbtxt`,
-  `configs/omts/carvera_atc.updates.pbtxt` (ATC approach frames).
-- Models: `models/bit_grid`, `models/bit_grid_21`, `models/makera_bits`,
-  `models/makera_carvera`.
+- Models: `models/bit_carousel`, `models/makera_bits`, `models/makera_carvera`.

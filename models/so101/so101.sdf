@@ -73,7 +73,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><mesh><uri>so101_upper_arm_link.glb</uri></mesh></geometry>
       </visual>
       <collision name="sts3215_03a_v1_0_collision">
-        <pose>-0.112570 -0.015500 0.018300 0.000003 -3.141593 1.570793</pose>
+        <pose>-0.112570 -0.015500 0.018299 0.000003 -3.141593 1.570793</pose>
         <geometry><box><size>0.047400 0.026800 0.041601</size></box></geometry>
       </collision>
       <collision name="upper_arm_so101_v1_0_collision">
@@ -112,7 +112,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><box><size>0.030001 0.038901 0.058391</size></box></geometry>
       </collision>
       <collision name="sts3215_03a_v1_0_collision">
-        <pose>-0.122400 0.005200 0.018300 0.000003 -3.141593 0.000003</pose>
+        <pose>-0.122400 0.005200 0.018299 0.000003 -3.141593 0.000003</pose>
         <geometry><box><size>0.047400 0.026800 0.041601</size></box></geometry>
       </collision>
     </link>
@@ -123,7 +123,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><mesh><uri>so101_wrist_link.glb</uri></mesh></geometry>
       </visual>
       <collision name="sts3215_03a_no_horn_v1_0_collision">
-        <pose>-0.000000 -0.042800 0.030600 1.570800 1.570800 -0.000000</pose>
+        <pose>-0.000000 -0.042801 0.030600 1.570800 1.570800 -0.000000</pose>
         <geometry><box><size>0.047400 0.026800 0.041601</size></box></geometry>
       </collision>
       <collision name="wrist_roll_pitch_so101_v2_0_collision">
@@ -142,7 +142,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><mesh><uri>so101_gripper_link.glb</uri></mesh></geometry>
       </visual>
       <collision name="sts3215_03a_v1_0_collision">
-        <pose>0.007700 0.000500 -0.023400 -1.570800 -0.000000 -0.000000</pose>
+        <pose>0.007700 0.000501 -0.023400 -1.570800 -0.000000 -0.000000</pose>
         <geometry><box><size>0.047400 0.026800 0.041601</size></box></geometry>
       </collision>
       <collision name="wrist_roll_follower_so101_v1_0_collision">

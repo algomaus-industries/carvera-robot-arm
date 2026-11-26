@@ -23,7 +23,7 @@ machine:
   device_name: "ur_module"
   enclosure_object_name: "cnc_enclosure"
   vise_object_name: "schunk_egp_64nnb"
-  door_open_joints: [1.4866]  # Carvera lid_joint, fully open
+  door_open_joints: [0.4]
   door_closed_joints: [0.0]
   vise_open_joints: [0.01, 0.01]
   vise_closed_joints: [0.0, 0.0]

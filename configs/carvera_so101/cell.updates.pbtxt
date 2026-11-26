@@ -11,7 +11,6 @@
 # carousel's pick positions 0.16..0.225 m from the pan axis, all inside the
 # SO-101's vertical-gripper reach. move_bit turns the carousel
 # (carousel_joint) to bring a seat to its ring's pick position.
-# The vise comes from configs/omts/schunk.updates.pbtxt (relative to the Carvera).
 updates {
   update_transform {
     node_a { by_name { object { object_name: "root" } } }
@@ -99,6 +98,24 @@ updates {
       position { x: 0.00000 y: 0.00000 z: 0.00000 }
       orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
+  }
+}
+updates {
+  reparent_object {
+    object { by_name { object_name: "so101_stand" } }
+    parent_frame { by_name { object_name: "robot_cart" frame_name: "top_center" } }
+  }
+}
+updates {
+  reparent_object {
+    object { by_name { object_name: "so101_arm" } }
+    parent_frame { by_name { object_name: "so101_stand" frame_name: "arm_mount" } }
+  }
+}
+updates {
+  reparent_object {
+    object { by_name { object_name: "bit_grid" } }
+    parent_frame { by_name { object_name: "so101_stand" frame_name: "grid_mount" } }
   }
 }
 # Home: tool frame at the arm's start / home configuration [-1.571, -0.743, 0.43, 1.618, 0.0]

@@ -20,20 +20,41 @@ frames) and the fabrication files (models/bit_carousel/fab/).
 import math
 
 # ---------------------------------------------------------------- seats
-SEAT_PITCH = 0.021        # min centre distance along a ring (21 mm)
-RING_PITCH = 0.025        # between rings: the open jaw needs >= ~12 mm to a
-                          # neighbouring bit sideways, see tools/atc/move_bit.py
-RINGS = (0.045, 0.070, 0.095, 0.120, 0.145)   # ring radii
+SEAT_PITCH = 0.022        # min centre distance along a ring
+RING_PITCH = 0.028        # between rings
+# The open jaw needs >= ~12 mm sideways to a neighbouring bit (see
+# tools/atc/move_bit.py); at these pitches every seat has a jaw direction with
+# >= 13.3 mm (fab/check_layout.py). Tighter rings (21 x 25 mm) left the
+# innermost ring only 5.5 mm, and the jaw hit its neighbours.
+RINGS = tuple(round(0.045 + k * RING_PITCH, 4) for k in range(5))   # 45..157 mm
 SEAT_Z = 0.075            # seat plate top above the cart top
 PLATE_T = 0.006           # seat plate thickness
-PLATE_R = 0.168           # seat plate radius
+PLATE_R = 0.176           # seat plate radius
 PUCK_R = 0.0105           # seat boss radius in the sim model
+
+# ---------------------------------------------------------------- mechanics
+# Shared by the sim model and the fabrication files (fab/). Heights above
+# the cart top.
+BASE_T = 0.006            # base plate (plywood, screwed to the cart top)
+BASE_R = 0.178
+RIM_R = (0.162, 0.170)    # printed rim under the seat plate's edge
+RIM_Z0 = 0.032            # rim bottom, riding on the rollers
+ROLLER_R = 0.166          # 608 roller circle (rim centre line)
+ROLLERS = 4
+BEARING_OD, BEARING_W = 0.022, 0.007   # 608 skate bearing
+HUB_R = 0.022             # printed hub: servo horn to seat plate
+SERVO_BODY = (0.0247, 0.0452, 0.035)   # STS3215 W x L x H (datasheet)
+SERVO_SHAFT_FROM_END = 0.0115           # output shaft from the near end (CHECK on yours)
+HORN_TOP = BASE_T + 0.0015 + SERVO_BODY[2] + 0.0045   # cradle floor, body, horn
+HOLE_D = 0.0066           # seat hole: passes any Makera bit's cutter and
+                          # shank (<= 6 mm), the collar (>= shank + 6 mm) rests
+                          # on the plate
 
 # ---------------------------------------------------------------- placement
 # Turntable axis in the arm's pan frame (origin on the SO-101's pan axis,
 # axes along the world's). On the cart (pan frame x 0.025..0.38,
 # y -0.345..0.09) and clear of the arm pedestal.
-CENTER_IN_PAN = (0.198, -0.170)
+CENTER_IN_PAN = (0.203, -0.167)
 # Pick positions sit this far from the arm's pan axis (inside the 0.08..0.27 m
 # band the arm reaches with the gripper vertical at seat height), on the side
 # of each ring facing the ATC.
@@ -41,7 +62,16 @@ PICK_REACH = (0.225, 0.205, 0.190, 0.175, 0.160)
 
 
 def ring_seats(ring: int) -> int:
-  return int(2 * math.pi * RINGS[ring] / SEAT_PITCH)
+  """Seats on a ring: as many as fit at SEAT_PITCH, rounded down to even, so
+  the seat plate's seam (along x, the plate is cut in two halves) passes
+  midway between two seats on both sides."""
+  n = int(2 * math.pi * RINGS[ring] / SEAT_PITCH)
+  return n - n % 2
+
+
+def seat_angle(ring: int, index: int) -> float:
+  """Seat angle at platter angle 0, half a step off the seam (x axis)."""
+  return 2 * math.pi * (index + 0.5) / ring_seats(ring)
 
 
 def cells():
@@ -50,7 +80,7 @@ def cells():
   for r, rr in enumerate(RINGS):
     n = ring_seats(r)
     for i in range(n):
-      th = 2 * math.pi * i / n
+      th = seat_angle(r, i)
       out.append((r, i, rr * math.cos(th), rr * math.sin(th), th))
   return out
 
@@ -82,8 +112,7 @@ PICK_ANGLE = tuple(_pick_angle(r) for r in range(len(RINGS)))
 def platter_angle_for(ring: int, index: int) -> float:
   """Platter angle (rad, 0..2pi) that brings seat (ring, index) to its pick
   position."""
-  th = 2 * math.pi * index / ring_seats(ring)
-  return (PICK_ANGLE[ring] - th) % (2 * math.pi)
+  return (PICK_ANGLE[ring] - seat_angle(ring, index)) % (2 * math.pi)
 
 
 if __name__ == "__main__":

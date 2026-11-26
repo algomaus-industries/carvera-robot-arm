@@ -18,12 +18,16 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <pose>0.015000 0.020000 0.065500 0 0 0</pose>
         <geometry><box><size>0.070000 0.110000 0.131000</size></box></geometry>
       </collision>
+      <collision name="pedestal_foot_collision">
+        <pose>0.055000 0.020000 0.003000 0 0 0</pose>
+        <geometry><box><size>0.060000 0.094000 0.006000</size></box></geometry>
+      </collision>
     </link>
     <frame name="arm_mount" attached_to="stand" intrinsic:create_entity="true">
       <pose>0.00000 0.03884 0.131 0 0 4.712389</pose>
     </frame>
     <frame name="grid_mount" attached_to="stand" intrinsic:create_entity="true">
-      <pose>0.198 -0.17 0 0 0 0</pose>
+      <pose>0.203 -0.167 0 0 0 0</pose>
     </frame>
   </model>
 </sdf>

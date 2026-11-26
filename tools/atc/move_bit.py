@@ -12,35 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Moves Carvera bits between the bit grid and the Makera Carvera ATC.
+"""Moves Makera bits between the bit carousel and the Makera Carvera ATC.
 
-Slots are written as `grid:R,C` (frame cell_R_C of bit_grid: row and column
-on the square grids, ring and seat on the SO-101 cell's bit carousel) or `atc:N`
-(Carvera ATC slot, N in 1..6; slot 0 holds the probe). The holder sitting at
-the source slot is found from the belief world, so the tool needs no state of
-its own. The bits are models/makera_bits (bit_<id>); their shank sizes come
-from makera_bits.json. Works in both cells:
-
-  UR5e + Hand-E (default):  --config=configs/omts/app_config.yaml
-  SO-101 (--//:setup=carvera_so101):  --config=configs/carvera_so101/app_config.yaml
+For the SO-101 cell (--//:setup=carvera_so101). Slots are written as
+`grid:R,C` (frame cell_R_C of bit_grid, the carousel: ring R, seat C) or
+`atc:N` (Carvera ATC slot, N in 1..6; slot 0 holds the probe). The bit at
+the source slot is found from the belief world, so the tool needs no state
+of its own. The bits are models/makera_bits (bit_<id>); their shank sizes
+come from makera_bits.json.
 
   bazel run -c opt //tools/atc:move_bit -- --move=grid:0,0:atc:1
-  bazel run -c opt //tools/atc:move_bit -- --fill_atc     # grid row 0 -> T1..T6
-  bazel run -c opt //tools/atc:move_bit -- --empty_atc    # T1..T6 -> free cells
+  bazel run -c opt //tools/atc:move_bit -- --fill_atc     # carousel -> empty T1..T6
+  bazel run -c opt //tools/atc:move_bit -- --empty_atc    # T1..T6 -> free seats
   bazel run -c opt //tools/atc:move_bit -- --list
+  bazel run -c opt //tools/atc:move_bit -- --turn=grid:2,10  # turn a seat to its pick position
+  bazel run -c opt //tools/atc:move_bit -- --park   # arm home, cart away, hood shut
+  bazel run -c opt //tools/atc:move_bit -- --dock   # hood open, cart in
 
-Each move: open the Carvera lid if an ATC slot is involved, open the gripper,
-approach above the source seat (ANY), descend (LINEAR), close, attach the
-holder, lift (LINEAR), approach above the target seat (ANY), descend (LINEAR),
-open, detach, lift (LINEAR). Finishes at the `view` frame (UR5e) or the
-the SO-101 cell's own `view` frame, so the arm is out of the machine.
+Each move: open the Carvera lid if an ATC slot is involved, open the jaw,
+above the source seat (ANY), down (LINEAR), close, attach the bit, up
+(LINEAR), via the home configuration, above the target seat (ANY), down
+(LINEAR), open, detach, up (LINEAR); afterwards back to home.
 
-Grippers (app_config gripper.type):
-  robotiq  Hand-E: tool frame centred between the fingers.
-  so101    SO-ARM101 jaw: a separate world object (robot.tool_object_name)
-           whose jaw_joint is set with update_world; its tool frame is on the
-           FIXED jaw's face, so the shank axis sits half a shank diameter
-           along the tool's -x.
+The SO-ARM101 jaw is a separate world object (robot.tool_object_name) whose
+jaw_joint is set with update_world; its tool frame is on the FIXED jaw's
+face, so the shank axis sits half a shank diameter along the tool's -x. The
+planner's IK does not converge for this 5-axis arm, so the joint targets
+come from tools/atc/so101_ik.py (gripper vertical, yaw free).
 
 SO-101 cell: bit_grid is the bit carousel (models/bit_carousel), a turning
 seat plate. Before a move, its carousel_joint is turned so the seat involved
@@ -65,7 +63,7 @@ from intrinsic.world.proto import object_world_refs_pb2, object_world_updates_pb
 from intrinsic.world.python import object_world_resources
 
 from src.core.config import AppConfig, load_app_config
-from src.hardware.gripper import GripperInterface, RobotiqGripper
+from src.hardware.gripper import GripperInterface
 from src.hardware.machine import DioCncMachine
 from src.hardware.robot import Robot
 from models.bit_carousel import carousel_layout
@@ -103,15 +101,10 @@ class GraspProfile:
 
 
 PROFILES = {
-    "robotiq": GraspProfile(grasp_z=0.006, pre_z=0.096, off_centre=False),
     # The SO-101's fixed jaw reaches ~7 mm past its tool frame, so the tool
     # frame stays 14 mm above the seat: jaw tips just above the 5 mm collar.
     "so101": GraspProfile(grasp_z=0.014, pre_z=0.064, off_centre=True, joint_ik=True),
 }
-# Hand-E finger position when opening at a seat (12 mm per finger): clears a
-# 6 mm shank and stays off the neighbours on the 35 mm grid.
-HANDE_OPEN_M = 0.012
-
 
 class So101Jaw(GripperInterface):
   """SO-ARM101 moving jaw, set through the world (update_world).
@@ -168,13 +161,8 @@ def shank_m(holder: str, catalog: dict[str, dict]) -> float:
 
 
 def make_gripper(solution: Any, config: AppConfig, shank: float) -> GripperInterface:
-  if config.gripper.type == "so101":
-    return So101Jaw(solution, config.robot.tool_object_name,
-                    open_gap_m=shank + 0.005, close_gap_m=shank - 0.0003)
-  return RobotiqGripper(
-    solution=solution,
-    config=dataclasses.replace(config.gripper, open_position=HANDE_OPEN_M),
-  )
+  return So101Jaw(solution, config.robot.tool_object_name,
+                  open_gap_m=shank + 0.005, close_gap_m=shank - 0.0003)
 
 
 def parse_slot(spec: str) -> tuple[str, str]:
@@ -360,20 +348,17 @@ class JointTargets:
     return out
 
   def _rack_seats(self):
-    """World xy of every rack seat, read once from the rack's cell frames."""
+    """World xy of every rack seat, read once per move from the world (on the
+    carousel the seat frames turn with its platter)."""
     if self._seats is None:
-      import numpy as np  # pylint: disable=import-outside-toplevel
       rack = self._world.get_object(GRID_OBJECT)
-      m = _matrix(self._world.get_transform(self._world.root, rack))
-      # On the carousel the seat frames are on the turning platter_link.
-      q = carousel_angle(self._world)
-      turn = np.array([[math.cos(q), -math.sin(q), 0, 0], [math.sin(q), math.cos(q), 0, 0],
-                       [0, 0, 1, 0], [0, 0, 0, 1]]) if q is not None else np.eye(4)
       self._seats = {}
-      for f in rack.frames:
-        if str(f.name).startswith(GRID_CELL_PREFIX):
-          p = np.asarray(f.parent_t_this.translation, float)
-          self._seats[str(f.name)] = (m @ turn @ [*p, 1.0])[:2]
+      for name in rack.frame_names:
+        name = str(name)
+        if name.startswith(GRID_CELL_PREFIX):
+          t = self._world.get_transform(
+            self._world.root, self._world.get_transform_node(_frame_ref(GRID_OBJECT, name)))
+          self._seats[name] = _matrix(t)[:2, 3]
     return self._seats
 
   def _jaw_axes(self, frame, seat):
@@ -453,6 +438,8 @@ def turn_carousel(world: Any, slot: str) -> None:
   angle = carousel_layout.platter_angle_for(r, c)
   print(f"  turning the carousel to {math.degrees(angle):.1f} deg for {slot}")
   world.update_joint_positions(obj, [angle])
+  p = world.get_transform(world.root, world.get_transform_node(_frame_ref(GRID_OBJECT, frame)))
+  print(f"  {slot} now at world {[round(float(v), 4) for v in p.translation]}")
 
 
 def _seat_in_world(world: Any, holder: str, slot: str) -> None:
@@ -482,12 +469,12 @@ def build_move_tree(
   yaw_deg: float,
   profile: GraspProfile,
   shank: float,
-  joints: JointTargets | None = None,
+  joints: JointTargets,
 ) -> bt.Node:
   """Behavior tree moving `holder` from slot `src` to slot `dst`.
 
-  With `joints`, every motion is a joint move (or several, for the LINEAR
-  ones) to IK solutions computed here instead of a Cartesian move.
+  Every motion is a joint move (or several, for the LINEAR ones) to IK
+  solutions computed here (`joints`, tools/atc/so101_ik.py).
   """
   tool = config.robot.tool_object_name
   x_tool = shank / 2 if profile.off_centre else 0.0
@@ -497,31 +484,22 @@ def build_move_tree(
   held = [(tool, holder)]
 
   def move(obj, frame, z, motion, pairs, label):
-    if joints is not None:
-      qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x_tool),
-                     linear=motion == "LINEAR")
-      # The jaw is hinged inside the gripper body (so101_arm.gripper_link), so
-      # the two always overlap; the planner would reject every configuration.
-      # The fixed jaw is part of the arm (gripper_link), so contacts allowed
-      # for the gripper object are allowed for the arm as well.
-      arm = config.robot.arm_part_name
-      jaw_pairs = [(tool, arm)] + list(pairs or []) + [
-        (arm, b) for a, b in (pairs or []) if a == tool]
-      steps = [robot.build_move_joint_task(
-                 object_world_resources.JointConfiguration(joint_position=q),
-                 name=f"{label} ({i + 1}/{len(qs)})",
-                 excluded_collision_pairs=jaw_pairs,
-                 motion_type="JOINT" if motion == "LINEAR" else "ANY")
-               for i, q in enumerate(qs)]
-      return steps[0] if len(steps) == 1 else bt.Sequence(name=label, children=steps)
-    return robot.build_move_cartesian_task(
-      target_frame_name=frame,
-      target_object_name=obj,
-      motion_type=motion,
-      target_frame_offset=_offset(z, yaw_deg, x_tool),
-      excluded_collision_pairs=pairs,
-      name=label,
-    )
+    qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x_tool),
+                   linear=motion == "LINEAR")
+    # The jaw is hinged inside the gripper body (so101_arm.gripper_link), so
+    # the two always overlap; the planner would reject every configuration.
+    # The fixed jaw is part of the arm (gripper_link), so contacts allowed
+    # for the gripper object are allowed for the arm as well.
+    arm = config.robot.arm_part_name
+    jaw_pairs = [(tool, arm)] + list(pairs or []) + [
+      (arm, b) for a, b in (pairs or []) if a == tool]
+    steps = [robot.build_move_joint_task(
+               object_world_resources.JointConfiguration(joint_position=q),
+               name=f"{label} ({i + 1}/{len(qs)})",
+               excluded_collision_pairs=jaw_pairs,
+               motion_type="JOINT" if motion == "LINEAR" else "ANY")
+             for i, q in enumerate(qs)]
+    return steps[0] if len(steps) == 1 else bt.Sequence(name=label, children=steps)
 
   def via_home(label):
     # SO-101: the planner's free path between grid and ATC can swing the
@@ -544,7 +522,7 @@ def build_move_tree(
     robot.build_attach_object_task(object_name=holder, name=f"Attach {holder}"),
     move(src_obj, src_frame, PRE_Z, "LINEAR", held + [(holder, src_obj)],
          f"Lift {holder} out of {src}"),
-    *([] if joints is None else [via_home(f"Carry {holder} via home")]),
+    via_home(f"Carry {holder} via home"),
     move(dst_obj, dst_frame, PRE_Z, "ANY", held, f"Carry {holder} above {dst}"),
     move(dst_obj, dst_frame, GRASP_Z, "LINEAR", held + [(holder, dst_obj)],
          f"Seat {holder} in {dst}"),
@@ -559,7 +537,9 @@ def build_move_tree(
 def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
               home_frame: str | None) -> bool:
   robot = Robot(solution=solution, config=config.robot)
-  profile = PROFILES.get(config.gripper.type, PROFILES["robotiq"])
+  if config.gripper.type != "so101":
+    raise SystemExit("move_bit drives the SO-101 cell (--config=configs/carvera_so101/app_config.yaml).")
+  profile = PROFILES["so101"]
   catalog = load_bit_catalog()
   machine = (
     DioCncMachine(solution=solution, config=config.machine)
@@ -587,36 +567,111 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     title = catalog.get(holder, {}).get("title", holder)
     print(f"Moving {holder} ({title}): {src} -> {dst} ...")
     gripper = make_gripper(solution, config, shank)
-    joints = (JointTargets(world, config.robot.arm_part_name)
-              if profile.joint_ik else None)
+    joints = JointTargets(world, config.robot.arm_part_name)
     try:
       solution.executive.run(
         build_move_tree(robot, gripper, machine, config, holder, src, dst, yaw_deg,
                         profile, shank, joints)
       )
-      if profile.joint_ik:
-        _seat_in_world(world, holder, dst)
+      _seat_in_world(world, holder, dst)
       print(f"[✓] {holder} is now in {dst}")
     except (execution.ExecutionFailedError, ValueError) as e:
       print(f"[!] Move failed: {e}")
       if hasattr(solution.executive, "get_errors"):
         print(f"Executive errors: {solution.executive.get_errors()}")
       return False
-  if profile.joint_ik and getattr(solution, "is_simulated", False) and solution.simulator:
+  if getattr(solution, "is_simulated", False) and solution.simulator:
     # Copy the belief world (bits on their new seats) into Gazebo.
     solution.simulator.reset()
-  if home_frame and profile.joint_ik:
+  if home_frame:
     solution.executive.run(robot.build_move_joint_task(
       "home", name="Return to home", motion_type="ANY",
       excluded_collision_pairs=[(config.robot.tool_object_name, config.robot.arm_part_name)]))
-  elif home_frame:
-    solution.executive.run(
-      robot.build_move_cartesian_task(
-        target_frame_name=home_frame, target_object_name="root",
-        motion_type="ANY", name=f"Return to {home_frame}",
-      )
-    )
   return True
+
+
+# ---------------------------------------------------------------- cart
+# SO-101 cell: the rolling cart (arm, carousel and bits ride on it) stands in
+# front of the Carvera while the hood is open, and rolls away before the hood
+# closes. Docked position relative to the Carvera (cnc_enclosure origin),
+# from configs/carvera_so101/gen_cell_configs.py; parked: PARK_DX further out.
+CART_OBJECT = "robot_cart"
+CART_DOCK_FROM_CARVERA = (0.4425, 0.0775)
+PARK_DX = 0.45
+HOOD_OPEN = 1.4866
+ANIM_STEPS = 40
+
+
+def _cart_target(world: Any, parked: bool):
+  from intrinsic.math.python import data_types  # pylint: disable=import-outside-toplevel
+  cnc = world.get_transform(world.root, world.get_object(ATC_OBJECT)).translation
+  cart = world.get_transform(world.root, world.get_object(CART_OBJECT))
+  x = float(cnc[0]) + CART_DOCK_FROM_CARVERA[0] + (PARK_DX if parked else 0.0)
+  y = float(cnc[1]) + CART_DOCK_FROM_CARVERA[1]
+  return cart, data_types.Pose3(rotation=cart.rotation,
+                                translation=[x, y, float(cart.translation[2])])
+
+
+def _animate(n: int, step, pause: float = 0.03) -> None:
+  import time  # pylint: disable=import-outside-toplevel
+  for i in range(1, n + 1):
+    # ease in and out
+    t = i / n
+    step(t * t * (3 - 2 * t))
+    time.sleep(pause)
+
+
+def roll_cart(solution: Any, config: AppConfig, parked: bool) -> None:
+  """Rolls the cart to its parked or docked position (sim: animated in the
+  world; the real cart is pushed by hand)."""
+  from intrinsic.math.python import data_types  # pylint: disable=import-outside-toplevel
+  world = solution.world
+  start, goal = _cart_target(world, parked)
+  if not getattr(solution, "is_simulated", False):
+    input(f"Push the cart {'away from' if parked else 'up to'} the Carvera, then press Enter: ")
+  cart = world.get_object(CART_OBJECT)
+  a, b = start.translation, goal.translation
+
+  def step(t):
+    world.update_transform(node_a=world.root, node_b=cart, node_to_update=cart,
+                           a_t_b=data_types.Pose3(rotation=goal.rotation,
+                                                  translation=[a[k] + (b[k] - a[k]) * t for k in range(3)]))
+  _animate(ANIM_STEPS, step)
+
+
+def set_hood(solution: Any, open_: bool) -> None:
+  """Opens or closes the Carvera's hood (sim: animated in the world; the
+  real hood is lifted by hand)."""
+  world = solution.world
+  if not getattr(solution, "is_simulated", False):
+    input(f"{'Open' if open_ else 'Close'} the Carvera's hood, then press Enter: ")
+  cnc = world.get_kinematic_object(ATC_OBJECT)
+  q0 = float(list(cnc.joint_positions)[0])
+  q1 = HOOD_OPEN if open_ else 0.0
+  _animate(ANIM_STEPS, lambda t: world.update_joint_positions(cnc, [q0 + (q1 - q0) * t]))
+
+
+def park(solution: Any, config: AppConfig) -> None:
+  """Arm home, cart away from the Carvera, hood closed."""
+  robot = Robot(solution=solution, config=config.robot)
+  tool = config.robot.tool_object_name
+  solution.executive.run(robot.build_move_joint_task(
+    "home", name="Arm home", motion_type="ANY",
+    excluded_collision_pairs=[(tool, config.robot.arm_part_name)]))
+  print("Rolling the cart away ...")
+  roll_cart(solution, config, parked=True)
+  print("Closing the hood ...")
+  set_hood(solution, open_=False)
+  print("[✓] Parked")
+
+
+def dock(solution: Any, config: AppConfig) -> None:
+  """Hood open, cart up to the Carvera."""
+  print("Opening the hood ...")
+  set_hood(solution, open_=True)
+  print("Rolling the cart in ...")
+  roll_cart(solution, config, parked=False)
+  print("[✓] Docked")
 
 
 def plan_fill_atc(world: Any) -> list[tuple[str, str]]:
@@ -635,10 +690,79 @@ def plan_empty_atc(world: Any) -> list[tuple[str, str]]:
   return list(zip(sources, free))
 
 
+def occupancy(world: Any) -> dict[str, str | None]:
+  """Slot -> bit (or None) for every carousel seat and ATC slot."""
+  holders = holder_positions(world)
+  return {slot: holder_at(world, slot, holders) for slot in all_slots(world)}
+
+
+def home_seat(bit: str, catalog: dict[str, dict]) -> str | None:
+  """The carousel seat a bit starts on (configs/carvera_so101/bits.updates.pbtxt:
+  catalogue order, ring by ring from the inside)."""
+  order = list(catalog)
+  if bit not in order:
+    return None
+  cells = carousel_layout.cells()
+  i = order.index(bit)
+  return f"grid:{cells[i][0]},{cells[i][1]}" if i < len(cells) else None
+
+
+def parse_set_atc(spec: str) -> dict[int, str | None]:
+  """'1=bit_ofl4_22,2=,3=bit_x' -> {1: 'bit_ofl4_22', 2: None, 3: 'bit_x'}."""
+  out = {}
+  for part in filter(None, spec.split(",")):
+    n, _, bit = part.partition("=")
+    n = int(n.strip().lstrip("Tt"))
+    if n not in ATC_SLOTS:
+      raise ValueError(f"ATC slot must be 1..6: {part}")
+    bit = bit.strip()
+    out[n] = (bit if bit.startswith("bit_") else "bit_" + bit) if bit else None
+  return out
+
+
+def plan_set_atc(world: Any, targets: dict[int, str | None],
+                 catalog: dict[str, dict]) -> list[tuple[str, str]]:
+  """Moves that leave ATC slot n holding targets[n] (None: empty).
+
+  First every slot that holds a bit it should not goes back to the
+  carousel (the bit's own seat if free), then each wanted bit is fetched
+  from wherever it is, carousel or another ATC slot.
+  """
+  occ = occupancy(world)
+  moves = []
+
+  def move(src, dst):
+    moves.append((src, dst))
+    occ[dst], occ[src] = occ[src], None
+
+  def free_seat(bit):
+    home = home_seat(bit, catalog)
+    if home in occ and occ[home] is None:
+      return home
+    for slot, held in occ.items():
+      if slot.startswith("grid:") and held is None:
+        return slot
+    raise ValueError("no free carousel seat")
+
+  for bit in [b for b in targets.values() if b]:
+    if bit not in occ.values():
+      raise ValueError(f"{bit} is not on the carousel or in the ATC")
+  for n in sorted(targets):
+    cur = occ[f"atc:{n}"]
+    if cur and cur != targets[n]:
+      move(f"atc:{n}", free_seat(cur))
+  for n in sorted(targets):
+    want = targets[n]
+    if want and occ[f"atc:{n}"] != want:
+      src = next(slot for slot, held in occ.items() if held == want)
+      move(src, f"atc:{n}")
+  return moves
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
   parser.add_argument("--address", default="localhost:17080")
-  parser.add_argument("--config", default="configs/omts/app_config.yaml")
+  parser.add_argument("--config", default="configs/carvera_so101/app_config.yaml")
   parser.add_argument("--move", action="append", default=[],
                       help="'<src>:<dst>', e.g. grid:0,0:atc:1 (repeatable).")
   parser.add_argument("--fill_atc", action="store_true",
@@ -647,6 +771,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                       help="Return all holders in T1..T6 to free grid cells.")
   parser.add_argument("--list", action="store_true",
                       help="Print which holder sits in which slot and exit.")
+  parser.add_argument("--set_atc", default="",
+                      help="Make the ATC hold these bits, e.g. '1=bit_ofl4_22,2=,6=bn4_12' "
+                           "(empty = empty slot; slots not named stay as they are).")
+  parser.add_argument("--list_json", action="store_true",
+                      help="Print the ATC slots' bits and the carousel angle as JSON and exit.")
+  parser.add_argument("--park", action="store_true",
+                      help="SO-101 cell: arm home, roll the cart away, close the hood.")
+  parser.add_argument("--dock", action="store_true",
+                      help="SO-101 cell: open the hood, roll the cart up to the Carvera.")
+  parser.add_argument("--turn", default="",
+                      help="Carousel only: turn seat grid:R,C to its pick position and exit.")
   parser.add_argument("--yaw_deg", type=float, default=0.0,
                       help="Gripper rotation about the tool axis at the seats.")
   parser.add_argument("--home_frame", default="view",
@@ -660,7 +795,28 @@ def main(argv: Sequence[str] | None = None) -> None:
   solution = deployments.connect(address=args.address)
   world = solution.world
 
+  if args.turn:
+    turn_carousel(world, args.turn)
+    return
+  if args.park:
+    park(solution, config)
+    return
+  if args.dock:
+    dock(solution, config)
+
+  if args.list_json:
+    angle = carousel_angle(world)
+    holders = holder_positions(world)
+    print(json.dumps({
+      "atc": {str(n): holder_at(world, f"atc:{n}", holders) for n in ATC_SLOTS},
+      "carousel_deg": None if angle is None else round(math.degrees(angle), 1),
+    }))
+    return
+
   if args.list:
+    angle = carousel_angle(world)
+    if angle is not None:
+      print(f"  carousel at {math.degrees(angle):.1f} deg")
     holders = holder_positions(world)
     for slot in all_slots(world):
       name = holder_at(world, slot, holders)
@@ -671,6 +827,14 @@ def main(argv: Sequence[str] | None = None) -> None:
   # Each batch is planned on the world as the batch before left it, so
   # --fill_atc / --empty_atc see the slots the explicit --moves filled.
   batches = [lambda: [parse_move(m) for m in args.move]]
+  if args.set_atc:
+    targets = parse_set_atc(args.set_atc)
+
+    def plan_set():
+      moves = plan_set_atc(world, targets, load_bit_catalog())
+      print(f"Plan: {len(moves)} moves" + "".join(f"\n  {a} -> {b}" for a, b in moves), flush=True)
+      return moves
+    batches.append(plan_set)
   if args.fill_atc:
     batches.append(lambda: plan_fill_atc(world))
   if args.empty_atc:

@@ -121,6 +121,63 @@ def catalog():
                  SH18, 3 * d + 3, 38, 8, TIN, est_len=True))
   b.append(bit("uv_soldermask", 'UV Solder Mask Removal Tool 1/8"', "spring_tool", 0.3, SH18, 0, 50,
                1, STEEL, est_len=True, angle=30))
+  return studio_library(b)
+
+
+# Makera Studio's tool library (makera_studio_cutters.json, from the installed
+# Makera Studio) lists every cutter Makera sells, 129 of them: corn bits and
+# drills in 0.1 mm steps and a few flat end mills the store pages above do
+# not. Those are added here; for the corn bits and drills already above, its
+# flute lengths replace the estimates. Overall lengths are not in the
+# library: ESTIMATED as 38 mm (1/8" shank, Makera's usual), longer for long
+# flutes.
+STUDIO_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "makera_studio_cutters.json")
+
+
+def _num(v):
+  return f"{v:g}".replace(".", "p")
+
+
+def studio_library(b):
+  import re  # pylint: disable=import-outside-toplevel
+  with open(STUDIO_JSON) as fh:
+    cutters = json.load(fh)["cutters"]
+  have = {x["id"]: x for x in b}
+  pat = re.compile(r"^([\d.]+)\*(?:([\d.]+)\*)?([\d.]+)mm (Ball Nose|Flat End|Corn|Drill)(\(Metal\))?$")
+  for c in cutters:
+    m = pat.match(c["cutterName"])
+    if not m:
+      continue            # engraving, chamfer, thread, solder mask: all in the store list
+    shank_mm, d_mm, cut, family, metal = float(m[1]), m[2], float(m[3]), m[4], bool(m[5])
+    d = float(d_mm) if d_mm else shank_mm
+    shank = SH18 if abs(shank_mm - 3.175) < 1e-3 else shank_mm / 1000
+    if family in ("Corn", "Drill"):
+      kind = family.lower()
+      id_ = f"{kind}18_{_num(d)}"
+      if id_ in have:     # store bit: take the library's flute length
+        have[id_]["cut"] = cut / 1000
+        continue
+      if family == "Corn":
+        x = bit(id_, f'TiN Coating Corn 1/8" {d:g}mm', "corn", d, shank, cut, 38, 8, TIN, est_len=True)
+      else:
+        x = bit(id_, f'TiN Coating Drill 1/8" {d:g}mm', "drill", d, shank, cut, max(38, cut + 22), 2, TIN,
+                est_len=True)
+    else:
+      kind = "ballnose" if family == "Ball Nose" else "endmill"
+      # already in the store list? (same kind, shank, diameter, length, metal)
+      if any(x["kind"] == kind and abs(x["shank"] - shank) < 1e-5 and abs(x["d"] * 1000 - d) < 0.01
+             and abs(x["cut"] * 1000 - cut) < 0.05 and (x["coat"] == METAL_COAT) == metal for x in b):
+        continue
+      tag = ("bnm" if metal else "bn") if kind == "ballnose" else ("fem" if metal else "fe")
+      size = "18" if shank == SH18 else _num(shank_mm)
+      id_ = f"{tag}{size}_{_num(d)}x{_num(cut)}"
+      title = (f'{"Ball Nose" if kind == "ballnose" else "Flat End Mill"}{" for Metal" if metal else ""} '
+               f'{"1/8" + chr(34) if shank == SH18 else f"{shank_mm:g}mm"} {d:g}x{cut:g}mm')
+      x = bit(id_, title, kind, d, shank, cut, max(38, cut + 18), 2,
+              METAL_COAT if metal else CARBIDE, est_len=True)
+    x["source"] = "Makera Studio library"
+    b.append(x)
+    have[x["id"]] = x
   return b
 
 

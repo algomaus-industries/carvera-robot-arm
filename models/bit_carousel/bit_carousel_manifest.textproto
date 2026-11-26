@@ -9,5 +9,5 @@ metadata {
   vendor {
     display_name: "intrinsic"
   }
-  display_name: "Bit carousel for the SO-101 (139 seats, turning seat plate)"
+  display_name: "Bit carousel for the SO-101 (140 seats, turning seat plate)"
 }
