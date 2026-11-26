@@ -546,6 +546,12 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     if config.machine is not None else None
   )
   world = solution.world
+  if not getattr(solution, "is_simulated", False) and any(
+      s.startswith("atc:") for move in moves for s in move):
+    # After a job the Carvera may keep a bit in the spindle; its ATC slot then
+    # looks empty to the arm, which would put another bit there.
+    input("Make sure the Carvera's spindle holds no tool (Makera Studio / controller: "
+          "drop the tool), then press Enter: ")
   for src, dst in moves:
     holders = holder_positions(world)
     holder = holder_at(world, src, holders)
@@ -574,7 +580,8 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
                         profile, shank, joints)
       )
       _seat_in_world(world, holder, dst)
-      print(f"[✓] {holder} is now in {dst}")
+      print(f"[✓] {holder} is now in {dst}", flush=True)
+      save_state(world)
     except (execution.ExecutionFailedError, ValueError) as e:
       print(f"[!] Move failed: {e}")
       if hasattr(solution.executive, "get_errors"):
@@ -759,6 +766,103 @@ def plan_set_atc(world: Any, targets: dict[int, str | None],
   return moves
 
 
+# ---------------------------------------------------------------- cell state
+# The cell's state on disk: which bit is in which ATC slot and carousel seat,
+# the carousel's angle, the cart and the hood. move_bit writes it after
+# every move, turn, park and dock. On the real cell it is the record that
+# outlives a restart of the solution (the world model starts from the
+# configs' layout); --restore_state puts the world back to it, and
+# --set_state records bits changed by hand. The sim forgets on every reset,
+# so there the picker offers to restore it.
+STATE_PATH = os.environ.get(
+  "CARVERA_CELL_STATE",
+  os.path.expanduser("~/.local/state/carvera_so101/cell_state.json"))
+
+
+def cart_parked(world: Any) -> bool:
+  cart, docked = _cart_target(world, parked=False)
+  return float(cart.translation[0]) - float(docked.translation[0]) > PARK_DX / 2
+
+
+def hood_open(world: Any) -> bool:
+  return float(list(world.get_kinematic_object(ATC_OBJECT).joint_positions)[0]) > HOOD_OPEN / 2
+
+
+def snapshot(world: Any) -> dict:
+  import datetime  # pylint: disable=import-outside-toplevel
+  return {
+    "slots": {slot: bit for slot, bit in occupancy(world).items() if bit},
+    "carousel_rad": carousel_angle(world),
+    "cart": "parked" if cart_parked(world) else "docked",
+    "hood": "open" if hood_open(world) else "closed",
+    "updated": datetime.datetime.now().isoformat(timespec="seconds"),
+  }
+
+
+def load_state() -> dict | None:
+  try:
+    with open(STATE_PATH) as fh:
+      return json.load(fh)
+  except (OSError, json.JSONDecodeError):
+    return None
+
+
+def save_state(world: Any, snap: dict | None = None) -> dict:
+  snap = snap or snapshot(world)
+  os.makedirs(os.path.dirname(STATE_PATH), exist_ok=True)
+  tmp = STATE_PATH + ".tmp"
+  with open(tmp, "w") as fh:
+    json.dump(snap, fh, indent=1, sort_keys=True)
+  os.replace(tmp, STATE_PATH)
+  return snap
+
+
+def state_differences(saved: dict | None, now: dict) -> list[str]:
+  """What differs between the saved state and the world, for people."""
+  if saved is None:
+    return []
+  out = []
+  for slot in sorted(set(saved["slots"]) | set(now["slots"])):
+    if saved["slots"].get(slot) != now["slots"].get(slot):
+      out.append(f"{slot}: saved {saved['slots'].get(slot) or 'empty'}, "
+                 f"world {now['slots'].get(slot) or 'empty'}")
+  for key in ("cart", "hood"):
+    if saved.get(key) != now.get(key):
+      out.append(f"{key}: saved {saved.get(key)}, world {now.get(key)}")
+  return out
+
+
+def restore_state(solution: Any, state: dict) -> None:
+  """Puts the world in the saved state, without moving the arm."""
+  world = solution.world
+  if state.get("carousel_rad") is not None and carousel(world) is not None:
+    world.update_joint_positions(carousel(world), [state["carousel_rad"]])
+  cart, goal = _cart_target(world, parked=state.get("cart") == "parked")
+  obj = world.get_object(CART_OBJECT)
+  world.update_transform(node_a=world.root, node_b=obj, node_to_update=obj, a_t_b=goal)
+  world.update_joint_positions(world.get_kinematic_object(ATC_OBJECT),
+                               [HOOD_OPEN if state.get("hood") == "open" else 0.0])
+  for slot, bit in state["slots"].items():
+    _seat_in_world(world, bit, slot)
+  if getattr(solution, "is_simulated", False) and solution.simulator:
+    solution.simulator.reset()
+
+
+def record_set_atc(solution: Any, targets: dict[int, str | None]) -> list[tuple[str, str]]:
+  """Records that the ATC was changed by hand: the same moves as --set_atc,
+  but the bits are only put there in the world, the arm does not move."""
+  world = solution.world
+  moves = plan_set_atc(world, targets, load_bit_catalog())
+  holders = holder_positions(world)
+  for src, dst in moves:
+    _seat_in_world(world, holder_at(world, src, holders), dst)
+    holders = holder_positions(world)
+    print(f"[✓] recorded {src} -> {dst}")
+  if getattr(solution, "is_simulated", False) and solution.simulator:
+    solution.simulator.reset()
+  return moves
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
   parser.add_argument("--address", default="localhost:17080")
@@ -780,6 +884,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                       help="SO-101 cell: arm home, roll the cart away, close the hood.")
   parser.add_argument("--dock", action="store_true",
                       help="SO-101 cell: open the hood, roll the cart up to the Carvera.")
+  parser.add_argument("--set_state", default="",
+                      help="Record bits changed by hand, same form as --set_atc: the world "
+                           "is set to match, the arm does not move.")
+  parser.add_argument("--save_state", action="store_true",
+                      help=f"Write the world's cell state to {STATE_PATH} and exit.")
+  parser.add_argument("--restore_state", action="store_true",
+                      help="Put the world back to the saved cell state (no arm motion) and exit.")
   parser.add_argument("--turn", default="",
                       help="Carousel only: turn seat grid:R,C to its pick position and exit.")
   parser.add_argument("--yaw_deg", type=float, default=0.0,
@@ -797,20 +908,42 @@ def main(argv: Sequence[str] | None = None) -> None:
 
   if args.turn:
     turn_carousel(world, args.turn)
+    save_state(world)
     return
   if args.park:
     park(solution, config)
+    save_state(world)
     return
   if args.dock:
     dock(solution, config)
+    save_state(world)
+    return
+  if args.save_state:
+    save_state(world)
+    print(f"[✓] saved the cell state to {STATE_PATH}")
+    return
+  if args.restore_state:
+    state = load_state()
+    if state is None:
+      raise SystemExit(f"No saved cell state at {STATE_PATH}.")
+    restore_state(solution, state)
+    print(f"[✓] restored the cell state of {state.get('updated')}")
+    return
+  if args.set_state:
+    record_set_atc(solution, parse_set_atc(args.set_state))
+    save_state(world)
     return
 
   if args.list_json:
-    angle = carousel_angle(world)
-    holders = holder_positions(world)
+    now = snapshot(world)
+    saved = load_state()
+    angle = now["carousel_rad"]
     print(json.dumps({
-      "atc": {str(n): holder_at(world, f"atc:{n}", holders) for n in ATC_SLOTS},
+      "atc": {str(n): now["slots"].get(f"atc:{n}") for n in ATC_SLOTS},
       "carousel_deg": None if angle is None else round(math.degrees(angle), 1),
+      "cart": now["cart"], "hood": now["hood"],
+      "saved": None if saved is None else saved.get("updated"),
+      "differs": state_differences(saved, now),
     }))
     return
 

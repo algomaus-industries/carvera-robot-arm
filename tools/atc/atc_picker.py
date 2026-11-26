@@ -11,6 +11,14 @@ inside the omts container, on the VNC display:
   # scripted, e.g. for the demo video: fill the choices one by one, then Apply
   DISPLAY=:1 python3 tools/atc/atc_picker.py --demo='1=ofl4_22,2=bn18_1x4,6=' --exit_when_done
 
+What it shows comes from the world model; move_bit also keeps the cell's
+state on disk (which bit is where, the carousel, cart and hood). When the
+two disagree (after a sim reset, or a restart on the real cell) the picker
+says so and offers to restore the saved state or to keep the world as it
+is. If you swap bits by hand, tick "I changed them by hand", pick what is
+really in the slots now and Apply: the world and the saved state follow,
+the arm does not move.
+
 move_bit is taken from bazel-bin (build it first: bazel build -c opt
 //tools/atc:move_bit) or set with MOVE_BIT.
 """
@@ -46,6 +54,7 @@ class Picker:
     self.demo_delay = demo_delay
     self.out: queue.Queue = queue.Queue()
     self.busy = False
+    self.demo_mode = bool(demo)
     bits = json.load(open(BITS_JSON))["bits"]
     self.title_of = {"bit_" + b["id"]: b["title"] for b in bits}
     self.label_of = {}
@@ -56,31 +65,43 @@ class Picker:
 
     root.title("Carvera ATC picker")
     style = ttk.Style(root)
-    style.configure("Head.TLabel", font=("DejaVu Sans", 12, "bold"))
+    style.configure("Head.TLabel", font=("DejaVu Sans", 11, "bold"))
     style.configure("Now.TLabel", font=("DejaVu Sans", 9), foreground="#1b7f3b")
-    frame = ttk.Frame(root, padding=8)
+    style.configure("Warn.TLabel", font=("DejaVu Sans", 9), foreground="#9a5b00")
+    frame = ttk.Frame(root, padding=6)
     frame.pack(fill="both", expand=True)
     ttk.Label(frame, text="Carvera ATC: pick a bit per slot, then Apply", style="Head.TLabel").grid(
-      row=0, column=0, columnspan=3, sticky="w", pady=(0, 6))
+      row=0, column=0, columnspan=3, sticky="w", pady=(0, 4))
+    # Shown when the world and the saved cell state disagree (after a sim
+    # reset, or a restart of the solution on the real cell).
+    self.banner = ttk.Frame(frame)
+    self.banner_text = ttk.Label(self.banner, style="Warn.TLabel", wraplength=600, justify="left")
+    self.banner_text.pack(side="top", anchor="w")
+    ttk.Button(self.banner, text="Restore saved state", command=self.restore).pack(side="left")
+    ttk.Button(self.banner, text="Keep this world", command=self.keep).pack(side="left", padx=4)
     self.now, self.pick = {}, {}
-    for i, n in enumerate(SLOTS, start=1):
-      ttk.Label(frame, text=f"T{n}", width=3, font=("DejaVu Sans", 11, "bold")).grid(row=2 * i - 1, column=0, rowspan=2)
-      self.now[n] = ttk.Label(frame, text="now: ?", style="Now.TLabel")
-      self.now[n].grid(row=2 * i - 1, column=1, sticky="w")
-      self.pick[n] = ttk.Combobox(frame, values=choices, width=58, state="readonly")
-      self.pick[n].grid(row=2 * i, column=1, sticky="we", pady=(0, 3))
+    for n in SLOTS:
+      r = n + 1
+      ttk.Label(frame, text=f"T{n}", width=3, font=("DejaVu Sans", 10, "bold")).grid(row=r, column=0)
+      self.pick[n] = ttk.Combobox(frame, values=choices, width=34, state="readonly")
+      self.pick[n].grid(row=r, column=1, sticky="we", pady=1)
+      self.now[n] = ttk.Label(frame, text="now: ?", style="Now.TLabel", width=30)
+      self.now[n].grid(row=r, column=2, sticky="w", padx=(6, 0))
     buttons = ttk.Frame(frame)
-    buttons.grid(row=13, column=0, columnspan=2, sticky="we", pady=4)
+    buttons.grid(row=8, column=0, columnspan=3, sticky="we", pady=4)
     self.apply_btn = ttk.Button(buttons, text="Apply", command=self.apply)
     self.apply_btn.pack(side="left")
     ttk.Button(buttons, text="Refresh", command=self.refresh).pack(side="left", padx=4)
     ttk.Button(buttons, text="Empty all", command=self.empty_all).pack(side="left")
-    self.status = ttk.Label(buttons, text="")
-    self.status.pack(side="left", padx=8)
-    self.log = tk.Text(frame, height=5, width=70, font=("DejaVu Sans Mono", 8))
-    self.log.grid(row=14, column=0, columnspan=2, sticky="nsew")
+    self.record_only = tk.BooleanVar(value=False)
+    ttk.Checkbutton(buttons, text="I changed them by hand (record only)",
+                    variable=self.record_only).pack(side="left", padx=6)
+    self.status = ttk.Label(frame, text="")
+    self.status.grid(row=9, column=0, columnspan=3, sticky="w")
+    self.log = tk.Text(frame, height=3, width=70, font=("DejaVu Sans Mono", 8))
+    self.log.grid(row=10, column=0, columnspan=3, sticky="nsew")
     frame.columnconfigure(1, weight=1)
-    frame.rowconfigure(14, weight=1)
+    frame.rowconfigure(10, weight=1)
     root.after(100, self.poll)
     self.refresh(then=(lambda: self.run_demo(demo)) if demo else None)
 
@@ -96,7 +117,7 @@ class Picker:
       lines = []
       for line in p.stdout:
         lines.append(line)
-        if any(k in line for k in ("Plan", "->", "Moving", "✓", "[!]", "turning")):
+        if any(k in line for k in ("Plan", "->", "Moving", "✓", "[!]", "turning", "Error", "No saved")):
           self.out.put(("log", line.rstrip()))
       p.wait()
       self.out.put(("done", (on_done, "".join(lines), p.returncode)))
@@ -133,12 +154,30 @@ class Picker:
         return
       for n in SLOTS:
         bit = state["atc"].get(str(n))
-        self.now[n].config(text="now: " + (self.title_of.get(bit, bit) if bit else "empty"))
+        title = self.title_of.get(bit, bit) if bit else "empty"
+        self.now[n].config(text="now: " + (title if len(title) <= 28 else title[:27] + "…"))
         self.pick[n].set(self.label_of.get(bit, EMPTY) if bit else EMPTY)
-      self.status.config(text="ready")
+      differs = state.get("differs") or []
+      if differs and not self.demo_mode:
+        more = f" (+{len(differs) - 2} more)" if len(differs) > 2 else ""
+        self.banner_text.config(text=f"The world differs from the cell state saved {(state.get('saved') or '').replace('T', ' ')}: "
+                                + "; ".join(differs[:2]) + more)
+        self.banner.grid(row=1, column=0, columnspan=3, sticky="we", pady=(0, 4))
+      else:
+        self.banner.grid_remove()
+      self.status.config(text="ready" + (f"  (cart {state['cart']}, hood {state['hood']})"
+                                         if "cart" in state else ""))
       if then:
         then()
     self.run(["--list_json"], done)
+
+  def restore(self):
+    self.status.config(text="restoring the saved state ...")
+    self.run(["--restore_state"], lambda text, code: self.refresh())
+
+  def keep(self):
+    self.status.config(text="saving this world as the cell state ...")
+    self.run(["--save_state"], lambda text, code: self.refresh())
 
   def empty_all(self):
     for n in SLOTS:
@@ -148,13 +187,18 @@ class Picker:
     if self.busy:
       return
     spec = ",".join(f"{n}={self.bit_of_label.get(self.pick[n].get(), '')}" for n in SLOTS)
-    self.log.insert("end", f"set_atc {spec}\n")
-    self.status.config(text="planning ...")
+    record = self.record_only.get()
+    self.log.insert("end", f"{'set_state' if record else 'set_atc'} {spec}\n")
+    self.status.config(text="recording ..." if record else "planning ...")
 
     def done(text, code):
       self.status.config(text="done" if code == 0 else "failed, see the log")
       self.refresh(then=(lambda: self.root.after(2500, self.root.destroy)) if self.exit_when_done else None)
-    self.run([f"--set_atc={spec}", "--home_frame=view"], done)
+    if record:
+      self.record_only.set(False)
+      self.run([f"--set_state={spec}"], done)
+    else:
+      self.run([f"--set_atc={spec}", "--home_frame=view"], done)
 
   def run_demo(self, spec: str):
     """Sets the given choices one by one (visibly), then presses Apply."""

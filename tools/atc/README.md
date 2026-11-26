@@ -38,6 +38,27 @@ In the omts container it is also on the desktop and in the Applications
 menu as **ATC picker** (`~/.local/bin/atc-picker`, which builds `move_bit`
 first if needed and logs to `/tmp/atc-picker.log`).
 
+### Keeping it in step with the real cell
+
+`move_bit` keeps the cell's state on disk,
+`~/.local/state/carvera_so101/cell_state.json` (or `$CARVERA_CELL_STATE`):
+which bit is in which ATC slot and carousel seat, the carousel's angle,
+the cart (docked / parked) and the hood. It is written after every move,
+turn, park and dock, so on the real cell it is the record that outlives a
+restart of the solution, whose world model starts from the configs' layout.
+
+- `--restore_state` puts the world back to the saved state (no arm motion);
+  `--save_state` saves the world as it is.
+- `--set_state='3=oflm4_12,5='` records bits changed by hand, in the same
+  form as `--set_atc`: the world and the file follow, the arm does not move.
+- `--list_json` also says what differs between the world and the file.
+
+The picker shows that difference as a banner with **Restore saved state** /
+**Keep this world**, and its **I changed them by hand** box makes Apply
+record instead of move. On the real cell, `move_bit` asks you to make sure
+the Carvera's spindle is empty before the arm goes to the ATC: after a job
+the Carvera can keep a bit in the spindle, and its slot would look free.
+
 `--demo='1=<bit id>,…'` picks those bits one by one and presses Apply by
 itself (the demo video uses it).
 
