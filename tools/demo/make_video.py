@@ -88,7 +88,8 @@ def main():
     b = at(float(nxt[0]) if nxt else float(frames[-1][1]))
     draw.append(f"drawtext=fontfile={FONT}:text='{esc(cap)}':x=20:y=h-65:fontsize=30:"
                 f"fontcolor=yellow:box=1:boxcolor=black@0.55:boxborderw=10:enable='between(t,{a:.2f},{b:.2f})'")
-  # Speed badge, bottom right of the overview tile (the picker is right of
+  # Speed badge, bottom right of the overview tile on the title's line, clear
+  # of the longer step captions (the picker is right of
   # it): the normal speed-up, or the idle one (in a
   # different colour) while the arm waits.
   runs, k = [], 0
@@ -102,7 +103,7 @@ def main():
     else:
       k += 1
   fast = "+".join(f"between(t,{a:.3f},{b:.3f})" for a, b in runs) or "0"
-  badge = "fontfile={f}:x=1280-tw-20:y=h-65:fontsize=30:box=1:boxcolor=black@0.55:boxborderw=10".format(f=FONT)
+  badge = "fontfile={f}:x=1280-tw-20:y=h-120:fontsize=30:box=1:boxcolor=black@0.55:boxborderw=10".format(f=FONT)
   if args.idle_speed == args.speed:
     # One speed throughout (e.g. --speed=1 --idle_speed=1 for real time).
     draw.append(f"drawtext={badge}:fontcolor=white:text='"

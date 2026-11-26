@@ -15,13 +15,15 @@ Everything except the Carvera, the bench and the arm kit can be built from
 assembly instructions.
 
 <p align="center">
-  <a href="docs/carvera_so101_demo.mp4"><img src="docs/carvera_so101_cell.png" alt="Simulated cell: Makera Carvera on a Küpper bench, SO-101 arm and bit carousel on a rolling cart" width="640" /></a>
+  <a href="docs/carvera_so101_demo.mp4"><img src="docs/carvera_so101_demo.webp" alt="Demo (simulation, RViz): the SO-101 arm fills the Carvera's ATC from the bit carousel, the ATC picker swaps two slots, then the cart parks" width="800" /></a>
 </p>
 
 **Demo video (simulation, RViz):** the arm fills the ATC from the carousel,
-the ATC picker swaps two slots, then the cart parks.
-[Watch it](docs/carvera_so101_demo.mp4) (63 s: 4×, waits 20×, marked in
-the corner; the real run takes about 8 min).
+the ATC picker swaps two slots, then the cart parks. The preview above loops
+the sped-up video; as MP4:
+[sped up](docs/carvera_so101_demo.mp4) (63 s: 4×, waits 20×, the speed is
+shown in the corner) or [real time](docs/carvera_so101_demo_realtime.mp4)
+(8 min).
 
 What you build ([`fab/`](fab/README.md) has the files, the bill of materials
 and the assembly steps):
