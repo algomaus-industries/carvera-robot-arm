@@ -1,6 +1,7 @@
 """Turns a tools/demo/record_demo.sh recording into a captioned MP4.
 
   python3 tools/demo/make_video.py --rec=/path/to/demo --out=demo.mp4 [--speed=4]
+  python3 tools/demo/make_video.py --rec=/path/to/demo --out=real.mp4 --speed=1 --idle_speed=1
 
 Each frame is shown for its real capture interval divided by --speed, so the
 moves keep their pace relative to each other; frames where nothing on screen
@@ -102,8 +103,13 @@ def main():
       k += 1
   fast = "+".join(f"between(t,{a:.3f},{b:.3f})" for a, b in runs) or "0"
   badge = "fontfile={f}:x=1280-tw-20:y=h-65:fontsize=30:box=1:boxcolor=black@0.55:boxborderw=10".format(f=FONT)
-  draw.append(f"drawtext={badge}:text='{args.speed:g}x':fontcolor=white:enable='not({fast})'")
-  draw.append(f"drawtext={badge}:text='{args.idle_speed:g}x  waiting':fontcolor=0x7fd7ff:enable='{fast}'")
+  if args.idle_speed == args.speed:
+    # One speed throughout (e.g. --speed=1 --idle_speed=1 for real time).
+    draw.append(f"drawtext={badge}:fontcolor=white:text='"
+                + ("real time" if args.speed == 1 else f"{args.speed:g}x") + "'")
+  else:
+    draw.append(f"drawtext={badge}:text='{args.speed:g}x':fontcolor=white:enable='not({fast})'")
+    draw.append(f"drawtext={badge}:text='{args.idle_speed:g}x  waiting':fontcolor=0x7fd7ff:enable='{fast}'")
   cmd = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0",
          "-i", lst.name, "-vf", ",".join(draw + ["fps=30", "format=yuv420p"]),
          "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-movflags", "+faststart", args.out]
