@@ -386,22 +386,16 @@ class JointTargets:
   def _solve_diagonal(self, point, x_tool, down, diagonals, elbow_up):
     import numpy as np  # pylint: disable=import-outside-toplevel
     z_axis = np.asarray(down, float)
-    best = None
+    targets = []
     for x_axis in diagonals:
       x_axis = np.asarray(x_axis, float)
       target = np.eye(4)
       target[:3, :3] = np.column_stack([x_axis, np.cross(z_axis, x_axis), z_axis])
       # Shank axis at tool -x by half a shank: the tool frame goes +x of it.
       target[:3, 3] = np.asarray(point, float) + x_tool * x_axis
-      q = so101_ik.solve(target, self.q, elbow_up=elbow_up)
-      if q is None:
-        continue
-      d = float(np.linalg.norm(np.asarray(q) - np.asarray(self.q)))
-      if elbow_up and not 0 < q[2] <= so101_ik.ELBOW_FOLD_MAX:
-        d += so101_ik.ELBOW_DOWN_PENALTY
-      if best is None or d < best[0]:
-        best = (d, q)
-    return None if best is None else best[1]
+      targets.append(target)
+    # All jaw directions in one batched solve; the closest solution wins.
+    return so101_ik.solve_any(targets, self.q, elbow_up=elbow_up)
 
 
 def _matrix(pose: Any):

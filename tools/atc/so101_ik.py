@@ -47,62 +47,149 @@ def _tf(xyz, rpy) -> np.ndarray:
   return m
 
 
-def _rz(q: float) -> np.ndarray:
-  m = np.eye(4)
-  m[:2, :2] = [[np.cos(q), -np.sin(q)], [np.sin(q), np.cos(q)]]
-  return m
-
-
 _ORIGINS = [_tf(xyz, rpy) for xyz, rpy, _ in JOINTS]
 _TIP = _tf(*TIP)
 LIMITS = np.array([lim for _, _, lim in JOINTS]) * LIMIT_SCALE
 
+# The solver works on a batch of configurations at once (one row per seed):
+# forward kinematics as stacked 3x3 rotations, and the Jacobian taken
+# analytically from the joint axes, so one pass through the chain per
+# iteration for every seed.
+_O_ROT = np.array([o[:3, :3] for o in _ORIGINS])
+_O_POS = np.array([o[:3, 3] for o in _ORIGINS])
+_TIP_ROT, _TIP_POS = _TIP[:3, :3], _TIP[:3, 3]
+# Random restarts, the same for every call (deterministic results).
+_RANDOM_SEEDS = np.random.default_rng(0).uniform(LIMITS[:, 0], LIMITS[:, 1], size=(64, 5))
+
+
+def _chain(q: np.ndarray):
+  """Batched FK: q (N, 5) -> tool rotation (N, 3, 3), tool position (N, 3),
+  joint axes (N, 5, 3) and joint origins (N, 5, 3), all in the base frame."""
+  n = q.shape[0]
+  rot = np.broadcast_to(np.eye(3), (n, 3, 3))
+  pos = np.zeros((n, 3))
+  axes = np.empty((n, 5, 3))
+  origins = np.empty((n, 5, 3))
+  for i in range(5):
+    pos = pos + rot @ _O_POS[i]
+    rot = rot @ _O_ROT[i]
+    axes[:, i] = rot[:, :, 2]
+    origins[:, i] = pos
+    c, s = np.cos(q[:, i])[:, None], np.sin(q[:, i])[:, None]
+    r0, r1 = rot[:, :, 0], rot[:, :, 1]
+    rot = np.stack([c * r0 + s * r1, c * r1 - s * r0, rot[:, :, 2]], axis=2)
+  pos = pos + rot @ _TIP_POS
+  rot = rot @ _TIP_ROT
+  return rot, pos, axes, origins
+
 
 def fk(q) -> np.ndarray:
   """Tool frame pose in the arm base frame."""
+  rot, pos, _, _ = _chain(np.asarray(q, float).reshape(1, 5))
   m = np.eye(4)
-  for origin, qi in zip(_ORIGINS, q):
-    m = m @ origin @ _rz(qi)
-  return m @ _TIP
+  m[:3, :3] = rot[0]
+  m[:3, 3] = pos[0]
+  return m
 
 
-def _error(q, target: np.ndarray) -> np.ndarray:
-  # Rotation residual: the full matrix difference. The usual small-angle
-  # (skew-part) error is zero for a half turn, which let the solver accept
-  # the tool yawed 180 deg about its axis - the gripper is not symmetric.
-  m = fk(q)
-  dp = target[:3, 3] - m[:3, 3]
-  dr = 0.5 * (target[:3, :3] - m[:3, :3]).ravel()
-  return np.concatenate([dp, dr])
+def _pose_residual(target: np.ndarray):
+  """Residual and Jacobian for a full tool pose; `target` (4, 4), or (N, 4, 4)
+  with one target per row of the batch. Rotation residual: the full
+  matrix difference. The usual small-angle (skew-part) error is zero for a
+  half turn, which let the solver accept the tool yawed 180 deg about its
+  axis - the gripper is not symmetric."""
+  target = np.asarray(target, float)
+  t_rot, t_pos = target[..., :3, :3], target[..., :3, 3]
+
+  def f(q, rows):
+    if target.ndim == 3:
+      tr, tp = t_rot[rows], t_pos[rows]
+    else:
+      tr, tp = t_rot, t_pos
+    rot, pos, axes, origins = _chain(q)
+    e = np.concatenate([tp - pos, 0.5 * (tr - rot).reshape(-1, 9)], axis=1)
+    # Columns are -de/dq_i: z_i x (p - o_i) for the position, 0.5 * z_i x R
+    # (each column of R) for the rotation.
+    jp = np.cross(axes, (pos[:, None, :] - origins))                       # (N, 5, 3)
+    jr = 0.5 * np.cross(axes[:, :, None, :], np.swapaxes(rot, 1, 2)[:, None, :, :])  # (N, 5, col, row)
+    jac = np.concatenate([jp, np.swapaxes(jr, 2, 3).reshape(-1, 5, 9)], axis=2)
+    return e, np.swapaxes(jac, 1, 2)                                       # (N, 12, 5)
+  return f
 
 
-def _solve_from(seed, target, iters=200, tol=1e-6):
-  q = np.clip(np.asarray(seed, float), LIMITS[:, 0], LIMITS[:, 1])
-  lam = 1e-3
-  prev = np.inf
+def _down_residual(point, local, down):
+  """Residual and Jacobian for tool point `local` at `point`, tool z along `down`."""
+  def f(q, rows):
+    rot, pos, axes, origins = _chain(q)
+    tip = rot @ local + pos
+    z = rot[:, :, 2]
+    e = np.concatenate([point - tip, down - z], axis=1)
+    jac = np.concatenate([np.cross(axes, tip[:, None, :] - origins),
+                          np.cross(axes, z[:, None, :])], axis=2)
+    return e, np.swapaxes(jac, 1, 2)                                       # (N, 6, 5)
+  return f
+
+
+def _solve_batch(seeds: np.ndarray, residual, iters=200, tol=1e-6):
+  """Damped least squares from every seed at once. Each seed stops when it
+  converges or stalls (on a limit or out of reach); returns (N, 5) solutions
+  and a mask of those within 1e-4."""
+  q = np.clip(np.asarray(seeds, float), LIMITS[:, 0], LIMITS[:, 1])
+  n = q.shape[0]
+  active = np.ones(n, bool)
+  prev = np.full(n, np.inf)
+  lam = 1e-3 * np.eye(5)
   for it in range(iters):
-    e = _error(q, target)
-    n = np.linalg.norm(e)
-    if n < tol:
-      return q
+    idx = np.flatnonzero(active)
+    if idx.size == 0:
+      break
+    e, jac = residual(q[idx], idx)
+    norm = np.linalg.norm(e, axis=1)
+    keep = norm >= tol
     if it % 10 == 9:
-      if n > 0.9 * prev:   # stalled on a limit or out of reach
-        break
-      prev = n
-    jac = np.zeros((12, 5))
-    for i in range(5):
-      dq = np.zeros(5)
-      dq[i] = 1e-6
-      jac[:, i] = (e - _error(q + dq, target)) / 1e-6
-    step = np.linalg.solve(jac.T @ jac + lam * np.eye(5), jac.T @ e)
-    q = np.clip(q + step, LIMITS[:, 0], LIMITS[:, 1])
-  return q if np.linalg.norm(_error(q, target)) < 1e-4 else None
+      keep &= ~(norm > 0.9 * prev[idx])
+      prev[idx] = norm
+    active[idx[~keep]] = False
+    idx, e, jac = idx[keep], e[keep], jac[keep]
+    if idx.size == 0:
+      break
+    jt = np.swapaxes(jac, 1, 2)
+    step = np.linalg.solve(jt @ jac + lam, (jt @ e[:, :, None]))[:, :, 0]
+    q[idx] = np.clip(q[idx] + step, LIMITS[:, 0], LIMITS[:, 1])
+  e, _ = residual(q, np.arange(n))
+  return q, np.linalg.norm(e, axis=1) < 1e-4
 
 
 ELBOW_DOWN_PENALTY = 10.0
 # Above this elbow_flex the arm is folded so tightly that, near its base, the
 # gripper runs into the shoulder (e.g. grid cell 0,0).
 ELBOW_FOLD_MAX = 1.1
+
+
+def _closest(seed, residual, attempts, elbow_up, targets=1):
+  """The solution closest to `seed` (elbow-up preferred if asked): the seed
+  itself first, then `attempts` random restarts, all solved together. With
+  `targets` > 1 the residual holds that many targets and the closest
+  solution over all of them comes back."""
+  seed = np.asarray(seed, float)
+
+  def pick(qs, ok, best):
+    for q in qs[ok]:
+      d = np.linalg.norm(q - seed)
+      if elbow_up and not 0 < q[2] <= ELBOW_FOLD_MAX:
+        d += ELBOW_DOWN_PENALTY
+      if best is None or d < best[0]:
+        best = (d, q)
+    return best
+
+  best = pick(*_solve_batch(np.tile(seed, (targets, 1)), residual), None)
+  if best is not None and best[0] < 0.5:
+    return best[1]
+  # Row k * attempts + j: target k from random seed j.
+  restarts = np.tile(_RANDOM_SEEDS[:attempts], (targets, 1))
+  rows = np.repeat(np.arange(targets), attempts)
+  best = pick(*_solve_batch(restarts, lambda q, idx: residual(q, rows[idx])), best)
+  return None if best is None else best[1]
 
 
 def solve(target: np.ndarray, seed, attempts: int = 64, elbow_up: bool = False):
@@ -115,48 +202,14 @@ def solve(target: np.ndarray, seed, attempts: int = 64, elbow_up: bool = False):
   elbow-down solutions that put the lower arm into the machine; near ones
   have folded solutions that put the gripper into the shoulder.
   """
-  seed = np.asarray(seed, float)
-  rng = np.random.default_rng(0)
-  seeds = [seed] + [rng.uniform(LIMITS[:, 0], LIMITS[:, 1]) for _ in range(attempts)]
-  best = None
-  for s in seeds:
-    q = _solve_from(s, target)
-    if q is None:
-      continue
-    d = np.linalg.norm(q - seed)
-    if elbow_up and not 0 < q[2] <= ELBOW_FOLD_MAX:
-      d += ELBOW_DOWN_PENALTY
-    if best is None or d < best[0]:
-      best = (d, q)
-    if d < 0.5:
-      break
-  return None if best is None else best[1]
+  return _closest(seed, _pose_residual(np.asarray(target, float)), attempts, elbow_up)
 
 
-def _solve_down_from(seed, point, local, down, iters=200, tol=1e-6):
-  q = np.clip(np.asarray(seed, float), LIMITS[:, 0], LIMITS[:, 1])
-  lam = 1e-3
-  prev = np.inf
-  def err(qq):
-    m = fk(qq)
-    return np.concatenate([point - (m[:3, :3] @ local + m[:3, 3]), down - m[:3, 2]])
-  for it in range(iters):
-    e = err(q)
-    n = np.linalg.norm(e)
-    if n < tol:
-      return q
-    if it % 10 == 9:
-      if n > 0.9 * prev:
-        break
-      prev = n
-    jac = np.zeros((6, 5))
-    for i in range(5):
-      dq = np.zeros(5)
-      dq[i] = 1e-6
-      jac[:, i] = (e - err(q + dq)) / 1e-6
-    step = np.linalg.solve(jac.T @ jac + lam * np.eye(5), jac.T @ e)
-    q = np.clip(q + step, LIMITS[:, 0], LIMITS[:, 1])
-  return q if np.linalg.norm(err(q)) < 1e-4 else None
+def solve_any(targets, seed, attempts: int = 64, elbow_up: bool = False):
+  """Like solve(), for several alternative targets (e.g. the jaw turned to
+  different directions): the solution closest to `seed` over all of them."""
+  targets = np.asarray(targets, float)
+  return _closest(seed, _pose_residual(targets), attempts, elbow_up, len(targets))
 
 
 def solve_down(point: np.ndarray, local, down, seed, attempts: int = 64,
@@ -168,24 +221,9 @@ def solve_down(point: np.ndarray, local, down, seed, attempts: int = 64,
   matters for this arm: wrist_roll's limits and the jaw's offset from the
   roll axis rule out some yaws at some places.
   """
-  seed = np.asarray(seed, float)
-  local = np.asarray(local, float)
-  down = np.asarray(down, float)
-  rng = np.random.default_rng(0)
-  seeds = [seed] + [rng.uniform(LIMITS[:, 0], LIMITS[:, 1]) for _ in range(attempts)]
-  best = None
-  for s in seeds:
-    q = _solve_down_from(s, point, local, down)
-    if q is None:
-      continue
-    d = np.linalg.norm(q - seed)
-    if elbow_up and not 0 < q[2] <= ELBOW_FOLD_MAX:
-      d += ELBOW_DOWN_PENALTY
-    if best is None or d < best[0]:
-      best = (d, q)
-    if d < 0.5:
-      break
-  return None if best is None else best[1]
+  residual = _down_residual(np.asarray(point, float), np.asarray(local, float),
+                            np.asarray(down, float))
+  return _closest(seed, residual, attempts, elbow_up)
 
 
 def pose_matrix(translation, quaternion_xyzw) -> np.ndarray:
