@@ -30,6 +30,7 @@ import re
 import shlex
 import subprocess
 import threading
+import time
 import tkinter as tk
 from tkinter import ttk
 
@@ -69,6 +70,7 @@ class Picker:
     style.configure("Head.TLabel", font=("DejaVu Sans", 11, "bold"))
     style.configure("Now.TLabel", font=("DejaVu Sans", 9), foreground="#1b7f3b")
     style.configure("Warn.TLabel", font=("DejaVu Sans", 9), foreground="#9a5b00")
+    style.configure("Status.TLabel", font=("DejaVu Sans", 10, "bold"), foreground="#1d3f73")
     frame = ttk.Frame(root, padding=6)
     frame.pack(fill="both", expand=True)
     ttk.Label(frame, text="Carvera ATC: pick a bit per slot, then Apply", style="Head.TLabel").grid(
@@ -97,10 +99,18 @@ class Picker:
     self.record_only = tk.BooleanVar(value=False)
     ttk.Checkbutton(buttons, text="I changed them by hand (record only)",
                     variable=self.record_only).pack(side="left", padx=6)
-    self.status = ttk.Label(frame, text="")
+    self.status = ttk.Label(frame, text="", style="Status.TLabel", wraplength=620, justify="left")
     self.status.grid(row=9, column=0, columnspan=3, sticky="w")
-    self.log = tk.Text(frame, height=3, width=70, font=("DejaVu Sans Mono", 8))
-    self.log.grid(row=10, column=0, columnspan=3, sticky="nsew")
+    # Progress over the whole run: each move's share is split into turning
+    # the carousel, working out the joint path and the arm's motion. move_bit
+    # only hears back once the arm has finished a move, so within the motion
+    # the bar runs on the previous move's duration and stops short of its end.
+    self.bar = ttk.Progressbar(frame, maximum=1000, mode="determinate")
+    self.bar.grid(row=10, column=0, columnspan=3, sticky="we", pady=(2, 2))
+    self.prog = None          # last @progress dict, with its arrival time
+    self.arm_time = 20.0      # expected seconds of arm motion per move
+    self.log = tk.Text(frame, height=2, width=70, font=("DejaVu Sans Mono", 8))
+    self.log.grid(row=11, column=0, columnspan=3, sticky="nsew")
     frame.columnconfigure(1, weight=1)
     frame.rowconfigure(10, weight=1)
     self.moving = None   # (bit, src, dst) of the move move_bit is doing
@@ -119,6 +129,12 @@ class Picker:
       lines = []
       for line in p.stdout:
         lines.append(line)
+        if line.startswith("@progress "):
+          try:
+            self.out.put(("progress", json.loads(line[len("@progress "):])))
+          except json.JSONDecodeError:
+            pass
+          continue
         if any(k in line for k in ("Plan", "->", "Moving", "✓", "[!]", "turning", "Error", "No saved")):
           self.out.put(("log", line.rstrip()))
       p.wait()
@@ -129,11 +145,11 @@ class Picker:
     try:
       while True:
         kind, val = self.out.get_nowait()
-        if kind == "log":
+        if kind == "progress":
+          self.on_progress(val)
+        elif kind == "log":
           self.log.insert("end", val + "\n")
           self.log.see("end")
-          if "Moving" in val:
-            self.status.config(text=val.split(":")[0].replace("Moving ", "moving "))
           self.track(val)
         else:
           on_done, text, code = val
@@ -143,7 +159,43 @@ class Picker:
             on_done(text, code)
     except queue.Empty:
       pass
+    self.tick()
     self.root.after(100, self.poll)
+
+  # ------------------------------------------------------------- progress
+  # Where each phase starts within a move's share of the bar, and its width.
+  PHASES = {"turn": (0.0, 0.10), "plan": (0.10, 0.05), "arm": (0.15, 0.85)}
+
+  def on_progress(self, p):
+    now = time.monotonic()
+    if p["phase"] == "done" and self.prog and self.prog["phase"] == "arm":
+      self.arm_time = max(3.0, now - self.prog["t"])
+    p["t"] = now
+    self.prog = p
+    i, n = p["i"], max(1, p["n"])
+    if p["phase"] in self.PHASES:
+      self.status.config(text=f"Move {i + 1} of {n}: {p['move']}\n{p['text']} ...")
+    elif p["phase"] == "done":
+      self.status.config(text=f"{i} of {n} done: {p['text']}")
+    else:
+      self.status.config(text=p["text"][0].upper() + p["text"][1:] + " ...")
+    self.tick()
+
+  def tick(self):
+    p = self.prog
+    if p is None:
+      return
+    n = max(1, p["n"])
+    if p["phase"] in self.PHASES:
+      start, width = self.PHASES[p["phase"]]
+      frac = 0.0
+      if p["phase"] == "arm":
+        frac = min(0.95, (time.monotonic() - p["t"]) / self.arm_time)
+      value = (p["i"] + start + width * frac) / n
+    else:
+      value = p["i"] / n
+    # Keep the last 2 % for updating the simulator and homing the arm.
+    self.bar["value"] = 1000 * 0.98 * min(1.0, value)
 
   def show_now(self, n, bit):
     title = self.title_of.get(bit, bit) if bit else "empty"
@@ -165,8 +217,10 @@ class Picker:
       self.moving = None
 
   # ------------------------------------------------------------- actions
-  def refresh(self, then=None):
-    self.status.config(text="reading the ATC ...")
+  def refresh(self, then=None, quiet=False):
+    """Reads the ATC from the world. quiet: leave the status line alone."""
+    if not quiet:
+      self.status.config(text="reading the ATC ...")
 
     def done(text, code):
       try:
@@ -186,8 +240,9 @@ class Picker:
         self.banner.grid(row=1, column=0, columnspan=3, sticky="we", pady=(0, 4))
       else:
         self.banner.grid_remove()
-      self.status.config(text="ready" + (f"  (cart {state['cart']}, hood {state['hood']})"
-                                         if "cart" in state else ""))
+      if not quiet:
+        self.status.config(text="ready" + (f"  (cart {state['cart']}, hood {state['hood']})"
+                                           if "cart" in state else ""))
       if then:
         then()
     self.run(["--list_json"], done)
@@ -210,11 +265,18 @@ class Picker:
     spec = ",".join(f"{n}={self.bit_of_label.get(self.pick[n].get(), '')}" for n in SLOTS)
     record = self.record_only.get()
     self.log.insert("end", f"{'set_state' if record else 'set_atc'} {spec}\n")
-    self.status.config(text="recording ..." if record else "planning ...")
+    self.status.config(text="Recording ..." if record else "Working out which bits go where ...")
+
+    self.prog = None
+    self.bar["value"] = 0
 
     def done(text, code):
-      self.status.config(text="done" if code == 0 else "failed, see the log")
-      self.refresh(then=(lambda: self.root.after(2500, self.root.destroy)) if self.exit_when_done else None)
+      self.prog = None
+      self.bar["value"] = 1000 if code == 0 else self.bar["value"]
+      self.status.config(text="Done: the ATC holds the bits above." if code == 0 else
+                         "Failed, see the log.")
+      self.refresh(then=(lambda: self.root.after(2500, self.root.destroy)) if self.exit_when_done else None,
+                   quiet=True)
     if record:
       self.record_only.set(False)
       self.run([f"--set_state={spec}"], done)

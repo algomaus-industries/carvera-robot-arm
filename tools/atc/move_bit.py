@@ -556,6 +556,24 @@ def build_move_tree(
   return bt.Sequence(name=f"Move {holder}: {src} -> {dst}", children=tasks)
 
 
+def slot_name(slot: str) -> str:
+  """grid:2,23 -> "carousel ring 2, seat 23"; atc:3 -> "T3"."""
+  kind, _, where = slot.partition(":")
+  if kind == "atc":
+    return f"T{where}"
+  if kind == "grid":
+    r, _, c = where.partition(",")
+    return f"carousel ring {r}, seat {c}"
+  return slot
+
+
+def progress(i: int, n: int, phase: str, move: str, text: str) -> None:
+  """One machine-readable progress line (the ATC picker shows them): move i of
+  n (0-based; i == n after the last), the phase and what is going on."""
+  print("@progress " + json.dumps({"i": i, "n": n, "phase": phase, "move": move,
+                                   "text": text}), flush=True)
+
+
 def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
               home_frame: str | None) -> bool:
   robot = Robot(solution=solution, config=config.robot)
@@ -574,7 +592,8 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     # looks empty to the arm, which would put another bit there.
     input("Make sure the Carvera's spindle holds no tool (Makera Studio / controller: "
           "drop the tool), then press Enter: ")
-  for src, dst in moves:
+  n = len(moves)
+  for i, (src, dst) in enumerate(moves):
     holders = holder_positions(world)
     holder = holder_at(world, src, holders)
     if holder is None:
@@ -589,20 +608,24 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
       print(f"[!] {src} -> {dst}: both seats are on the carousel; move the bit to a "
             "free ATC slot and from there to the other seat.")
       return False
-    if on_carousel:
-      turn_carousel(world, on_carousel[0])
     shank = shank_m(holder, catalog)
     title = catalog.get(holder, {}).get("title", holder)
+    what = f"{title}: {slot_name(src)} → {slot_name(dst)}"
+    if on_carousel:
+      progress(i, n, "turn", what, f"turning the carousel to {slot_name(on_carousel[0])}")
+      turn_carousel(world, on_carousel[0])
     print(f"Moving {holder} ({title}): {src} -> {dst} ...")
+    progress(i, n, "plan", what, "working out the arm's joint path")
     gripper = make_gripper(solution, config, shank)
     joints = JointTargets(world, config.robot.arm_part_name)
     try:
-      solution.executive.run(
-        build_move_tree(robot, gripper, machine, config, holder, src, dst, yaw_deg,
-                        profile, shank, joints)
-      )
+      tree = build_move_tree(robot, gripper, machine, config, holder, src, dst, yaw_deg,
+                             profile, shank, joints)
+      progress(i, n, "arm", what, "arm: pick, carry, place")
+      solution.executive.run(tree)
       _seat_in_world(world, holder, dst)
       print(f"[✓] {holder} is now in {dst}", flush=True)
+      progress(i + 1, n, "done", what, f"{slot_name(dst)} done")
       save_state(world)
     except (execution.ExecutionFailedError, ValueError) as e:
       print(f"[!] Move failed: {e}")
@@ -611,8 +634,10 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
       return False
   if getattr(solution, "is_simulated", False) and solution.simulator:
     # Copy the belief world (bits on their new seats) into Gazebo.
+    progress(n, n, "sim", "", "updating the simulator")
     solution.simulator.reset()
   if home_frame:
+    progress(n, n, "home", "", "arm back to home")
     solution.executive.run(robot.build_move_joint_task(
       "home", name="Return to home", motion_type="ANY",
       excluded_collision_pairs=[(config.robot.tool_object_name, config.robot.arm_part_name)]))
