@@ -80,7 +80,7 @@ _SO101_ASSETS = [
     "//models/so101_stand",
     "//models/carvera_bench",
     "//models/robot_cart",
-    "//models/bit_grid_21",
+    "//models/bit_carousel",
     "//models/makera_carvera",
     "//models/schunk_egp_64nnb",
 ]
@@ -273,7 +273,7 @@ intrinsic_asset_instance(
 intrinsic_asset_instance(
     name = "bit_grid",
     asset = select({
-        ":is_carvera_so101": "ai.intrinsic.bit_grid_21",
+        ":is_carvera_so101": "ai.intrinsic.bit_carousel",
         "//conditions:default": "ai.intrinsic.bit_grid",
     }),
     instance_name = "bit_grid",

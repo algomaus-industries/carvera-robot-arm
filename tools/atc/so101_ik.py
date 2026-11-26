@@ -22,9 +22,10 @@ JOINTS = (
   ((0.0, -0.0611, 0.0181), (1.5708, 0.0486795, 3.14159), (-2.74385, 2.84121)),
 )
 TIP = ((-0.0079, -0.000218121, -0.0981274), (0.0, 3.14159, 0.0))
-# Named configuration "home" in models/so101/so101_limits.updates.pbtxt: tool
-# 13 cm above the cart, clear of the Carvera and the grid.
-HOME = (0.6, -1.1, 0.5, 1.6, 0.0)
+# Named configuration "home" in models/so101/so101_limits.updates.pbtxt: arm
+# over the pedestal (world +x), gripper 11 cm above the seats and nearly
+# vertical, turned away from the Carvera.
+HOME = (-1.571, -0.743, 0.43, 1.618, 0.0)
 # Application limits in so101_limits.updates.pbtxt are 99% of the range; stay
 # a little inside them.
 LIMIT_SCALE = 0.985

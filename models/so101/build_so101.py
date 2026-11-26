@@ -55,6 +55,11 @@ JAW_ORIGIN = ((0.0202, 0.0188, -0.0234), (1.5708, -5.24284e-08, -1.41553e-15))
 JAW_LIMITS = (-0.174533, 1.74533)
 TIP = ((-0.0079, -0.000218121, -0.0981274), (0.0, 3.14159, 0.0))
 
+# Collision boxes along each finger. The fingers taper to ~8 x 10 mm at the
+# tip; with 4 boxes the tip box was ~20 x 19 mm and the open jaw "hit" bits
+# a seat away in the rack that the real jaw clears.
+GRIPPER_SLICES = 14
+
 # Visuals: link -> [(stl, xyz, rpy, colour, collision slices)], verbatim URDF.
 WHITE = (0.94, 0.94, 0.92, 1.0)        # printed PLA, as on Seeed's kit photos
 BLACK = (0.06, 0.06, 0.07, 1.0)        # Feetech STS3215
@@ -94,11 +99,11 @@ VISUALS = {
         ("sts3215_03a_v1", (0.0077, 0.0001, -0.0234), (-1.5708, -5.19179e-17, -1.66533e-16),
          BLACK, 1),
         ("wrist_roll_follower_so101_v1", (8.32667e-17, -0.000218214, 0.000949706),
-         (-3.14159, -5.55112e-17, 0), WHITE, 4),
+         (-3.14159, -5.55112e-17, 0), WHITE, GRIPPER_SLICES),
     ],
 }
 JAW_VISUAL = ("moving_jaw_so101_v1", (-5.55112e-17, -5.55112e-17, 0.0189),
-              (9.53145e-17, 6.93889e-18, 1.24077e-24), WHITE, 4)
+              (9.53145e-17, 6.93889e-18, 1.24077e-24), WHITE, GRIPPER_SLICES)
 DECIMATE = 0.35                        # official meshes are ~30k triangles each
 
 # Joint limits handed to ICON (STS3215: ~0.22 s / 60 deg no load at 7.4 V,
@@ -205,15 +210,24 @@ def mesh_slices(stem, n):
 # ---------------------------------------------------------------- stand
 STAND_COLOR = (0.62, 0.48, 0.32, 1.0)  # plywood block (xTool-cut box)
 # Arm pedestal on the robot cart. Origin on the cart top under the arm's pan
-# axis, axes along the world's. The arm sits on arm_mount facing 135 deg
-# (between the Carvera ATC at -x and the bit grid at +y); its base origin is
-# 38.8 mm behind the pan axis. The cart top is level with the ATC seats, and
-# the pedestal lifts the arm base 5 cm above the grip height (= seat + 6 mm)
-# so that both the ATC and the grid are in the SO-101's top-down reach.
-ARM_YAW = math.radians(135)
-ARM_BASE_H = 0.103
-PEDESTAL = dict(lo=(-0.015, -0.095, 0.0), hi=(0.095, 0.040, ARM_BASE_H))
-GRID_CENTER = (0.085, 0.175)           # bit_grid_21 centre on the cart, from the pan axis
+# axis, axes along the world's. The pedestal overhangs the cart's front edge
+# by 4.5 cm as a bracket over the Carvera's front lip, so the pan axis sits
+# just inside the open hood's front, 2.5 cm in front of the right-hand side
+# panel's edge: from there the SO-101 reaches all six ATC slots with its
+# gripper vertical. The arm faces 270 deg (world -y), so its +-110 deg
+# shoulder_pan range runs from the ATC (-x) across the open front of the
+# machine to the bit carousel (models/bit_carousel) and never turns
+# towards the panel. The carousel's seat plate is level with the ATC seats;
+# the pedestal lifts the arm base 5 cm above the grip height (= seat + 6 mm).
+ARM_YAW = math.radians(270)
+sys.path.insert(0, os.path.join(HERE, "..", "bit_carousel"))
+import carousel_layout  # noqa: E402  pylint: disable=wrong-import-position
+# The cart top sits carousel_layout.SEAT_Z below the ATC seats (the carousel's
+# seat plate is level with them), and the pedestal brings the arm base back to
+# 5 cm above the grip height: 0.103 m over the old 47 mm rack seats.
+ARM_BASE_H = 0.103 + carousel_layout.SEAT_Z - 0.047
+PEDESTAL = dict(lo=(-0.020, -0.035, 0.0), hi=(0.050, 0.075, ARM_BASE_H))
+GRID_CENTER = carousel_layout.CENTER_IN_PAN   # bit_carousel turntable axis, on the cart top
 
 
 def stand_boxes():
@@ -252,7 +266,7 @@ BENCH_TOP_Z = 0.84
 BENCHES = {
     "carvera_bench": dict(w=0.60, d=0.60, h=BENCH_TOP_Z, casters=False, style="kuepper",
                           drawers=1),
-    "robot_cart": dict(w=0.355, d=0.435, h=BENCH_TOP_Z + 0.150 - 0.047, casters=True),
+    "robot_cart": dict(w=0.355, d=0.435, h=BENCH_TOP_Z + 0.150 - carousel_layout.SEAT_Z, casters=True),
 }
 KUEPPER_GREY = (0.47, 0.50, 0.53, 1.0)
 KUEPPER_RED = (0.60, 0.07, 0.06, 1.0)
@@ -519,7 +533,7 @@ def stand_sdf():
   return f"""{HEADER}
 <!-- Plywood arm pedestal on the SO-101 robot cart. Origin on the cart top
      under the arm's pan axis, world-aligned. arm_mount: where so101 goes
-     (yaw 135 deg); grid_mount: centre of bit_grid_21 on the cart top. -->
+     (yaw 270 deg); grid_mount: bit_carousel's turntable axis on the cart top. -->
 <sdf version="1.10" xmlns:intrinsic="https://intrinsic.ai/">
   <model name="so101_stand">
     <static>true</static>

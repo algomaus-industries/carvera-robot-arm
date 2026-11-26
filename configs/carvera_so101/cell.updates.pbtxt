@@ -3,11 +3,14 @@
 #
 # SO-101 cell (--//:setup=carvera_so101): the Carvera on a Kuepper workshop
 # bench (models/carvera_bench, 60 x 60 cm, top 0.84 m) and, in front of it, a rolling cart
-# (models/robot_cart) carrying the SO-101 on a plywood pedestal and the 21 mm
-# bit grid. The cart top is level with the ATC seats; the pedestal puts the
-# arm base 5 cm above the grip height, so the ATC and the grid are inside the
-# SO-101's top-down reach (7..33 cm from the pan axis). Pan axis at world
-# (-0.175, -0.025): ATC T1 0.316 m, T6 0.166 m, grid cells 0.08..0.33 m.
+# (models/robot_cart) carrying the SO-101 on a plywood pedestal and the
+# bit carousel (models/bit_carousel, instance bit_grid) with every bit. The
+# carousel's seat plate is level with the ATC seats; the pedestal's bracket
+# puts the pan axis at world (-0.22, -0.025), just inside the open hood, and
+# the arm base 5 cm above the grip height: ATC T1 0.27 m .. T6 0.12 m and the
+# carousel's pick positions 0.16..0.225 m from the pan axis, all inside the
+# SO-101's vertical-gripper reach. move_bit turns the carousel
+# (carousel_joint) to bring a seat to its ring's pick position.
 # The vise comes from configs/omts/schunk.updates.pbtxt (relative to the Carvera).
 updates {
   update_transform {
@@ -43,7 +46,7 @@ updates {
     node_b { by_name { object { object_name: "robot_cart" } } }
     node_to_update { by_name { object { object_name: "robot_cart" } } }
     a_t_b {
-      position { x: -0.01750 y: 0.08250 z: 0.00000 }
+      position { x: -0.01750 y: -0.15250 z: 0.00000 }
       orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
@@ -54,7 +57,7 @@ updates {
     node_b { by_name { object { object_name: "so101_stand" } } }
     node_to_update { by_name { object { object_name: "so101_stand" } } }
     a_t_b {
-      position { x: -0.17500 y: -0.02500 z: 0.94300 }
+      position { x: -0.22000 y: -0.02500 z: 0.91500 }
       orientation { x: 0.000000 y: 0.000000 z: 0.000000 w: 1.000000 }
     }
   }
@@ -98,14 +101,14 @@ updates {
     }
   }
 }
-# Home: tool frame at the arm's start / home configuration [0.6, -1.1, 0.5, 1.6, 0.0]
+# Home: tool frame at the arm's start / home configuration [-1.571, -0.743, 0.43, 1.618, 0.0]
 # (gripper 13 cm up, turned over the grid). move_bit returns here.
 updates {
   create_frame {
     new_frame_name: "view"
     parent_t_new_frame {
-      position { x: -0.19906 y: 0.10333 z: 1.18082 }
-      orientation { x: -0.723267 y: 0.630570 z: 0.220968 w: 0.174469 }
+      position { x: -0.08419 y: -0.02498 z: 1.15522 }
+      orientation { x: 0.024018 y: 0.990890 z: 0.003241 w: 0.132474 }
     }
     parent_object_with_filter { reference { by_name { object_name: "root" } } }
   }

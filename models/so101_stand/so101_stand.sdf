@@ -6,7 +6,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
 -->
 <!-- Plywood arm pedestal on the SO-101 robot cart. Origin on the cart top
      under the arm's pan axis, world-aligned. arm_mount: where so101 goes
-     (yaw 135 deg); grid_mount: centre of bit_grid_21 on the cart top. -->
+     (yaw 270 deg); grid_mount: bit_carousel's turntable axis on the cart top. -->
 <sdf version="1.10" xmlns:intrinsic="https://intrinsic.ai/">
   <model name="so101_stand">
     <static>true</static>
@@ -15,15 +15,15 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><mesh><uri>so101_stand.glb</uri></mesh></geometry>
       </visual>
       <collision name="pedestal_collision">
-        <pose>0.040000 -0.027500 0.051500 0 0 0</pose>
-        <geometry><box><size>0.110000 0.135000 0.103000</size></box></geometry>
+        <pose>0.015000 0.020000 0.065500 0 0 0</pose>
+        <geometry><box><size>0.070000 0.110000 0.131000</size></box></geometry>
       </collision>
     </link>
     <frame name="arm_mount" attached_to="stand" intrinsic:create_entity="true">
-      <pose>0.02746 -0.02746 0.103 0 0 2.356194</pose>
+      <pose>0.00000 0.03884 0.131 0 0 4.712389</pose>
     </frame>
     <frame name="grid_mount" attached_to="stand" intrinsic:create_entity="true">
-      <pose>0.085 0.175 0 0 0 0</pose>
+      <pose>0.198 -0.17 0 0 0 0</pose>
     </frame>
   </model>
 </sdf>

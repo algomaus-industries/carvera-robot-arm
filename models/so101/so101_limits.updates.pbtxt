@@ -1,17 +1,17 @@
 # proto-file: intrinsic/scene/proto/v1/scene_object_updates.proto
 # proto-message: intrinsic_proto.scene_object.v1.SceneObjectUpdates
 #
-# SO-ARM101 start pose (= home: gripper 13 cm up, turned over the grid), home configuration and ICON joint limits.
+# SO-ARM101 start pose (= home: over the pedestal, gripper 11 cm above the seats, turned away from the Carvera), home configuration and ICON joint limits.
 # Position limits are the URDF's; velocity / acceleration / jerk are
 # conservative for STS3215 hobby servos (no datasheet values for jerk).
 # Application limits: 99% of the position range, 90% of the dynamic limits
 # (ICON needs them strictly more than 5% below the system limits).
 updates: {
   update_joints {
-    joint_positions { key: "shoulder_pan" value: 0.6 }
-    joint_positions { key: "shoulder_lift" value: -1.1 }
-    joint_positions { key: "elbow_flex" value: 0.5 }
-    joint_positions { key: "wrist_flex" value: 1.6 }
+    joint_positions { key: "shoulder_pan" value: -1.571 }
+    joint_positions { key: "shoulder_lift" value: -0.743 }
+    joint_positions { key: "elbow_flex" value: 0.43 }
+    joint_positions { key: "wrist_flex" value: 1.618 }
     joint_positions { key: "wrist_roll" value: 0.0 }
     joint_system_limits: {
       key: "shoulder_pan"
@@ -59,10 +59,10 @@ updates {
   set_named_configurations {
     named_configurations_to_set {
       name: "home"
-      joint_positions { key: "shoulder_pan" value: 0.6 }
-      joint_positions { key: "shoulder_lift" value: -1.1 }
-      joint_positions { key: "elbow_flex" value: 0.5 }
-      joint_positions { key: "wrist_flex" value: 1.6 }
+      joint_positions { key: "shoulder_pan" value: -1.571 }
+      joint_positions { key: "shoulder_lift" value: -0.743 }
+      joint_positions { key: "elbow_flex" value: 0.43 }
+      joint_positions { key: "wrist_flex" value: 1.618 }
       joint_positions { key: "wrist_roll" value: 0.0 }
     }
   }

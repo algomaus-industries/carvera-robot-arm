@@ -14,7 +14,8 @@
 
 """Moves Carvera bits between the bit grid and the Makera Carvera ATC.
 
-Slots are written as `grid:R,C` (bit_grid cell, R and C in 0..9) or `atc:N`
+Slots are written as `grid:R,C` (frame cell_R_C of bit_grid: row and column
+on the square grids, ring and seat on the SO-101 cell's bit carousel) or `atc:N`
 (Carvera ATC slot, N in 1..6; slot 0 holds the probe). The holder sitting at
 the source slot is found from the belief world, so the tool needs no state of
 its own. The bits are models/makera_bits (bit_<id>); their shank sizes come
@@ -40,6 +41,12 @@ Grippers (app_config gripper.type):
            whose jaw_joint is set with update_world; its tool frame is on the
            FIXED jaw's face, so the shank axis sits half a shank diameter
            along the tool's -x.
+
+SO-101 cell: bit_grid is the bit carousel (models/bit_carousel), a turning
+seat plate. Before a move, its carousel_joint is turned so the seat involved
+comes to its ring's pick position (carousel_layout.platter_angle_for), inside
+the arm's reach; bits are attached to their seat frames so they turn with it.
+A move between two carousel seats goes through a free ATC slot.
 """
 
 import argparse
@@ -61,6 +68,7 @@ from src.core.config import AppConfig, load_app_config
 from src.hardware.gripper import GripperInterface, RobotiqGripper
 from src.hardware.machine import DioCncMachine
 from src.hardware.robot import Robot
+from models.bit_carousel import carousel_layout
 from tools.atc import so101_ik
 
 GRID_OBJECT = "bit_grid"
@@ -174,8 +182,6 @@ def parse_slot(spec: str) -> tuple[str, str]:
   m = re.fullmatch(r"grid:(\d+),(\d+)", spec)
   if m:
     r, c = int(m.group(1)), int(m.group(2))
-    if not (0 <= r < GRID_N and 0 <= c < GRID_N):
-      raise ValueError(f"Grid cell out of range: {spec}")
     return GRID_OBJECT, f"cell_{r}_{c}"
   m = re.fullmatch(r"atc:(\d+)", spec)
   if m:
@@ -232,8 +238,29 @@ def holder_at(world: Any, slot: str, holders=None) -> str | None:
   return None
 
 
-def all_slots() -> list[str]:
-  return [f"grid:{r},{c}" for r in range(GRID_N) for c in range(GRID_N)] + [
+def grid_cells(world: Any = None) -> list[tuple[int, int]]:
+  """(R, C) of every cell_R_C frame on the rack, in R, C order.
+
+  The square grids have 10 x 10 cells; the SO-101 cell's curved rack
+  (models/bit_rack_arc) has rings of different lengths, so the cells are read
+  from the rack's frames in the world when there is one.
+  """
+  if world is not None:
+    try:
+      cells = []
+      for f in world.get_object(GRID_OBJECT).frame_names:
+        m = re.fullmatch(r"cell_(\d+)_(\d+)", str(f))
+        if m:
+          cells.append((int(m.group(1)), int(m.group(2))))
+      if cells:
+        return sorted(cells)
+    except Exception:  # pylint: disable=broad-except
+      pass
+  return [(r, c) for r in range(GRID_N) for c in range(GRID_N)]
+
+
+def all_slots(world: Any = None) -> list[str]:
+  return [f"grid:{r},{c}" for r, c in grid_cells(world)] + [
     f"atc:{n}" for n in ATC_SLOTS
   ]
 
@@ -252,7 +279,20 @@ def _offset(z: float, yaw_deg: float, x_tool: float = 0.0):
 # and lift stay within about a millimetre of the straight line.
 JOINT_IK_LINEAR_STEPS = 6
 GRID_CELL_PREFIX = "cell_"
-SQRT_HALF = math.sqrt(0.5)
+# How far the open jaws reach from the shank axis along the jaw axis (half
+# the open gap plus the ~10 mm fingertip, see models/so101/build_so101.py), the
+# room a neighbouring bit (holder) needs around its own axis, and how much
+# clearance (below the best direction's) a jaw direction may give up so the
+# IK can pick the one nearest the previous configuration.
+JAW_REACH = 0.020
+PUCK_CLEAR = 0.012
+JAW_AXIS_SLACK = 0.002
+
+
+def _segment_distance(p, d, half_length):
+  """Distance from point p to the segment [-half_length, half_length] * d."""
+  t = max(-half_length, min(half_length, float(p @ d)))
+  return float(((p - t * d) ** 2).sum() ** 0.5)
 
 
 class JointTargets:
@@ -269,6 +309,7 @@ class JointTargets:
     self._base_inv = _inverse(self._base)
     self.q = list(arm.joint_positions)
     self._last = None   # (obj, frame, z) of the previous target
+    self._seats = None  # rack seat name -> world xy
 
   def via_home(self) -> None:
     """The next target is solved from the home configuration."""
@@ -289,15 +330,13 @@ class JointTargets:
     (ox, oy, _), _ = offset(0.0)
     x_tool = math.hypot(ox, oy)
     down = self._base_inv[:3, :3] @ (-seat[:3, 2])
-    # In the bit grid the neighbours stand only one pitch away, closer than
-    # the bulky moving jaw reaches when it opens, so the jaw opens along a
-    # grid diagonal (sqrt(2) pitch): tool x (the jaw axis, the moving jaw is
-    # on -x) along one of the four diagonals, the one nearest the seed.
+    # In the bit rack the neighbours stand only one pitch away, closer than
+    # the bulky moving jaw reaches when it opens, so the jaw axis (tool x, the
+    # moving jaw on -x) goes where the neighbouring seats leave the most room:
+    # the diagonal of a square grid, a gap between rings in the curved rack.
     diagonals = []
-    if frame.startswith(GRID_CELL_PREFIX):
-      for sx, sy in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
-        x_axis = self._base_inv[:3, :3] @ seat[:3, :3] @ [sx * SQRT_HALF, sy * SQRT_HALF, 0.0]
-        diagonals.append(x_axis)
+    if frame.startswith(GRID_CELL_PREFIX) and obj == GRID_OBJECT:
+      diagonals = [self._base_inv[:3, :3] @ [*d, 0.0] for d in self._jaw_axes(frame, seat)]
     for zi in zs:
       point = (self._base_inv @ seat @ [0.0, 0.0, zi, 1.0])[:3]
       # Free (ANY) targets take the elbow-up branch; LINEAR steps stay on the
@@ -319,6 +358,45 @@ class JointTargets:
       out.append(self.q)
     self._last = (obj, frame, z)
     return out
+
+  def _rack_seats(self):
+    """World xy of every rack seat, read once from the rack's cell frames."""
+    if self._seats is None:
+      import numpy as np  # pylint: disable=import-outside-toplevel
+      rack = self._world.get_object(GRID_OBJECT)
+      m = _matrix(self._world.get_transform(self._world.root, rack))
+      # On the carousel the seat frames are on the turning platter_link.
+      q = carousel_angle(self._world)
+      turn = np.array([[math.cos(q), -math.sin(q), 0, 0], [math.sin(q), math.cos(q), 0, 0],
+                       [0, 0, 1, 0], [0, 0, 0, 1]]) if q is not None else np.eye(4)
+      self._seats = {}
+      for f in rack.frames:
+        if str(f.name).startswith(GRID_CELL_PREFIX):
+          p = np.asarray(f.parent_t_this.translation, float)
+          self._seats[str(f.name)] = (m @ turn @ [*p, 1.0])[:2]
+    return self._seats
+
+  def _jaw_axes(self, frame, seat):
+    """World xy jaw axes (both signs) that keep the jaws clearest of the
+    neighbouring seats: within JAW_AXIS_SLACK of the best clearance."""
+    import numpy as np  # pylint: disable=import-outside-toplevel
+    centre = seat[:2, 3]
+    near = [p - centre for name, p in self._rack_seats().items()
+            if name != frame and np.linalg.norm(p - centre) < JAW_REACH + PUCK_CLEAR]
+    scored = []
+    for i in range(36):
+      th = math.pi * i / 36
+      d = np.array([math.cos(th), math.sin(th)])
+      clear = min((_segment_distance(n, d, JAW_REACH) for n in near), default=1.0)
+      scored.append((clear, d))
+    best = max(c for c, _ in scored)
+    if os.environ.get("MOVE_BIT_PRINT_JOINTS"):
+      print(f"    {frame}: jaw clearance to the nearest seat {best * 1000:.1f} mm")
+    axes = []
+    for c, d in scored:
+      if c >= best - JAW_AXIS_SLACK:
+        axes += [d, -d]
+    return axes
 
   def _solve_diagonal(self, point, x_tool, down, diagonals, elbow_up):
     import numpy as np  # pylint: disable=import-outside-toplevel
@@ -352,6 +430,31 @@ def _inverse(m):
   return np.linalg.inv(m)
 
 
+def carousel(world: Any) -> Any:
+  """The bit carousel (bit_grid with a carousel_joint), or None."""
+  try:
+    obj = world.get_kinematic_object(GRID_OBJECT)
+  except Exception:  # pylint: disable=broad-except
+    return None
+  return obj if len(list(obj.joint_positions)) == 1 else None
+
+
+def carousel_angle(world: Any) -> float | None:
+  obj = carousel(world)
+  return None if obj is None else float(list(obj.joint_positions)[0])
+
+
+def turn_carousel(world: Any, slot: str) -> None:
+  """Turns the carousel so the seat of grid slot `slot` is at its ring's
+  pick position (belief world; the real carousel's servo follows it)."""
+  obj = carousel(world)
+  _, frame = parse_slot(slot)
+  r, c = (int(v) for v in frame[len(GRID_CELL_PREFIX):].split("_"))
+  angle = carousel_layout.platter_angle_for(r, c)
+  print(f"  turning the carousel to {math.degrees(angle):.1f} deg for {slot}")
+  world.update_joint_positions(obj, [angle])
+
+
 def _seat_in_world(world: Any, holder: str, slot: str) -> None:
   """Puts `holder` exactly on `slot` in the belief world.
 
@@ -364,6 +467,8 @@ def _seat_in_world(world: Any, holder: str, slot: str) -> None:
   bit = world.get_object(holder)
   world.update_transform(node_a=world.root, node_b=bit,
                          a_t_b=world.get_transform(world.root, seat), node_to_update=bit)
+  # Attached to the seat, so a bit on the carousel turns with it.
+  world.reparent_object(bit, seat)
 
 
 def build_move_tree(
@@ -471,6 +576,13 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     if occupant is not None:
       print(f"[!] {dst} is occupied by {occupant}; skipping.")
       return False
+    on_carousel = [s for s in (src, dst) if s.startswith("grid:")] if carousel(world) else []
+    if len(on_carousel) == 2:
+      print(f"[!] {src} -> {dst}: both seats are on the carousel; move the bit to a "
+            "free ATC slot and from there to the other seat.")
+      return False
+    if on_carousel:
+      turn_carousel(world, on_carousel[0])
     shank = shank_m(holder, catalog)
     title = catalog.get(holder, {}).get("title", holder)
     print(f"Moving {holder} ({title}): {src} -> {dst} ...")
@@ -510,7 +622,7 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
 def plan_fill_atc(world: Any) -> list[tuple[str, str]]:
   """Fills empty ATC slots T1..T6 from the first occupied grid cells."""
   holders = holder_positions(world)
-  sources = [s for s in all_slots() if s.startswith("grid:") and holder_at(world, s, holders)]
+  sources = [s for s in all_slots(world) if s.startswith("grid:") and holder_at(world, s, holders)]
   targets = [f"atc:{n}" for n in ATC_SLOTS if holder_at(world, f"atc:{n}", holders) is None]
   return list(zip(sources, targets))
 
@@ -519,7 +631,7 @@ def plan_empty_atc(world: Any) -> list[tuple[str, str]]:
   """Returns holders in T1..T6 to the first free grid cells."""
   holders = holder_positions(world)
   sources = [f"atc:{n}" for n in ATC_SLOTS if holder_at(world, f"atc:{n}", holders)]
-  free = [s for s in all_slots() if s.startswith("grid:") and holder_at(world, s, holders) is None]
+  free = [s for s in all_slots(world) if s.startswith("grid:") and holder_at(world, s, holders) is None]
   return list(zip(sources, free))
 
 
@@ -550,7 +662,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
   if args.list:
     holders = holder_positions(world)
-    for slot in all_slots():
+    for slot in all_slots(world):
       name = holder_at(world, slot, holders)
       if name or slot.startswith("atc:"):
         print(f"  {slot:10s} {name or '-'}")

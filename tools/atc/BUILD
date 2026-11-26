@@ -17,6 +17,7 @@ py_library(
     ],
     deps = [
         ":so101_ik",
+        "//models/bit_carousel:carousel_layout",
         "//src/core:config",
         "//src/hardware:gripper",
         "//src/hardware:machine",
@@ -38,5 +39,13 @@ py_binary(
         "//models/makera_bits:makera_bits.json",
     ],
     main = "move_bit.py",
+    deps = [":move_bit_lib"],
+)
+
+py_binary(
+    name = "joint_probe",
+    srcs = ["joint_probe.py"],
+    data = ["//configs:all_configs"],
+    main = "joint_probe.py",
     deps = [":move_bit_lib"],
 )

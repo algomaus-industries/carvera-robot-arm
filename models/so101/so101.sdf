@@ -62,7 +62,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><box><size>0.061800 0.044101 0.041423</size></box></geometry>
       </collision>
       <collision name="rotation_pitch_so101_v1_1_collision">
-        <pose>-0.017701 0.000022 -0.016950 -1.570800 0.000000 0.000000</pose>
+        <pose>-0.017701 0.000022 -0.016949 -1.570800 0.000000 0.000000</pose>
         <geometry><box><size>0.061803 0.044101 0.048000</size></box></geometry>
       </collision>
     </link>
@@ -82,7 +82,7 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
       </collision>
       <collision name="upper_arm_so101_v1_1_collision">
         <pose>-0.059085 -0.000000 0.018200 3.141590 -0.000000 -0.000000</pose>
-        <geometry><box><size>0.049390 0.026000 0.065402</size></box></geometry>
+        <geometry><box><size>0.049390 0.026000 0.065401</size></box></geometry>
       </collision>
       <collision name="upper_arm_so101_v1_2_collision">
         <pose>-0.011695 0.000000 0.020146 3.141590 -0.000000 -0.000000</pose>
@@ -146,20 +146,60 @@ Kinematics and meshes: TheRobotStudio SO-ARM100, Simulation/SO101
         <geometry><box><size>0.047400 0.026800 0.041601</size></box></geometry>
       </collision>
       <collision name="wrist_roll_follower_so101_v1_0_collision">
-        <pose>-0.002600 -0.002000 -0.012178 -3.141590 -0.000000 0.000000</pose>
-        <geometry><box><size>0.067200 0.054000 0.028356</size></box></geometry>
+        <pose>-0.002639 -0.002230 -0.002765 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.066318 0.053541 0.009530</size></box></geometry>
       </collision>
       <collision name="wrist_roll_follower_so101_v1_1_collision">
-        <pose>-0.014224 0.000000 -0.038534 -3.141590 -0.000000 0.000000</pose>
-        <geometry><box><size>0.043952 0.049999 0.028356</size></box></geometry>
+        <pose>-0.002600 -0.002000 -0.010295 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.067199 0.054000 0.009530</size></box></geometry>
       </collision>
       <collision name="wrist_roll_follower_so101_v1_2_collision">
-        <pose>-0.021776 -0.000223 -0.064890 -3.141590 -0.000000 0.000000</pose>
-        <geometry><box><size>0.022353 0.022331 0.028356</size></box></geometry>
+        <pose>-0.011543 0.000000 -0.017825 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.049314 0.050000 0.009530</size></box></geometry>
       </collision>
       <collision name="wrist_roll_follower_so101_v1_3_collision">
-        <pose>-0.014606 -0.000218 -0.091246 -3.141590 -0.000000 0.000000</pose>
-        <geometry><box><size>0.015411 0.017366 0.028356</size></box></geometry>
+        <pose>-0.014224 0.000001 -0.025356 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.043952 0.050000 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_4_collision">
+        <pose>-0.009965 0.000013 -0.032886 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.032452 0.049494 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_5_collision">
+        <pose>-0.016764 -0.000039 -0.040416 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.038873 0.043175 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_6_collision">
+        <pose>-0.023876 -0.000207 -0.047947 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.023152 0.026317 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_7_collision">
+        <pose>-0.022626 -0.000223 -0.055477 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.020653 0.022331 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_8_collision">
+        <pose>-0.020427 -0.000214 -0.063008 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.019654 0.020287 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_9_collision">
+        <pose>-0.019091 -0.000218 -0.070538 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.016982 0.018792 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_10_collision">
+        <pose>-0.017543 -0.000207 -0.078068 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.013886 0.017845 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_11_collision">
+        <pose>-0.015420 -0.000218 -0.085599 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.013039 0.016369 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_12_collision">
+        <pose>-0.012880 -0.000216 -0.093129 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.011958 0.015289 0.009530</size></box></geometry>
+      </collision>
+      <collision name="wrist_roll_follower_so101_v1_13_collision">
+        <pose>-0.011668 -0.000110 -0.100659 -3.141590 -0.000000 0.000000</pose>
+        <geometry><box><size>0.009535 0.012477 0.009530</size></box></geometry>
       </collision>
     </link>
     <joint name="shoulder_pan" type="revolute">

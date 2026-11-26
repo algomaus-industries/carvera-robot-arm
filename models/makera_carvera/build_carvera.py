@@ -35,6 +35,7 @@ import sys
 
 import bmesh
 import bpy
+from mathutils import Matrix
 
 # ---------------------------------------------------------------- parameters
 # Published.
@@ -422,6 +423,9 @@ def build(parts):
       o.scale = [b - a for a, b in zip(lo_, hi_)]
       bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
       add_bevel(o, p["bevel"])
+      if p.get("yaw"):   # turned about the origin's z axis (visual only)
+        o.location = Matrix.Rotation(p["yaw"], 3, "Z") @ o.location
+        o.rotation_euler = (0, 0, p["yaw"])
     elif p["kind"] == "cyl":
       (cx, cy), (z0, z1) = p["c"], p["z"]
       if p["axis"] == "y":   # disc on a front face: z0..z1 is its diameter band
@@ -645,6 +649,101 @@ def grid_sdf(name, pitch):
 """
 
 
+# Bit carousel for the SO-101 cell (models/bit_carousel): a turning seat plate
+# with every Makera bit, on a base on the cart; layout in carousel_layout.py,
+# fabrication files in models/bit_carousel/fab/. platter_link turns about the
+# origin (carousel_joint, z up); frames cell_R_C sit on the seat plate's top.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "bit_carousel"))
+import carousel_layout as cl  # noqa: E402  pylint: disable=wrong-import-position
+
+PLY = (0.78, 0.64, 0.45, 1.0)          # birch plywood
+PRINT = (0.18, 0.42, 0.75, 1.0)        # printed PETG parts
+SERVO = (0.06, 0.06, 0.07, 1.0)        # Feetech STS3215
+CAROUSEL_BASE_T = 0.006
+CAROUSEL_BASE_R = 0.170
+RIM_R = (0.156, 0.162)                 # printed rim, rides on the rollers
+RIM_Z0 = 0.020                         # rim bottom (on the 608 rollers)
+ROLLER_R = 0.159                       # roller (608 bearing) circle
+HUB_R = 0.022
+
+
+def carousel_base_parts():
+  z0 = CAROUSEL_BASE_T
+  parts = [cyl("base_plate", 0, 0, 0.0, z0, CAROUSEL_BASE_R, PLY, collide=True),
+           # STS3215 upright under the turntable axis, output shaft up
+           box("servo", -0.0123, 0.0123, -0.0226, 0.0226, z0, z0 + 0.035, SERVO, collide=False)]
+  for k in range(4):
+    a = math.pi / 4 + k * math.pi / 2
+    x, y = ROLLER_R * math.cos(a), ROLLER_R * math.sin(a)
+    parts.append(box(f"roller_bracket_{k}", x - 0.012, x + 0.012, y - 0.012, y + 0.012,
+                     z0, RIM_Z0 - 0.011, PRINT, collide=False))
+    parts.append(cyl(f"roller_{k}", x, y, RIM_Z0 - 0.011, RIM_Z0, 0.011, STEEL, collide=False))
+  return parts
+
+
+def carousel_platter_parts():
+  top = cl.SEAT_Z
+  plate0 = top - cl.PLATE_T
+  parts = [cyl("seat_plate", 0, 0, plate0, top, cl.PLATE_R, PLY, collide=True),
+           cyl("hub", 0, 0, CAROUSEL_BASE_T + 0.040, plate0, HUB_R, PRINT, collide=False)]
+  n = 48
+  for k in range(n):
+    a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+    am = (a0 + a1) / 2
+    w = RIM_R[1] * (a1 - a0) / 2 + 0.0005
+    # rim segment: a box tangent to the rim circle, rotated into place below
+    parts.append(dict(kind="box", name=f"rim_{k}", lo=(RIM_R[0], -w, RIM_Z0),
+                      hi=(RIM_R[1], w, plate0), color=PRINT, collide=False, bevel=0.0,
+                      yaw=am))
+  for r, c, x, y, _ in cl.cells():
+    parts.append(cyl(f"seat_{r}_{c}", x, y, top - 0.0002, top + 0.0004, 0.0065, DARK,
+                     collide=False))
+  return parts
+
+
+def carousel_sdf():
+  frames = "\n".join(
+      f'    <frame name="cell_{r}_{c}" attached_to="platter_link" intrinsic:create_entity="true">\n'
+      f'      <pose>{x:.5f} {y:.5f} {cl.SEAT_Z:.5f} 0 0 {th:.6f}</pose>\n'
+      f'    </frame>' for r, c, x, y, th in cl.cells())
+  counts = ", ".join(str(cl.ring_seats(r)) for r in range(len(cl.RINGS)))
+  return f"""<?xml version="1.0" ?>
+{LICENSE}
+<!-- Bit carousel for the SO-101 cell: {len(cl.cells())} seats ({counts} per ring) on a
+     turning seat plate. carousel_joint turns platter_link about the origin (z up,
+     0..2 pi, an STS3215 in position mode on the real one); the seat on ring R
+     at index C reaches ring R's pick position at platter angle
+     carousel_layout.platter_angle_for(R, C). Frames cell_R_C sit on the seat
+     plate's top, x radial. -->
+<sdf xmlns:intrinsic="https://intrinsic.ai/" version="1.9">
+  <model name="bit_carousel">
+    <static>true</static>
+    <link name="base_link">
+{visual("base_visual", "carousel_base.glb")}
+{collisions(carousel_base_parts())}
+    </link>
+    <link name="platter_link">
+{visual("platter_visual", "carousel_platter.glb")}
+{collisions(carousel_platter_parts())}
+    </link>
+    <joint name="carousel_joint" type="revolute">
+      <pose relative_to="base_link">0 0 0 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>platter_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>0.0</lower>
+          <upper>{2 * math.pi:.4f}</upper>
+        </limit>
+      </axis>
+    </joint>
+{frames}
+  </model>
+</sdf>
+"""
+
+
 def main():
   out = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "out"
   cdir = os.path.join(out, "makera_carvera")
@@ -665,6 +764,13 @@ def main():
     with open(os.path.join(gdir, gname + ".sdf"), "w") as fh:
       fh.write(grid_sdf(gname, pitch))
     print("GRID", gname, "HALF", round(grid_half(pitch), 4), "SEAT_Z", GRID_H + GRID_SEAT_T)
+  kdir = os.path.join(out, "bit_carousel")
+  os.makedirs(kdir, exist_ok=True)
+  export(carousel_base_parts(), os.path.abspath(os.path.join(kdir, "carousel_base.glb")))
+  export(carousel_platter_parts(), os.path.abspath(os.path.join(kdir, "carousel_platter.glb")))
+  with open(os.path.join(kdir, "bit_carousel.sdf"), "w") as fh:
+    fh.write(carousel_sdf())
+  print("CAROUSEL seats", len(cl.cells()))
   print("LID_OPEN_RAD", round(LID_OPEN, 4))
   print("BED_TOP", BED_TOP)
   for n, my in SLOT_MCS_Y.items():
