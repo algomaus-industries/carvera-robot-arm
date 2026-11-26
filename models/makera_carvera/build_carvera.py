@@ -559,7 +559,7 @@ def carvera_sdf():
 
 # Bit carousel for the SO-101 cell (models/bit_carousel): a turning seat plate
 # with every Makera bit, on a base on the cart; layout in carousel_layout.py,
-# fabrication files in models/bit_carousel/fab/. platter_link turns about the
+# fabrication files in fab/carousel/. platter_link turns about the
 # origin (carousel_joint, z up); frames cell_R_C sit on the seat plate's top.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "bit_carousel"))
 import carousel_layout as cl  # noqa: E402  pylint: disable=wrong-import-position
@@ -618,6 +618,25 @@ def carousel_platter_parts():
   return parts
 
 
+# Visuals: the fabrication models themselves (fab/gen_fab.py exports them from
+# fab/carousel/carousel.scad, mm, carousel axis at the origin), one STL per
+# material; the collision boxes stay the simple parts above.
+FAB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "fab")
+
+
+def export_fab(stls, path):
+  bpy.ops.wm.read_factory_settings(use_empty=True)
+  for part, color in stls:
+    f = os.path.join(FAB, "carousel", "out", part + ".stl")
+    if not os.path.exists(f):
+      raise SystemExit(f"{f} is missing: run python3 fab/gen_fab.py first")
+    bpy.ops.import_mesh.stl(filepath=f, global_scale=0.001)
+    o = bpy.context.object
+    o.name = part
+    o.data.materials.append(material(color))
+  bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_yup=False, export_apply=True)
+
+
 def carousel_sdf():
   frames = "\n".join(
       f'    <frame name="cell_{r}_{c}" attached_to="platter_link" intrinsic:create_entity="true">\n'
@@ -671,8 +690,10 @@ def main():
     fh.write(carvera_sdf())
   kdir = os.path.join(out, "bit_carousel")
   os.makedirs(kdir, exist_ok=True)
-  export(carousel_base_parts(), os.path.abspath(os.path.join(kdir, "carousel_base.glb")))
-  export(carousel_platter_parts(), os.path.abspath(os.path.join(kdir, "carousel_platter.glb")))
+  export_fab((("sim_base_ply", PLY), ("sim_base_print", PRINT), ("sim_base_servo", SERVO),
+              ("sim_base_steel", STEEL)), os.path.abspath(os.path.join(kdir, "carousel_base.glb")))
+  export_fab((("sim_platter_ply", PLY), ("sim_platter_print", PRINT)),
+             os.path.abspath(os.path.join(kdir, "carousel_platter.glb")))
   with open(os.path.join(kdir, "bit_carousel.sdf"), "w") as fh:
     fh.write(carousel_sdf())
   print("CAROUSEL seats", len(cl.cells()))

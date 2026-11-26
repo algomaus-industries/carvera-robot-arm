@@ -11,6 +11,7 @@
 //   top, shelf     2D outlines (DXF) for a table saw, track saw or a CNC
 //                  router; too large for the Carvera, the X1 or the lasers
 //   assembly       the cart with the arm pedestal and carousel footprints
+//   sim_*          the cart by material, for the sim model (fab/gen_fab.py)
 
 include <cart_params.scad>
 
@@ -40,27 +41,43 @@ module shelf_2d() {
   }
 }
 
-module caster() {
-  color("DimGray") translate([0, 0, CASTER_H - 4]) cube([60, 45, 4], center = false, $fn = 24);
-  color("DimGray") translate([22, 15, 18]) cube([16, 15, CASTER_H - 22]);
-  color("Black") translate([30, 22.5, 25]) rotate([0, 90, 90]) cylinder(d = 50, h = 20, center = true);
-  color("Red") translate([22, 30, CASTER_H - 20]) cube([16, 18, 4]);    // brake pedal
+// A 50 mm braked swivel caster under a leg, origin under the leg's centre on
+// the floor (75 mm mounting height): plate, swivel, fork, wheel (axle along
+// x), hub, brake pedal. Bought, not made; drawn for the look and the sim.
+module caster_metal() {
+  translate([-30, -22.5, CASTER_H - 4]) cube([60, 45, 4]);
+  translate([0, 0, CASTER_H - 16]) cylinder(r = 22, h = 12);
+  for (fx = [-1, 1]) translate([fx * 13 - 1.5, 8 - 15, 21]) cube([3, 30, 42]);
+  translate([-11, 8, 25]) rotate([0, 90, 0]) cylinder(r = 10, h = 22);
+}
+module caster_rubber() {
+  translate([-10, 8, 25]) rotate([0, 90, 0]) difference() {
+    cylinder(r = 25, h = 20);
+    translate([0, 0, -1]) cylinder(r = 10, h = 22);
+  }
+}
+module caster_brake() { translate([-8, -16 - 9, 50]) cube([16, 18, 4]); }
+
+module legs_at() { for (sx = [-1, 1], sy = [-1, 1]) translate([sx * LEG_C[0], sy * LEG_C[1], 0]) children(); }
+
+// Everything wooden: top, shelf, legs, aprons.
+module wood() {
+  translate([0, 0, CART_H - TOP_T]) linear_extrude(TOP_T) top_2d();
+  translate([0, 0, SHELF_Z]) linear_extrude(TOP_T) shelf_2d();
+  legs_at() translate([-LEG / 2, -LEG / 2, CASTER_H]) cube([LEG, LEG, LEG_L]);
+  for (sy = [-1, 1])
+    translate([-LEG_C[0] + LEG / 2, sy * (LEG_C[1] + LEG / 2) - (sy > 0 ? TOP_T : 0), CART_H - TOP_T - APRON_H])
+      cube([2 * LEG_C[0] - LEG, TOP_T, APRON_H]);
+  for (sx = [-1, 1])
+    translate([sx * (LEG_C[0] + LEG / 2) - (sx > 0 ? TOP_T : 0), -LEG_C[1] + LEG / 2, CART_H - TOP_T - APRON_H])
+      cube([TOP_T, 2 * LEG_C[1] - LEG, APRON_H]);
 }
 
 module assembly() {
-  color("BurlyWood") translate([0, 0, CART_H - TOP_T]) linear_extrude(TOP_T) top_2d();
-  color("BurlyWood") translate([0, 0, SHELF_Z]) linear_extrude(TOP_T) shelf_2d();
-  for (sx = [-1, 1], sy = [-1, 1]) {
-    color("Tan") translate([sx * LEG_C[0] - LEG / 2, sy * LEG_C[1] - LEG / 2, CASTER_H]) cube([LEG, LEG, LEG_L]);
-    translate([sx * LEG_C[0] - 30, sy * LEG_C[1] - 22.5, 0]) caster();
-  }
-  // aprons under the top
-  for (sy = [-1, 1]) color("Peru")
-    translate([-LEG_C[0] + LEG / 2, sy * (LEG_C[1] + LEG / 2) - (sy > 0 ? TOP_T : 0), CART_H - TOP_T - APRON_H])
-      cube([2 * LEG_C[0] - LEG, TOP_T, APRON_H]);
-  for (sx = [-1, 1]) color("Peru")
-    translate([sx * (LEG_C[0] + LEG / 2) - (sx > 0 ? TOP_T : 0), -LEG_C[1] + LEG / 2, CART_H - TOP_T - APRON_H])
-      cube([TOP_T, 2 * LEG_C[1] - LEG, APRON_H]);
+  color("BurlyWood") wood();
+  color("Silver") legs_at() caster_metal();
+  color("DimGray") legs_at() caster_rubber();
+  color("Red") legs_at() caster_brake();
   // what stands on the top
   color("SteelBlue", 0.5) translate([PEDESTAL_XY[0], PEDESTAL_XY[1], CART_H]) cube([PEDESTAL_WH[0], PEDESTAL_WH[1], 131]);
   color("BurlyWood", 0.5) translate([CAROUSEL_XY[0], CAROUSEL_XY[1], CART_H]) cylinder(r = CAROUSEL_R, h = 75);
@@ -68,4 +85,8 @@ module assembly() {
 
 if (part == "top") top_2d();
 else if (part == "shelf") shelf_2d();
+else if (part == "sim_wood") wood();
+else if (part == "sim_metal") legs_at() caster_metal();
+else if (part == "sim_rubber") legs_at() caster_rubber();
+else if (part == "sim_brake") legs_at() caster_brake();
 else assembly();

@@ -18,6 +18,14 @@ assembly instructions.
   <img src="docs/carvera_so101_cell.png" alt="Simulated cell: Makera Carvera on a Küpper bench, SO-101 arm and bit carousel on a rolling cart" width="640" />
 </p>
 
+What you build ([`fab/`](fab/README.md) has the files, the bill of materials
+and the assembly steps):
+
+| Bit carousel | Arm pedestal | Rolling cart |
+| :---: | :---: | :---: |
+| <img src="fab/carousel/out/assembly.png" width="260" alt="Bit carousel: plywood seat plate with 140 holes on a printed rim, rollers and base"> | <img src="fab/pedestal/out/pedestal.png" width="200" alt="Printed arm pedestal with top lip, foot and gussets"> | <img src="fab/cart/out/assembly.png" width="220" alt="Plywood cart on four braked casters with the carousel and pedestal on top"> |
+| 6 mm birch ply (xTool M2 or the Carvera) + PETG parts (Bambu X1), one STS3215 servo | PETG (Bambu X1) | 18 mm birch ply, 40 × 40 mm legs, 50 mm braked casters |
+
 > **Status: simulation only, work in progress.**
 >
 > - The arm reaches all six ATC slots (**T1–T6**). It stands on a pedestal
@@ -99,7 +107,10 @@ The models and layouts are generated from scripts, so edit those rather than
 the `.sdf`, `.glb` or `.pbtxt` files:
 
 ```bash
-# Carvera and the bit carousel (Blender 4.x)
+# Fabrication files first (OpenSCAD with Manifold): the carousel, pedestal
+# and cart meshes in the sim are these parts (fab/*/out/sim_*.stl)
+python3 fab/check_layout.py && python3 fab/gen_fab.py
+# Carvera and the bit carousel (Blender 3.4+)
 blender -b --python models/makera_carvera/build_carvera.py -- models
 # Bit catalogue: .glb, .sdf and manifests, bits.bzl, makera_bits.json
 blender -b --python models/makera_bits/build_bits.py -- models
@@ -108,8 +119,6 @@ models/so101/fetch_meshes.sh
 blender -b --python models/so101/build_so101.py -- models
 # Cell and bit layouts
 python3 configs/carvera_so101/gen_cell_configs.py
-# Fabrication files (OpenSCAD with Manifold)
-python3 fab/check_layout.py && python3 fab/gen_fab.py
 ```
 
 ## Repository layout

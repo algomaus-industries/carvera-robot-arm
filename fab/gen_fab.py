@@ -99,6 +99,14 @@ PARTS = [
     ("pedestal", "pedestal.scad", "pedestal", ("stl",)),
     ("cart", "cart.scad", "top", ("dxf", "svg")),
     ("cart", "cart.scad", "shelf", ("dxf", "svg")),
+] + [
+    # the sim models' meshes (build_carvera.py, build_so101.py load these)
+    ("carousel", "carousel.scad", p, ("stl",))
+    for p in ("sim_base_ply", "sim_base_print", "sim_base_servo", "sim_base_steel",
+              "sim_platter_ply", "sim_platter_print")
+] + [
+    ("cart", "cart.scad", p, ("stl",)) for p in ("sim_wood", "sim_metal", "sim_rubber", "sim_brake")
+] + [
     ("carousel", "carousel.scad", "assembly", ("png",)),
     ("pedestal", "pedestal.scad", "pedestal", ("png",)),
     ("cart", "cart.scad", "assembly", ("png",)),

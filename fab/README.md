@@ -4,7 +4,10 @@ Everything the SO-101 cell needs besides the Carvera, the Küpper bench and
 the arm kit itself. These are the same parts the simulation uses: the sim
 models and these files come from the same numbers
 (`models/bit_carousel/carousel_layout.py`, `models/so101/build_so101.py`), so
-a seat in the sim is a seat on the real carousel.
+a seat in the sim is a seat on the real carousel. What RViz shows of the
+carousel, the pedestal and the cart *is* these parts: `gen_fab.py` also
+exports them by material (`*/out/sim_*.stl`, `pedestal.stl`), and the Blender
+build scripts turn those into the sim models' meshes.
 
 | Assembly | Look | Made on | Files |
 | :--- | :--- | :--- | :--- |

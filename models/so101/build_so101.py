@@ -208,7 +208,7 @@ def mesh_slices(stem, n):
 
 
 # ---------------------------------------------------------------- stand
-STAND_COLOR = (0.62, 0.48, 0.32, 1.0)  # plywood block (xTool-cut box)
+
 # Arm pedestal on the robot cart. Origin on the cart top under the arm's pan
 # axis, axes along the world's. The pedestal overhangs the cart's front edge
 # by 4.5 cm as a bracket over the Carvera's front lip, so the pan axis sits
@@ -235,22 +235,42 @@ GRID_CENTER = carousel_layout.CENTER_IN_PAN   # bit_carousel turntable axis, on 
 PEDESTAL_FOOT = dict(lo=(0.025, -0.027, 0.0), hi=(0.085, 0.067, 0.006))
 
 
+PEDESTAL_LIP, PEDESTAL_SLAB = 0.008, 0.008   # fab/pedestal: clamp lip, top slab
+
+
 def stand_boxes():
+  """Collision boxes: the top slab, the walls under it (inset by the clamp
+  lip) and the foot, as in fab/pedestal/pedestal.scad."""
+  lo, hi, l = PEDESTAL["lo"], PEDESTAL["hi"], PEDESTAL_LIP
+  boxes = (("pedestal_slab", dict(lo=(lo[0], lo[1], hi[2] - PEDESTAL_SLAB), hi=hi)),
+           ("pedestal_body", dict(lo=(lo[0] + l, lo[1] + l, 0.0),
+                                  hi=(hi[0] - l, hi[1] - l, hi[2] - PEDESTAL_SLAB))),
+           ("pedestal_foot", PEDESTAL_FOOT))
   return [(n, (Vector(b["lo"]) + Vector(b["hi"])) / 2, Vector(b["hi"]) - Vector(b["lo"]))
-          for n, b in (("pedestal", PEDESTAL), ("pedestal_foot", PEDESTAL_FOOT))]
+          for n, b in boxes]
+
+
+# The visuals of the pedestal and the cart are the fabrication models
+# themselves: fab/gen_fab.py exports them from OpenSCAD (mm, same frames as
+# here), one STL per material.
+FAB = os.path.join(HERE, "..", "..", "fab")
+PETG = (0.24, 0.55, 0.60, 1.0)
+
+
+def import_fab(rel, color, name):
+  path = os.path.join(FAB, rel)
+  if not os.path.exists(path):
+    raise SystemExit(f"{path} is missing: run python3 fab/gen_fab.py first")
+  bpy.ops.import_mesh.stl(filepath=path, global_scale=0.001)
+  o = bpy.context.object
+  o.name = name
+  o.data.materials.append(material(color))
+  return o
 
 
 def export_stand(path):
   reset()
-  for name, c, sz in stand_boxes():
-    bpy.ops.mesh.primitive_cube_add(size=1, location=c)
-    o = bpy.context.object
-    o.scale = sz
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    mod = o.modifiers.new("bevel", "BEVEL")
-    mod.width, mod.segments = 0.003, 3
-    o.name = name
-    o.data.materials.append(material(STAND_COLOR))
+  import_fab("pedestal/out/pedestal.stl", PETG, "pedestal")
   bpy.ops.export_scene.gltf(filepath=os.path.abspath(path), export_format="GLB",
                             export_yup=False, export_apply=True)
 
@@ -371,6 +391,13 @@ def bench_boxes(b):
 
 def export_bench(b, path):
   reset()
+  if b["casters"]:   # the robot cart: as built from fab/cart
+    for part, color in (("sim_wood", BEECH), ("sim_metal", CHROME), ("sim_rubber", RUBBER),
+                        ("sim_brake", KUEPPER_RED)):
+      import_fab(f"cart/out/{part}.stl", color, part)
+    bpy.ops.export_scene.gltf(filepath=os.path.abspath(path), export_format="GLB",
+                              export_yup=False, export_apply=True)
+    return
   for name, kind, c, sz, color, _ in bench_boxes(b):
     if name.startswith("collision_only"):
       continue
@@ -548,7 +575,7 @@ def stand_sdf():
       f'        <geometry><box><size>{f3(s)}</size></box></geometry>\n      </collision>'
       for n, c, s in stand_boxes())
   return f"""{HEADER}
-<!-- Plywood arm pedestal on the SO-101 robot cart. Origin on the cart top
+<!-- Printed (PETG) arm pedestal on the SO-101 robot cart, fab/pedestal. Origin on the cart top
      under the arm's pan axis, world-aligned. arm_mount: where so101 goes
      (yaw 270 deg); grid_mount: bit_carousel's turntable axis on the cart top. -->
 <sdf version="1.10" xmlns:intrinsic="https://intrinsic.ai/">

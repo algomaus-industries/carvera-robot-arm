@@ -13,6 +13,8 @@
 //   3D, Bambu X1 (PETG, 0.4 mm nozzle):
 //     hub, rim_segment (x RIM_SEGMENTS), roller_bracket (x ROLLERS), servo_cradle
 //   assembly                       everything in place, for a look
+//   sim_*                          the assembly by material, in place: the
+//                                  sim model's meshes (fab/gen_fab.py)
 
 include <carousel_params.scad>
 
@@ -157,20 +159,45 @@ module servo_cradle() {
 }
 
 // ------------------------------------------------------------ assembly view
-module assembly() {
-  color("BurlyWood") for (i = [0, 1]) linear_extrude(BASE_T) base_plate_2d(i);
-  color("SteelBlue") translate([0, 0, BASE_T]) servo_cradle();
-  color("DimGray") translate([-SERVO_W / 2, -SHAFT_FROM_END, BASE_T + 1.5]) cube([SERVO_W, SERVO_L, SERVO_H]);
-  for (k = [0:ROLLERS - 1]) rotate(ROLLER_A0 + k * 360 / ROLLERS) translate([ROLLER_R, 0, BASE_T]) {
-    color("SteelBlue") rotate(90) roller_bracket();
-    color("Silver") translate([0, 0, ROLLER_C - BASE_T]) rotate([0, 90, 0])
+// The fixed base and the turning plate, one module per material, so the sim
+// meshes (models/bit_carousel, via fab/gen_fab.py and build_carvera.py) are
+// these same solids: sim_base_ply, sim_base_print, sim_base_servo,
+// sim_base_steel, sim_platter_ply, sim_platter_print.
+module base_ply() { for (i = [0, 1]) linear_extrude(BASE_T) base_plate_2d(i); }
+module base_print() {
+  translate([0, 0, BASE_T]) servo_cradle();
+  for (k = [0:ROLLERS - 1]) rotate(ROLLER_A0 + k * 360 / ROLLERS) translate([ROLLER_R, 0, BASE_T])
+    rotate(90) roller_bracket();
+}
+module base_servo() {
+  translate([-SERVO_W / 2, -SHAFT_FROM_END, BASE_T + 1.5]) cube([SERVO_W, SERVO_L, SERVO_H]);
+  // round horn on the output shaft
+  translate([0, 0, BASE_T + 1.5 + SERVO_H]) cylinder(d = HORN_D, h = HORN_TOP - BASE_T - 1.5 - SERVO_H);
+}
+module base_steel() {
+  for (k = [0:ROLLERS - 1]) rotate(ROLLER_A0 + k * 360 / ROLLERS) translate([ROLLER_R, 0, ROLLER_C])
+    rotate([0, 90, 0]) difference() {
       cylinder(d = BEARING_OD, h = BEARING_W, center = true);
-  }
-  color("SteelBlue") translate([0, 0, HORN_TOP]) hub();
-  for (k = [0:RIM_SEGMENTS - 1]) color("SteelBlue") rotate(seg_angle(k)) translate([0, 0, RIM_Z0]) rim_segment();
-  color("BurlyWood") translate([0, 0, PLATE_BOTTOM]) for (i = [0, 1]) linear_extrude(PLATE_T) seat_plate_2d(i);
-  color("Peru") for (sgn = [0, 1]) rotate(SEAM_A + 180 * sgn) translate([SPLICE_R[0], 0, PLATE_BOTTOM - PLATE_T])
+      cylinder(d = 8, h = BEARING_W + 1, center = true);
+    }
+}
+module platter_ply() {
+  translate([0, 0, PLATE_BOTTOM]) for (i = [0, 1]) linear_extrude(PLATE_T) seat_plate_2d(i);
+  for (sgn = [0, 1]) rotate(SEAM_A + 180 * sgn) translate([SPLICE_R[0], 0, PLATE_BOTTOM - PLATE_T])
     linear_extrude(PLATE_T) splice_strip_2d();
+}
+module platter_print() {
+  translate([0, 0, HORN_TOP]) hub();
+  for (k = [0:RIM_SEGMENTS - 1]) rotate(seg_angle(k)) translate([0, 0, RIM_Z0]) rim_segment();
+}
+
+module assembly() {
+  color("BurlyWood") base_ply();
+  color("SteelBlue") base_print();
+  color("DimGray") base_servo();
+  color("Silver") base_steel();
+  color("BurlyWood") platter_ply();
+  color("SteelBlue") platter_print();
 }
 
 if (part == "seat_plate_0") seat_plate_2d(0);
@@ -182,4 +209,10 @@ else if (part == "hub") hub();
 else if (part == "rim_segment") rim_segment();
 else if (part == "roller_bracket") rotate([90, 0, 0]) roller_bracket();
 else if (part == "servo_cradle") servo_cradle();
+else if (part == "sim_base_ply") base_ply();
+else if (part == "sim_base_print") base_print();
+else if (part == "sim_base_servo") base_servo();
+else if (part == "sim_base_steel") base_steel();
+else if (part == "sim_platter_ply") platter_ply();
+else if (part == "sim_platter_print") platter_print();
 else assembly();

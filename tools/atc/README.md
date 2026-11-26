@@ -34,6 +34,10 @@ bazel build -c opt //tools/atc:move_bit
 DISPLAY=:1 python3 tools/atc/atc_picker.py
 ```
 
+In the omts container it is also on the desktop and in the Applications
+menu as **ATC picker** (`~/.local/bin/atc-picker`, which builds `move_bit`
+first if needed and logs to `/tmp/atc-picker.log`).
+
 `--demo='1=<bit id>,…'` picks those bits one by one and presses Apply by
 itself (the demo video uses it).
 

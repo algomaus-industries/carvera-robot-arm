@@ -803,6 +803,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     return
   if args.dock:
     dock(solution, config)
+    return
 
   if args.list_json:
     angle = carousel_angle(world)
@@ -848,7 +849,8 @@ def main(argv: Sequence[str] | None = None) -> None:
       sys.exit(1)
     ran = True
   if not ran:
-    print("Nothing to do: give --move, --fill_atc, --empty_atc or --list.")
+    print("[✓] The ATC already holds those bits." if args.set_atc else
+          "Nothing to do: give --move, --set_atc, --fill_atc, --empty_atc, --park, --dock or --list.")
 
 
 if __name__ == "__main__":

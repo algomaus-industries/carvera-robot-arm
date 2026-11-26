@@ -179,7 +179,7 @@ def main():
   ap.add_argument("--demo_delay", type=float, default=1.5)
   ap.add_argument("--exit_when_done", action="store_true")
   args = ap.parse_args()
-  root = tk.Tk()
+  root = tk.Tk(className="ATC picker")
   if args.geometry:
     root.geometry(args.geometry)
   Picker(root, args.demo, args.exit_when_done, args.demo_delay)

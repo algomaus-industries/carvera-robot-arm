@@ -24,10 +24,17 @@ def xwd_to_image(data: bytes) -> Image.Image:
    _pad, bpp, bytes_per_line, _visual, red_mask, green_mask, blue_mask, _bits_rgb,
    _cmap_entries, ncolors, _ww, _wh, _wx, _wy, _bw) = struct.unpack(">25I", data[:100])
   start = header_size + ncolors * 12
-  if bpp != 32:
-    raise ValueError(f"only 32 bits per pixel supported, got {bpp} (depth {depth})")
-  px = np.frombuffer(data, dtype="<u4" if byte_order == 0 else ">u4", count=height * bytes_per_line // 4,
-                     offset=start).reshape(height, bytes_per_line // 4)[:, :width]
+  if bpp == 32:
+    px = np.frombuffer(data, dtype="<u4" if byte_order == 0 else ">u4", count=height * bytes_per_line // 4,
+                       offset=start).reshape(height, bytes_per_line // 4)[:, :width]
+  elif bpp == 24:   # packed 3 bytes per pixel (the VNC display in the omts container)
+    b = np.frombuffer(data, dtype=np.uint8, count=height * bytes_per_line, offset=start)
+    b = b.reshape(height, bytes_per_line)[:, :width * 3].reshape(height, width, 3).astype(np.uint32)
+    if byte_order != 0:
+      b = b[:, :, ::-1]
+    px = b[:, :, 0] | (b[:, :, 1] << 8) | (b[:, :, 2] << 16)
+  else:
+    raise ValueError(f"only 24 or 32 bits per pixel supported, got {bpp} (depth {depth})")
 
   def chan(mask):
     shift = (mask & -mask).bit_length() - 1

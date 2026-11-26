@@ -1,6 +1,6 @@
 """Writes RViz configs for the demo video: one per camera, tiled on screen.
 
-Starts from configs/omts/omts.rviz (all displays as there), hides the side
+Starts from configs/omts/omts.rviz (its displays, minus the TF axes), hides the side
 docks and sets each window's place on a 1920 x 1080 screen and its orbit
 camera:
 
@@ -47,7 +47,11 @@ def view_config(text: str, geom, focal, dist, pitch, yaw) -> str:
                    ("Hide Left Dock", "true"), ("Hide Right Dock", "true")):
     tail = re.sub(rf"(\n  {key}: )[^\n]+", rf"\g<1>{val}", tail, count=1)
   tail = re.sub(r"(\n  Image:\n    collapsed: )\w+", r"\g<1>true", tail)
-  return text[:geo] + tail
+  head = text[:geo]
+  # No TF axes in the video: with 140 seat frames and every bit's frame they
+  # hide the arm and the bits. The meshes are the Workcell Markers display.
+  head = re.sub(r"(- Class: rviz_default_plugins/TF\n\s+Enabled: )true", r"\g<1>false", head)
+  return head + tail
 
 
 def main():
