@@ -120,6 +120,10 @@ def export():
     for ext in outs:
       out = os.path.join(FAB, d, "out", f"{part}.{ext}")
       args = cmd + ["--backend=manifold", "-D", f'part="{part}"', "-o", out]
+      if part.startswith("sim_"):
+        # Sim meshes: circles by angle and length, not 64 segments each (a
+        # 6.6 mm seat hole needs ~10), so RViz gets ~10x fewer triangles.
+        args += ["-D", "$fn=0", "-D", "$fa=8", "-D", "$fs=2.5"]
       if ext == "png":
         args += ["--render", "--imgsize=1200,900", "--viewall", "--autocenter",
                  "--colorscheme=Tomorrow", "--camera=0,0,0,55,0,30,0"]

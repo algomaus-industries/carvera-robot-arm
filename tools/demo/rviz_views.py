@@ -47,10 +47,18 @@ def view_config(text: str, geom, focal, dist, pitch, yaw) -> str:
                    ("Hide Left Dock", "true"), ("Hide Right Dock", "true")):
     tail = re.sub(rf"(\n  {key}: )[^\n]+", rf"\g<1>{val}", tail, count=1)
   tail = re.sub(r"(\n  Image:\n    collapsed: )\w+", r"\g<1>true", tail)
+  # Only the 3D view: no side panels (the saved Qt window state would bring
+  # them back, so it goes), and no camera image display.
+  tail = re.sub(r"\n  QMainWindow State: [^\n]+", "", tail)
+  tail = re.sub(r"(\n  \w+:\n    collapsed: )\w+", r"\g<1>true", tail)
   head = text[:geo]
-  # No TF axes in the video: with 140 seat frames and every bit's frame they
-  # hide the arm and the bits. The meshes are the Workcell Markers display.
-  head = re.sub(r"(- Class: rviz_default_plugins/TF\n\s+Enabled: )true", r"\g<1>false", head)
+  head = re.sub(r"^Panels:\n(  [^\n]*\n|  - [^\n]*\n)+", "Panels: []\n", head)
+  head = re.sub(r"    - Class: rviz_default_plugins/Image\n(      [^\n]*\n)+", "", head)
+  # No TF axes or frame-editor handles in the video: with 140 seat frames and
+  # every bit's frame they hide the arm and the bits. The meshes are the
+  # Workcell Markers display.
+  for cls in ("TF", "InteractiveMarkers"):
+    head = re.sub(rf"(- Class: rviz_default_plugins/{cls}\n(?:\s+[A-Z][^\n]*\n)*?\s+Enabled: )true", r"\g<1>false", head)
   return head + tail
 
 
