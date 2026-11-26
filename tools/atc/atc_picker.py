@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import queue
+import re
 import shlex
 import subprocess
 import threading
@@ -102,6 +103,7 @@ class Picker:
     self.log.grid(row=10, column=0, columnspan=3, sticky="nsew")
     frame.columnconfigure(1, weight=1)
     frame.rowconfigure(10, weight=1)
+    self.moving = None   # (bit, src, dst) of the move move_bit is doing
     root.after(100, self.poll)
     self.refresh(then=(lambda: self.run_demo(demo)) if demo else None)
 
@@ -132,6 +134,7 @@ class Picker:
           self.log.see("end")
           if "Moving" in val:
             self.status.config(text=val.split(":")[0].replace("Moving ", "moving "))
+          self.track(val)
         else:
           on_done, text, code = val
           self.busy = False
@@ -141,6 +144,25 @@ class Picker:
     except queue.Empty:
       pass
     self.root.after(100, self.poll)
+
+  def show_now(self, n, bit):
+    title = self.title_of.get(bit, bit) if bit else "empty"
+    self.now[n].config(text="now: " + (title if len(title) <= 28 else title[:27] + "…"))
+
+  def track(self, line):
+    """Keeps the "now:" labels up to date while move_bit runs: a move's
+    source slot empties and its target fills once move_bit reports it done."""
+    m = re.match(r"Moving (\S+) .*: (\S+) -> (\S+) \.\.\.", line)
+    if m:
+      self.moving = m.groups()
+      return
+    m = re.match(r"\[✓\] (\S+) is now in (\S+)", line)
+    if m and self.moving and self.moving[0] == m.group(1):
+      bit, src, dst = self.moving
+      for slot, now in ((src, None), (dst, bit)):
+        if slot.startswith("atc:") and int(slot[4:]) in self.now:
+          self.show_now(int(slot[4:]), now)
+      self.moving = None
 
   # ------------------------------------------------------------- actions
   def refresh(self, then=None):
@@ -154,8 +176,7 @@ class Picker:
         return
       for n in SLOTS:
         bit = state["atc"].get(str(n))
-        title = self.title_of.get(bit, bit) if bit else "empty"
-        self.now[n].config(text="now: " + (title if len(title) <= 28 else title[:27] + "…"))
+        self.show_now(n, bit)
         self.pick[n].set(self.label_of.get(bit, EMPTY) if bit else EMPTY)
       differs = state.get("differs") or []
       if differs and not self.demo_mode:

@@ -263,9 +263,11 @@ def _offset(z: float, yaw_deg: float, x_tool: float = 0.0):
           (math.cos(h), -math.sin(h), 0.0, 0.0))
 
 
-# Steps per LINEAR segment when moving by joint targets: the vertical approach
-# and lift stay within about a millimetre of the straight line.
-JOINT_IK_LINEAR_STEPS = 6
+# Steps per LINEAR segment when moving by joint targets. Each step is its own
+# planned move, so fewer is faster; with 3 over the 50 mm approach the
+# gripper stays within 0.25 mm of the vertical line (6 steps: 0.21 mm, 2:
+# 0.47 mm, 1: 1.8 mm at carousel seat 2,23 and ATC slot 2).
+JOINT_IK_LINEAR_STEPS = 3
 GRID_CELL_PREFIX = "cell_"
 # How far the open jaws reach from the shank axis along the jaw axis (half
 # the open gap plus the ~10 mm fingertip, see models/so101/build_so101.py), the
@@ -423,6 +425,32 @@ def carousel_angle(world: Any) -> float | None:
   return None if obj is None else float(list(obj.joint_positions)[0])
 
 
+# How the carousel turns, like its STS3215 in position mode: one turn of
+# travel (0..2 pi, no wrapping past the end stop), a smooth start and stop,
+# about CAROUSEL_PEAK_SPEED at most (conservative for the loaded 352 mm
+# plate; the servo itself does ~4.7 rad/s unloaded).
+CAROUSEL_PEAK_SPEED = 1.2      # rad/s
+CAROUSEL_MIN_TURN_TIME = 0.5   # s
+CAROUSEL_UPDATE_HZ = 20
+
+
+def _turn_smoothly(world: Any, obj: Any, start: float, goal: float) -> None:
+  import time  # pylint: disable=import-outside-toplevel
+  dist = abs(goal - start)
+  if dist < 1e-4:
+    return
+  # Smoothstep: peak speed 1.5x the mean.
+  duration = max(CAROUSEL_MIN_TURN_TIME, 1.5 * dist / CAROUSEL_PEAK_SPEED)
+  t0 = time.monotonic()
+  while True:
+    t = min(1.0, (time.monotonic() - t0) / duration)
+    s = t * t * (3 - 2 * t)
+    world.update_joint_positions(obj, [start + (goal - start) * s])
+    if t >= 1.0:
+      return
+    time.sleep(1.0 / CAROUSEL_UPDATE_HZ)
+
+
 def turn_carousel(world: Any, slot: str) -> None:
   """Turns the carousel so the seat of grid slot `slot` is at its ring's
   pick position (belief world; the real carousel's servo follows it)."""
@@ -431,7 +459,7 @@ def turn_carousel(world: Any, slot: str) -> None:
   r, c = (int(v) for v in frame[len(GRID_CELL_PREFIX):].split("_"))
   angle = carousel_layout.platter_angle_for(r, c)
   print(f"  turning the carousel to {math.degrees(angle):.1f} deg for {slot}")
-  world.update_joint_positions(obj, [angle])
+  _turn_smoothly(world, obj, float(list(obj.joint_positions)[0]), angle)
   p = world.get_transform(world.root, world.get_transform_node(_frame_ref(GRID_OBJECT, frame)))
   print(f"  {slot} now at world {[round(float(v), 4) for v in p.translation]}")
 
