@@ -57,8 +57,10 @@ python3 fab/gen_fab.py        # params + STL / DXF / SVG / PNG (needs OpenSCAD w
 | 8 | Rim segment, PETG | `rim_segment.stl`: rim under the plate's edge, rides on the rollers |
 | 4 | Roller bracket, PETG | `roller_bracket.stl` (print on its side as exported) |
 | 1 | Servo cradle, PETG | `servo_cradle.stl` |
-| 1 | Feetech STS3215 servo with round horn | same servo as the SO-101's joints (7.4 V version); goes on the arm's bus as ID 7 |
-| 1 | 3-pin servo cable, ~40 cm | daisy-chain from the arm's bus to the carousel servo |
+| 1 | Feetech STS3215 servo, 12 V, 1:345, with round horn | Seeed "ST3215-C047 12V 30Kg" ([link](https://www.seeedstudio.com/STS3215-30KG-Serial-Servo-p-6340.html)), the SO-101 Pro kit's follower-arm servo; same body, so the cradle and horn fit unchanged |
+| 1 | Bus servo driver board | the same Seeed board the SO-101 kit has one of per arm: the carousel gets its own, with its own USB link, not the arm's bus |
+| 1 | 12 V 2 A power supply (DC barrel to suit the board) | the carousel's own; the follower arm's 12 V 2 A supply stays for its six servos |
+| 1 | 3-pin servo cable, ~40 cm, and a USB cable | servo to the driver board on the cart shelf; board to the computer |
 | 4 | 608-2RS bearing (22 × 8 × 7 mm) | rollers |
 | 4 | M8 × 30 bolt, nut, 2 washers | roller axles |
 | 20 | M3 heat-set insert (4.0 mm OD, 5.7 mm) | hub 4, rim segments 16 |
@@ -131,10 +133,13 @@ the leg length so the top stays at 915 mm.
 3. **Rollers**: a 608 between two M8 washers on an M8 × 30 bolt through each
    roller bracket, nut snug, bearing free; screw the brackets onto the base
    (M3 × 16 + nut), axles pointing at the centre.
-4. **Servo**: set its bus ID to 7 first (Feetech FD software or LeRobot's
-   motor setup), position mode, centre it (2048). Drop it into the cradle,
+4. **Servo**: on its own driver board, set its ID (any ID works on its own
+   bus; 7 keeps it apart from the arm's 1–6 if the two ever share a bus)
+   with Feetech FD software or LeRobot's motor setup, position mode, centre
+   it (2048). Drop it into the cradle,
    output shaft up and on the centre mark, cable out of the slot and down
-   through the base and cart top; screw the cradle down. Fit the round horn.
+   through the base and cart top to the driver board and its 12 V supply on
+   the cart shelf; screw the cradle down. Fit the round horn.
 5. **Seat plate**: join the two halves upside down on a flat table with the
    splice strips along the seam (M3 × 16 + nut). Screw the hub (centre) and
    the eight rim segments (one centred on each end of the seam, then every
@@ -162,5 +167,9 @@ sits just inside the open hood's front.
 ## Not done yet
 
 - There is no hardware driver for the SO-101 or the carousel servo yet
-  (the arm is not bought); everything above runs in simulation.
+  (the arm is not bought); everything above runs in simulation. The
+  carousel has its own driver board and serial port on purpose: only one
+  process can open a serial port, so LeRobot driving the follower arm
+  would otherwise block a separate carousel driver, and a seventh servo
+  stays off the follower's 2 A supply.
 - The dimensions marked as datasheet values above are not measured.
