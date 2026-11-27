@@ -230,8 +230,20 @@ PARTS = [
     ("carousel", "carousel.scad", "assembly", ("png",)),
     ("pedestal", "pedestal.scad", "pedestal", ("png",)),
     ("jaws", "jaws.scad", "assembly", ("png",)),
+    ("jaws", "jaws.scad", "view_closed", ("png",)),
+    ("jaws", "jaws.scad", "view_fixed", ("png",)),
+    ("jaws", "jaws.scad", "view_moving", ("png",)),
+    ("jaws", "jaws.scad", "section", ("svg",)),
     ("cart", "cart.scad", "assembly", ("png",)),
 ]
+
+
+# Close-up views of the jaws: eye x,y,z, centre x,y,z (tool frame, mm).
+CAMERAS = {
+    "view_closed": "-18,-30,48,-3,0,0",
+    "view_fixed": "-45,-12,22,1,0,-4",
+    "view_moving": "42,-44,22,-10,3,-3",
+}
 
 
 def export():
@@ -247,7 +259,10 @@ def export():
         args += ["-D", "$fn=0", "-D", "$fa=8", "-D", "$fs=2.5"]
       if d == "jaws" and ext == "stl":
         args += ["--export-format", "binstl"]   # ~25k facets each: 1 MB, not 8
-      if ext == "png":
+      if ext == "png" and part in CAMERAS:
+        args += ["--render", "--imgsize=900,900", "--colorscheme=Tomorrow",
+                 "--camera=" + CAMERAS[part]]
+      elif ext == "png":
         args += ["--render", "--imgsize=1200,900", "--viewall", "--autocenter",
                  "--colorscheme=Tomorrow", "--camera=0,0,0,55,0,30,0"]
       r = subprocess.run(args + [os.path.join(FAB, d, scad)], capture_output=True, text=True)

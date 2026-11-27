@@ -146,6 +146,9 @@ module to_jaw_mesh() {
     multmatrix(JAW_JOINT_FROM_TOOL) children();
 }
 
+// The fingertips only, for the close-up views.
+module clip_view() intersection() { children(); translate([-40, -20, -24]) cube([60, 40, 40]); }
+
 // A bit as the sim models it: seat top at z = GRASP_Z, COLLAR_H collar, the
 // shank 15 mm above it.
 module bit(d) {
@@ -169,6 +172,18 @@ else if (part == "moving_jaw_pad_tpu")   // flat on the bed, rib up
 else if (part == "sim_moving_jaw") to_jaw_mesh() { moving_petg(); pad(); }
 else if (part == "fixed_jaw") fixed_jaw();
 else if (part == "moving_jaw") { moving_petg(); pad(); }
+else if (part == "view_closed") {   // closed on a 4 mm shank, from the tip
+  clip_view() color([0.94, 0.94, 0.92]) fixed_jaw();
+  clip_view() at_angle(jaw_angle(4)) {
+    color([0.35, 0.6, 0.85]) moving_petg(); color([0.15, 0.15, 0.17]) pad();
+  }
+  color("silver") translate([axis_x(4), 0, -12]) cylinder(d = 4, h = 19, $fn = 64);
+}
+else if (part == "view_fixed") clip_view() color([0.94, 0.94, 0.92]) fixed_jaw();
+else if (part == "view_moving") {   // the pad half slid into its dovetail
+  clip_view() color([0.35, 0.6, 0.85]) moving_petg();
+  color([0.15, 0.15, 0.17]) translate([0, 7, 0]) pad();
+}
 else if (part == "section")   // across the grip at z = 0, for checking
   projection(cut = true) for (i = [0:2]) translate([i * 45, 0, 0]) {
     fixed_jaw(); at_angle(jaw_angle(SHANKS[i])) { moving_petg(); pad(); }
