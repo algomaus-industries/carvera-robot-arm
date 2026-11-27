@@ -13,7 +13,7 @@ build scripts turn those into the sim models' meshes.
 | :--- | :--- | :--- | :--- |
 | **Bit carousel**: 140 seats on a turning plate; an STS3215 servo turns the wanted bit to the arm | <img src="carousel/out/assembly.png" width="260" alt="Bit carousel: plywood seat plate with 140 holes on a blue printed rim, rollers and base"> | plates: xTool M2 (6 mm birch ply) or the Carvera; small parts: Bambu X1 (PETG) | [`carousel/out/`](carousel/out/) |
 | **Arm pedestal**: lifts the SO-101 to 5 cm above the grip height, overhangs the cart edge towards the Carvera | <img src="pedestal/out/pedestal.png" width="200" alt="Printed pedestal block with top lip, foot and gussets"> | Bambu X1 (PETG) | [`pedestal/out/pedestal.stl`](pedestal/out/pedestal.stl) |
-| **V-groove jaws**: the SO-101's two gripper parts with new fingertips, so a bit's shank always sits on the same line | <img src="jaws/out/assembly.png" width="240" alt="Fingertips closed on a 1/8 inch, a 4 mm and a 6 mm shank: fixed finger with a V, moving finger with a pad"> | Bambu X1 (PETG) | [`jaws/out/`](jaws/out/) |
+| **V-groove jaws**: the SO-101's two gripper parts with new fingertips, so a bit's shank always sits on the same line | <img src="jaws/out/assembly.png" width="240" alt="Fingertips closed on a 1/8 inch, a 4 mm and a 6 mm shank: fixed finger with a V, moving finger with a TPU pad"> | Bambu X1 (PETG; the pad TPU) | [`jaws/out/`](jaws/out/) |
 | **Rolling cart**: carries both, rolls away when the Carvera's hood is shut | <img src="cart/out/assembly.png" width="200" alt="Plywood cart on four braked casters, carousel and pedestal on top"> | table saw / track saw (18 mm birch ply, 40 × 40 mm timber) | [`cart/out/`](cart/out/) |
 
 Regenerate after changing a layout or size:
@@ -78,6 +78,7 @@ settings and a calibration gauge), the two gripper parts come from here:
 | 1 | [`Wrist_Roll_Pitch_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Wrist_Roll_Pitch_SO101.stl) | wrist |
 | 1 | [`jaws/out/wrist_roll_follower_vjaw.stl`](jaws/out/wrist_roll_follower_vjaw.stl) | gripper body with the fixed finger, **instead of** `Wrist_Roll_Follower_SO101.stl` |
 | 1 | [`jaws/out/moving_jaw_vjaw.stl`](jaws/out/moving_jaw_vjaw.stl) | moving finger, **instead of** `Moving_Jaw_SO101.stl` |
+| 1 | [`jaws/out/moving_jaw_pad_tpu.stl`](jaws/out/moving_jaw_pad_tpu.stl) | TPU (95A, external spool), wide side down; slide it into the moving finger's dovetail slot, a drop of CA glue |
 
 Not needed (leader arm only): `Handle_SO101`, `Trigger_SO101`,
 `Wrist_Roll_SO101`. TheRobotStudio's one-plate file
@@ -85,37 +86,65 @@ Not needed (leader arm only): `Handle_SO101`, `Trigger_SO101`,
 bed but has the two stock gripper parts on it: delete those in the slicer
 and add the two from `jaws/out/`.
 
-**The jaws.** Both files sit in the same position and orientation as the
-parts they replace, so they assemble the same way and print in the same
+**The jaws.** Both PETG files sit in the same position and orientation as
+the parts they replace, so they assemble the same way and print in the same
 orientation (on TheRobotStudio's plate both lie with the inner finger face
-up). The moving jaw's new tip stands ~18 mm above the bed in that
-orientation: print it with supports. Only the last 20–35 mm of each finger
-differ:
+up). The moving jaw's new tip then stands ~21 mm above the bed: print it
+with supports (`jaws/check_jaws.py` gives the height). The new tip replaces
+the stock finger entirely from the dog-leg on, so nothing of the stock
+finger is left beside it. Only the last 20–35 mm of each finger differ:
 
 - The fixed finger has a 90° V, 3 mm deep, along the finger. A shank from
   1/8" to 6 mm pressed into it lies on the V's centre line: its axis is
   `3 − 0.707 d` mm in front of the old flat face (d = shank diameter), not
-  wherever it landed on a flat finger.
+  wherever it landed on a flat finger. At the fingertip the V's faces and
+  the finger's face open out in a 45° funnel (1.75 mm), so a shank a little
+  off the line slides in.
 - The moving finger's tip is a dog-leg: 8 mm thick like the stock tip, but
-  ~8 mm closer to the fixed finger, with the stock tip behind it removed.
-  Its face is crowned along the finger (60 mm radius), so it presses on one
-  spot at mid grip at any closing angle. It closes on a 1/8" shank at about
-  −0.093 rad, on 4 mm at −0.080 rad and on 6 mm at −0.048 rad of the jaw
-  joint; with nothing between them the fingers meet at −0.104 rad, well
-  inside the servo's range (the stock jaw only just reaches a 1/8" shank).
-- The fingertips end 6 mm past the tool frame (stock: ~7 mm), 3 mm above
-  the collar at the grasp height.
-- Open for a bit (5 mm wider than its shank), the fingers reach 10–12 mm
-  (fixed) and 16–18 mm (moving) from the bit's axis where the neighbouring
-  bits stand; the stock jaw reached 12–13 and ~20 mm. The carousel's
-  spacing (`check_layout.py`, 20 mm) therefore still holds.
+  ~8 mm closer to the fixed finger. Its face carries a **TPU pad**
+  (`jaws/out/moving_jaw_pad_tpu.stl`, 10 × 12 × 2.6 mm, printed flat from the
+  X1's external spool): it slides sideways into a dovetail slot across the
+  finger, so the shank's drag along the finger cannot peel it out (a drop
+  of CA glue only stops it sliding sideways; CA alone holds TPU poorly). A rib across
+  the finger (8 mm radius, 1 mm proud of the PETG) that presses on one spot
+  at mid grip at any closing angle and gives a little, which holds the bit
+  against tipping better than a hard point. It closes on a 1/8" shank at
+  about −0.093 rad, on 4 mm at −0.080 rad and on 6 mm at −0.048 rad of the
+  jaw joint, well inside the servo's range (the stock jaw only just reaches
+  a 1/8" shank).
+- The fixed fingertip ends 6 mm past the tool frame, 3 mm above the collar
+  at the grasp height. The moving one ends 2 mm shorter, because it swings
+  towards the collar as the jaw opens: open, it stays 2.5–3.4 mm above the
+  collar (`check_jaws.py`).
+- Open for a bit (5 mm wider than its shank), the fingers reach about
+  9–11 mm (fixed) and 16–18 mm (moving) from the bit's axis where the
+  neighbouring bits stand. On the way down and up the gripper is 2.5 mm to
+  the side (below), which moves both by 2.5 mm; the carousel's spacing
+  (`check_layout.py`, 20 mm either side) still holds.
+
+**How the arm grips.** The gripper comes down 2.5 mm off the shank (the
+fixed finger away from it, into the room the open pad leaves), moves
+sideways onto it at grasp height, then closes; to let go it opens, moves
+sideways off and lifts. So neither finger rubs the shank on the way down.
+In the sim the jaw closes to a position 0.3 mm past contact. **On the real
+arm the gripper driver must close against a torque (current) limit**,
+commanding ~2 mm past contact: a ±0.2 mm print error moves the contact by
+up to ±0.5 mm, more than any fixed overshoot.
+
+All the jaw numbers live in one table, `JAW` in [`gen_fab.py`](gen_fab.py):
+it writes `jaws/jaws_params.scad` for OpenSCAD and
+[`tools/atc/so101_jaws.py`](../tools/atc/so101_jaws.py) for `move_bit`
+(grasp height, gap per jaw angle, approach offset). Change them there and
+rerun `gen_fab.py`, `jaws/check_jaws.py` and the sim gripper build
+(`blender -b --python models/so101/build_so101.py -- models`).
 
 Checked on the exported meshes: each of the three shank sizes touches both
-V faces over the whole grip and the pad at mid grip, with nothing
-overlapping, at the jaw angles `move_bit` commands. Not checked: a print,
-the dog-leg's stiffness, and the grip on a real bit. If a shank
-slips, a strip of thin rubber or heat-shrink on the pad adds friction
-without moving the bit's position, which the V sets.
+V faces and the pad's rib, with nothing overlapping, at the jaw angles
+`move_bit` commands; `move_bit` ran in the simulator with these jaws. Not
+checked: a print, the dog-leg's stiffness, the grip on a real bit. Not
+done: a stop above the shank against bits sliding up the V when pushed into
+a seat off-centre; it waits until real bits' collar and stick-up are
+measured (`models/makera_bits/build_bits.py` estimates them).
 
 ### Bit carousel
 
@@ -244,7 +273,9 @@ sits just inside the open hood's front.
   process can open a serial port, so LeRobot driving the follower arm
   would otherwise block a separate carousel driver, and a seventh servo
   stays off the follower's 2 A supply.
-- `move_bit` and the sim gripper use the V-groove jaws (jaw angles and the
-  shank's place in the V from `fab/jaws/jaws.scad`), but no move has been
-  run in the simulator since the change: only the geometry was checked.
+- `move_bit` and the sim gripper use the V-groove jaws with the TPU pad and
+  the side approach; checked in the simulator (one `--set_atc` move and a
+  five-move `--from_gcode` load, 2026-11-27). The sim does not model the
+  grip itself (the jaw is set through the world, the bit attached), so the
+  grip force, the funnel and the pad are only checked as geometry.
 - The dimensions marked as datasheet values above are not measured.

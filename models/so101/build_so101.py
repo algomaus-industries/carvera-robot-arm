@@ -146,10 +146,10 @@ _mesh_cache = {}
 
 # The gripper's two parts are printed with V-groove fingertips (fab/jaws):
 # same frames as the official meshes they are cut from, in mm. fab/gen_fab.py
-# exports them.
+# exports them; the moving jaw's sim mesh includes its TPU pad.
 FAB_MESHES = {
     "wrist_roll_follower_so101_v1": "jaws/out/wrist_roll_follower_vjaw.stl",
-    "moving_jaw_so101_v1": "jaws/out/moving_jaw_vjaw.stl",
+    "moving_jaw_so101_v1": "jaws/out/sim_moving_jaw.stl",
 }
 
 

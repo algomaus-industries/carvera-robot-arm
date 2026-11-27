@@ -110,9 +110,11 @@ against the world as the earlier moves left it.
 
 ## How a move runs
 
-Each move is a behaviour tree: above the source, down, close the jaw and
-attach the bit to the gripper, lift, carry, down into the target, open, detach,
-lift.
+Each move is a behaviour tree: above the source, down beside the shank,
+sideways onto it, close the jaw and attach the bit to the gripper, lift,
+carry, down into the target, open, detach, sideways off the shank, lift.
+Beside means 2.5 mm off it, the fixed finger away from the shank, so
+neither finger rubs it on the way down or up.
 
 The planner's generic IK does not converge for this 5-axis arm, so
 [`so101_ik.py`](so101_ik.py) solves for joint positions that keep the gripper
@@ -120,6 +122,11 @@ vertical (yaw free) and put the shank into the fixed finger's V (the
 V-groove jaws of [`fab/jaws`](../../fab/README.md): the shank's axis is
 `3 − 0.707 d` mm in front of the finger's face, and the jaw closes to the
 angle at which the moving finger's pad meets a shank of that diameter).
+The jaw numbers (grasp height, gap per jaw angle, approach offset) come
+from `JAW` in [`fab/gen_fab.py`](../../fab/gen_fab.py), which generates
+[`so101_jaws.py`](so101_jaws.py); do not edit that file by hand. In the sim
+the jaw closes 0.3 mm past contact; a real gripper driver must close
+against a torque limit instead (see fab/README, "How the arm grips").
 `move_bit` sends those as joint moves, which the planner still
 collision-checks. Carries go via the `home` configuration with the elbow up,
 clear of the Carvera.

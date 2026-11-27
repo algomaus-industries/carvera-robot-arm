@@ -30,14 +30,19 @@ come from makera_bits.json.
   bazel run -c opt //tools/atc:move_bit -- --dock   # hood open, cart in
 
 Each move: open the Carvera lid if an ATC slot is involved, open the jaw,
-above the source seat (ANY), down (LINEAR), close, attach the bit, up
-(LINEAR), via the home configuration, above the target seat (ANY), down
-(LINEAR), open, detach, up (LINEAR); afterwards back to home.
+above the source seat beside the shank (ANY), down (LINEAR), sideways onto
+the shank (LINEAR), close, attach the bit, up (LINEAR), via the home
+configuration, above the target seat (ANY), down (LINEAR), open, detach,
+sideways off the shank (LINEAR), up (LINEAR); afterwards back to home.
+Beside the shank: APPROACH_OFFSET_M (tools/atc/so101_jaws.py) towards the
+fixed finger's side, so neither finger touches it on the way down or up.
 
 The SO-ARM101 jaw is a separate world object (robot.tool_object_name) whose
 jaw_joint is set with update_world; its tool frame is on the FIXED jaw's
 face. The jaws are the V-groove ones (fab/jaws): the shank lies in the fixed
-finger's V, its axis GraspProfile.v_depth - 0.707 d along the tool's +x. The
+finger's V, its axis GraspProfile.v_depth - 0.707 d along the tool's +x
+(the jaw numbers come from fab/gen_fab.py through the generated
+tools/atc/so101_jaws.py). The
 planner's IK does not converge for this 5-axis arm, so the joint targets
 come from tools/atc/so101_ik.py (gripper vertical, yaw free).
 
@@ -68,7 +73,7 @@ from src.hardware.gripper import GripperInterface
 from src.hardware.machine import DioCncMachine
 from src.hardware.robot import Robot
 from models.bit_carousel import carousel_layout
-from tools.atc import gcode_tools, so101_ik
+from tools.atc import gcode_tools, so101_ik, so101_jaws
 
 GRID_OBJECT = "bit_grid"
 GRID_N = 10
@@ -96,6 +101,8 @@ class GraspProfile:
       lies in the V, see tool_x_from_shank_axis.
   joint_ik: True to solve the arm's IK here (tools/atc/so101_ik.py) and send
       joint targets, for arms the motion planner's IK cannot solve.
+  approach_offset: how far off the shank (tool +x) the gripper goes down and
+      comes up, moving sideways onto and off the shank at grasp_z.
   """
 
   grasp_z: float
@@ -103,6 +110,7 @@ class GraspProfile:
   off_centre: bool
   joint_ik: bool = False
   v_depth: float = 0.0
+  approach_offset: float = 0.0
 
   def tool_x_from_shank_axis(self, shank: float) -> float:
     """How far the tool frame is from the gripped shank's axis, along tool +x.
@@ -119,26 +127,30 @@ class GraspProfile:
 
 
 PROFILES = {
-    # The SO-101's V-groove fingers (fab/jaws) end 6 mm past the tool frame,
-    # so the tool frame stays 14 mm above the seat: fingertips 3 mm above the
-    # 5 mm collar.
-    "so101": GraspProfile(grasp_z=0.014, pre_z=0.064, off_centre=True, joint_ik=True,
-                          v_depth=0.003),
+    # The SO-101's V-groove fingers (fab/jaws): grasp_z keeps the fixed
+    # fingertip 3 mm above the collar (fab/gen_fab.py JAW).
+    "so101": GraspProfile(grasp_z=so101_jaws.GRASP_Z_M, pre_z=0.064, off_centre=True,
+                          joint_ik=True, v_depth=so101_jaws.V_DEPTH_M,
+                          approach_offset=so101_jaws.APPROACH_OFFSET_M),
 }
 
 class So101Jaw(GripperInterface):
   """SO-ARM101 moving jaw, set through the world (update_world).
 
   V-groove jaws (fab/jaws): the "gap" is the diameter of the shank that,
-  lying in the fixed finger's V, the moving finger's pad just touches. From
-  fab/jaws/jaws.scad (jaw_angle): the pad meets a 4 mm shank at -0.08 rad
-  and moves 1.207 mm per mm of shank (sqrt(2)/2 + 1/2) on a 74.7 mm lever,
-  so 8.95 mm at 0 rad and 6.19 mm per 0.1 rad. A 1/8" shank is gripped at
-  -0.093 rad, a 6 mm one at -0.048 rad; the empty fingers meet at -0.104.
+  lying in the fixed finger's V, the moving finger's pad rib just touches
+  (fab/gen_fab.py jaw_gap_table, generated into so101_jaws): about 8.95 mm
+  at 0 rad and 6.19 mm per 0.1 rad. A 1/8" shank is gripped at -0.093 rad,
+  a 6 mm one at -0.048 rad (fab/jaws/check_jaws.py).
+
+  In the sim the jaw is set to a position CLOSE_SQUEEZE_M past contact. The
+  real driver must close against a torque/current limit instead, commanding
+  about CLOSE_PAST_CONTACT_REAL_M past contact: a print error of +-0.2 mm
+  moves the contact by up to +-0.5 mm, more than the squeeze.
   """
 
-  GAP_AT_ZERO_M = 0.00895
-  GAP_PER_RAD_M = 0.0619
+  GAP_AT_ZERO_M = so101_jaws.GAP_AT_ZERO_M
+  GAP_PER_RAD_M = so101_jaws.GAP_PER_RAD_M
   LIMITS = (-0.1745, 1.745)
 
   def __init__(self, solution: Any, object_name: str, open_gap_m: float, close_gap_m: float):
@@ -185,7 +197,8 @@ def shank_m(holder: str, catalog: dict[str, dict]) -> float:
 
 def make_gripper(solution: Any, config: AppConfig, shank: float) -> GripperInterface:
   return So101Jaw(solution, config.robot.tool_object_name,
-                  open_gap_m=shank + 0.005, close_gap_m=shank - 0.0003)
+                  open_gap_m=shank + so101_jaws.OPEN_EXTRA_M,
+                  close_gap_m=shank - so101_jaws.CLOSE_SQUEEZE_M)
 
 
 def parse_slot(spec: str) -> tuple[str, str]:
@@ -289,8 +302,11 @@ def _offset(z: float, yaw_deg: float, x_tool: float = 0.0):
 # Steps per LINEAR segment when moving by joint targets. Each step is its own
 # planned move, so fewer is faster; with 3 over the 50 mm approach the
 # gripper stays within 0.25 mm of the vertical line (6 steps: 0.21 mm, 2:
-# 0.47 mm, 1: 1.8 mm at carousel seat 2,23 and ATC slot 2).
+# 0.47 mm, 1: 1.8 mm at carousel seat 2,23 and ATC slot 2). Shorter
+# segments get one step per LINEAR_STEP_M (the 2.5 mm moves onto and off a
+# shank: one).
 JOINT_IK_LINEAR_STEPS = 3
+LINEAR_STEP_M = 0.017
 GRID_CELL_PREFIX = "cell_"
 # How far the open jaws reach from the shank axis along the jaw axis (half
 # the open gap plus the ~10 mm fingertip, see models/so101/build_so101.py), the
@@ -321,7 +337,7 @@ class JointTargets:
     self._base = _matrix(world.get_transform(world.root, arm))
     self._base_inv = _inverse(self._base)
     self.q = list(arm.joint_positions)
-    self._last = None   # (obj, frame, z) of the previous target
+    self._last = None   # (obj, frame, z, x_tool) of the previous target
     self._seats = None  # rack seat name -> world xy
 
   def via_home(self) -> None:
@@ -333,11 +349,6 @@ class JointTargets:
          x_tool: float | None = None) -> list[list[float]]:
     seat = _matrix(self._world.get_transform(
       self._world.root, self._world.get_transform_node(_frame_ref(obj, frame))))
-    zs = [z]
-    if linear and self._last and self._last[:2] == (obj, frame):
-      z0 = self._last[2]
-      zs = [z0 + (z - z0) * (i + 1) / JOINT_IK_LINEAR_STEPS for i in range(JOINT_IK_LINEAR_STEPS)]
-    out = []
     # The shank axis between the jaws (x_tool along the tool's -x, see
     # GraspProfile.tool_x_from_shank_axis; it can be negative) goes onto the
     # seat axis, tool straight down; the yaw about the shank is left free
@@ -345,6 +356,17 @@ class JointTargets:
     if x_tool is None:
       (ox, oy, _), _ = offset(0.0)
       x_tool = math.hypot(ox, oy)
+    # A LINEAR segment from the previous target at the same seat: in steps
+    # along z (down, up) and x_tool (sideways onto or off a shank).
+    steps = [(z, x_tool)]
+    follow = bool(linear and self._last and self._last[:2] == (obj, frame))
+    if follow:
+      z0, x0 = self._last[2:]
+      n = max(1, min(JOINT_IK_LINEAR_STEPS,
+                     math.ceil(math.hypot(z - z0, x_tool - x0) / LINEAR_STEP_M - 1e-9)))
+      steps = [(z0 + (z - z0) * (i + 1) / n, x0 + (x_tool - x0) * (i + 1) / n)
+               for i in range(n)]
+    out = []
     down = self._base_inv[:3, :3] @ (-seat[:3, 2])
     # In the bit rack the neighbours stand only one pitch away, closer than
     # the bulky moving jaw reaches when it opens, so the jaw axis (tool x, the
@@ -353,15 +375,14 @@ class JointTargets:
     diagonals = []
     if frame.startswith(GRID_CELL_PREFIX) and obj == GRID_OBJECT:
       diagonals = [self._base_inv[:3, :3] @ [*d, 0.0] for d in self._jaw_axes(frame, seat)]
-    for zi in zs:
+    for zi, xi in steps:
       point = (self._base_inv @ seat @ [0.0, 0.0, zi, 1.0])[:3]
       # Free (ANY) targets take the elbow-up branch; LINEAR steps stay on the
       # branch of the step before.
       if diagonals:
-        q = self._solve_diagonal(point, x_tool, down, diagonals, elbow_up=len(zs) == 1)
+        q = self._solve_diagonal(point, xi, down, diagonals, elbow_up=not follow)
       else:
-        q = so101_ik.solve_down(point, (-x_tool, 0.0, 0.0), down, self.q,
-                                elbow_up=len(zs) == 1)
+        q = so101_ik.solve_down(point, (-xi, 0.0, 0.0), down, self.q, elbow_up=not follow)
       if q is None:
         raise ValueError(
           f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m with the gripper "
@@ -372,7 +393,7 @@ class JointTargets:
               f"{[round(float(v), 4) for v in (self._base @ so101_ik.fk(q))[:3, 3]]}"
               f" q={[round(v, 3) for v in self.q]}")
       out.append(self.q)
-    self._last = (obj, frame, z)
+    self._last = (obj, frame, z, x_tool)
     return out
 
   def _rack_seats(self):
@@ -526,14 +547,15 @@ def build_move_tree(
   """
   tool = config.robot.tool_object_name
   x_tool = profile.tool_x_from_shank_axis(shank)
+  x_beside = x_tool + profile.approach_offset   # tool off the shank, fixed finger away
   PRE_Z, GRASP_Z = profile.pre_z, profile.grasp_z
   src_obj, src_frame = parse_slot(src)
   dst_obj, dst_frame = parse_slot(dst)
   held = [(tool, holder)]
 
-  def move(obj, frame, z, motion, pairs, label):
-    qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x_tool),
-                   linear=motion == "LINEAR", x_tool=x_tool)
+  def move(obj, frame, z, motion, pairs, label, x=x_tool):
+    qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x),
+                   linear=motion == "LINEAR", x_tool=x)
     # The jaw is hinged inside the gripper body (so101_arm.gripper_link), so
     # the two always overlap; the planner would reject every configuration.
     # The fixed jaw is part of the arm (gripper_link), so contacts allowed
@@ -564,8 +586,10 @@ def build_move_tree(
   tasks += [
     gripper.build_open_task(name="Open Gripper"),
     # held: a stopped earlier run may have left the gripper touching this bit.
-    move(src_obj, src_frame, PRE_Z, "ANY", held, f"Above {src}"),
-    move(src_obj, src_frame, GRASP_Z, "LINEAR", held, f"Descend onto {holder}"),
+    move(src_obj, src_frame, PRE_Z, "ANY", held, f"Above {src}", x=x_beside),
+    move(src_obj, src_frame, GRASP_Z, "LINEAR", held, f"Descend beside {holder}",
+         x=x_beside),
+    move(src_obj, src_frame, GRASP_Z, "LINEAR", held, f"Onto {holder}'s shank"),
     gripper.build_close_task(name=f"Grip {holder}"),
     robot.build_attach_object_task(object_name=holder, name=f"Attach {holder}"),
     move(src_obj, src_frame, PRE_Z, "LINEAR", held + [(holder, src_obj)],
@@ -576,8 +600,10 @@ def build_move_tree(
          f"Seat {holder} in {dst}"),
     gripper.build_open_task(name=f"Release {holder}"),
     robot.build_detach_object_task(object_name=holder, name=f"Detach {holder}"),
+    move(dst_obj, dst_frame, GRASP_Z, "LINEAR", held + [(holder, dst_obj)],
+         f"Off {holder}'s shank", x=x_beside),
     move(dst_obj, dst_frame, PRE_Z, "LINEAR", held + [(holder, dst_obj)],
-         f"Lift clear of {dst}"),
+         f"Lift clear of {dst}", x=x_beside),
   ]
   return bt.Sequence(name=f"Move {holder}: {src} -> {dst}", children=tasks)
 
