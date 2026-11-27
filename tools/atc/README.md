@@ -57,9 +57,14 @@ python3 tools/atc/gcode_tools.py job.nc
 - `=`: a tool from Studio's own library. Each of its 129 tools is exactly
   one bit of the catalogue (`tests/unit/test_gcode_tools.py` checks all of
   them against `models/makera_bits/makera_studio_cutters.json`).
-- `~`: a custom tool (one you defined in Studio). It has no bit of its own,
-  so the closest bit of the same kind and shank is proposed. Check it, or
-  name the bit: `--map 2=fe18_1p5x8`.
+- `=` with "your copy of Studio's ...": a custom tool whose name contains
+  a library tool's name, e.g. "Custom 3.175*1.5*6mm Flat End(Metal) -
+  adjusted diameter", made because the delivered bit measured 1.32 mm. It
+  is that library tool's bit. Keep the library name in the name of such
+  copies and they are recognised.
+- `~`: any other custom tool. It has no bit of its own, so the closest bit
+  of the same kind and shank is proposed. Check it, or name the bit:
+  `--map 2=fe18_1p5x8`.
 - `!`: something that stops the plan: a tool number above 6, two slots
   wanting the same bit, a library tool the catalogue does not know, a
   header tool the program never changes to, or G-code without a Studio

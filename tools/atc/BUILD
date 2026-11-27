@@ -11,7 +11,10 @@ py_library(
 py_library(
     name = "gcode_tools",
     srcs = ["gcode_tools.py"],
-    data = ["//models/makera_bits:makera_bits.json"],
+    data = [
+        "//models/makera_bits:makera_bits.json",
+        "//models/makera_bits:makera_studio_cutters.json",
+    ],
 )
 
 py_binary(

@@ -7,14 +7,6 @@ import unittest
 
 from tools.atc import gcode_tools
 
-REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-CUTTERS_JSON = os.path.join(REPO, "models", "makera_bits", "makera_studio_cutters.json")
-# Makera Studio's tool categories (t_MakeraCutterList.cutterCategoryId) as the
-# header's type field. "Flat End" and "Engraving" are as Studio 0.1.3 writes
-# them; the others are not confirmed, and the matcher also reads the name.
-TYPES = {0: "Ball Nose", 1: "Flat End", 2: "Chamfer", 3: "Engraving", 5: "Drill",
-         6: "Thread", 7: "Ball Nose Engraving"}
-
 # Header lines as Makera Studio 0.1.3.0 wrote them (2026-11).
 JOB = """;@MKR|BEGIN
 ;@MKR|SCHEMA|v=1.0.0
@@ -33,6 +25,7 @@ T5 M06
 CUSTOM = (";@MKR|TOOL|number=2|id=|name=Custom 3.175*1.5*6mm Flat End(Metal) - adjusted diameter"
           "|type=Flat End|handlediameter=3.175|sticklength=0|shoulderlength=6|flutelength=6"
           "|diameter=1.32|tipdiameter=1.32|cornerradius=0|angle=0|halfAngle=0\nT2 M6\n")
+OWN = CUSTOM.replace("Custom 3.175*1.5*6mm Flat End(Metal) - adjusted diameter", "My small cutter (Metal)")
 
 
 def _plan(text, mapping=None):
@@ -44,29 +37,15 @@ def _plan(text, mapping=None):
     os.unlink(fh.name)
 
 
-def _header_fields(cutter):
-  return {
-    "number": "1", "id": cutter["g_ID"], "name": cutter["cutterName"],
-    "type": TYPES[cutter["cutterCategoryId"]],
-    "handlediameter": str(cutter["cutterDiameter"]),
-    "flutelength": str(cutter["cutterFluteLength"]),
-    "diameter": str(cutter["cutterMaxDiameter"]),
-    "tipdiameter": str(cutter["cutterTipDiameter"]),
-    "cornerradius": str(cutter["cutterCornerRadius"]),
-    "angle": str(cutter["cutterAngle"]),
-    "halfAngle": str(cutter["cutterHalfAngle"]),
-  }
-
-
 class GcodeToolsTest(unittest.TestCase):
 
   def test_every_studio_library_tool_is_exactly_one_bit(self):
-    with open(CUTTERS_JSON) as fh:
+    with open(gcode_tools.CUTTERS_JSON) as fh:
       cutters = json.load(fh)["cutters"]
     bits = gcode_tools.load_bits()
     found = {}
     for cutter in cutters:
-      tool = gcode_tools.tool_from_fields(_header_fields(cutter))
+      tool = gcode_tools.tool_from_fields(gcode_tools.library_fields(cutter))
       match = gcode_tools.match_tool(tool, bits)
       self.assertTrue(match.exact, f"{cutter['cutterName']}: {match.note}")
       self.assertNotIn(match.bit_id, found, cutter["cutterName"])
@@ -79,17 +58,24 @@ class GcodeToolsTest(unittest.TestCase):
     self.assertEqual(job.spec, "1=engm18_30x0p2,2=corn18_0p8,5=uv_soldermask")
     self.assertEqual((job.problems, job.guesses), ([], []))
 
-  def test_custom_tool_is_a_guess(self):
+  def test_custom_copy_of_a_library_tool_is_that_bit(self):
+    # Studio's 1.5 x 6 mm flat end for metal, re-entered with the diameter
+    # the delivered bit really has.
     job = _plan(CUSTOM)
     self.assertEqual(job.targets, {2: "oflm18_1p5x6"})
-    self.assertEqual(job.guesses, [2])
-    self.assertEqual(job.problems, [])
+    self.assertEqual((job.guesses, job.problems), ([], []))
+    self.assertIn("3.175*1.5*6mm Flat End(Metal)", job.matches[0].note)
+
+  def test_other_custom_tool_is_a_guess(self):
+    job = _plan(OWN)
+    self.assertEqual(job.targets, {2: "oflm18_1p5x6"})
+    self.assertEqual((job.guesses, job.problems), ([2], []))
 
   def test_map_overrides_and_is_not_a_guess(self):
-    job = _plan(CUSTOM, {2: "fe18_1p5x8"})
+    job = _plan(OWN, {2: "fe18_1p5x8"})
     self.assertEqual((job.targets, job.guesses, job.problems), ({2: "fe18_1p5x8"}, [], []))
-    self.assertTrue(_plan(CUSTOM, {2: "no_such_bit"}).problems)
-    self.assertTrue(_plan(CUSTOM, {3: "corn18_1"}).problems)
+    self.assertTrue(_plan(OWN, {2: "no_such_bit"}).problems)
+    self.assertTrue(_plan(OWN, {3: "corn18_1"}).problems)
 
   def test_parse_map(self):
     self.assertEqual(gcode_tools.parse_map(["2=bit_corn18_1,T3=corn18_2", "6=uv_soldermask"]),

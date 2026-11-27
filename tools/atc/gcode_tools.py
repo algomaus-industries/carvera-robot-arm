@@ -8,9 +8,12 @@ per tool with its ATC number, its name and its dimensions, e.g.
 
 This module reads those lines and finds each tool in the bit catalogue
 (models/makera_bits/makera_bits.json). A tool from Studio's own library
-(`id` set) is one of the catalogue's 129 bits and matches exactly; a custom
-tool (`id` empty) has no bit of its own, so the closest bit of the same
-kind and shank is proposed and marked as a guess.
+(`id` set) is one of the catalogue's 129 bits and matches exactly. A custom
+tool (`id` empty) that carries a library tool's name is that bit with
+corrected dimensions (say "Custom 3.175*1.5*6mm Flat End(Metal) - adjusted
+diameter", made because the bit measured 1.32 mm): it is the same bit. Any
+other custom tool has no bit of its own, so the closest bit of the same kind
+and shank is proposed and marked as a guess.
 
   python3 tools/atc/gcode_tools.py job.nc                # table + --set_atc spec
   python3 tools/atc/gcode_tools.py job.nc --map 2=fe18_1p5x8
@@ -32,6 +35,12 @@ BITS_JSON = os.path.join(
   os.path.dirname(os.path.abspath(__file__)),
   "..", "..", "models", "makera_bits", "makera_bits.json",
 )
+CUTTERS_JSON = os.path.join(os.path.dirname(BITS_JSON), "makera_studio_cutters.json")
+# Makera Studio's tool categories (t_MakeraCutterList.cutterCategoryId) as the
+# header's type field. "Flat End" and "Engraving" are as Studio 0.1.3 writes
+# them; the others are not confirmed, and kind_of also reads the name.
+CATEGORY_TYPES = {0: "Ball Nose", 1: "Flat End", 2: "Chamfer", 3: "Engraving",
+                  5: "Drill", 6: "Thread", 7: "Ball Nose Engraving"}
 ATC_SLOTS = range(1, 7)
 HEADER = ";@MKR|"
 # A custom tool this close to a catalogue bit is taken to be that bit.
@@ -193,7 +202,46 @@ def _distance(tool: StudioTool, kind: str, bit: dict) -> tuple[float, bool]:
   return dd * 10 + dc + (2.0 if metal else 0.0), exact
 
 
-def match_tool(tool: StudioTool, bits: list[dict]) -> Match:
+def library_fields(cutter: dict) -> dict:
+  """A Studio library cutter as the fields of the header line it gets."""
+  return {
+    "number": "0", "id": cutter["g_ID"], "name": cutter["cutterName"],
+    "type": CATEGORY_TYPES.get(cutter["cutterCategoryId"], ""),
+    "handlediameter": str(cutter["cutterDiameter"]),
+    "flutelength": str(cutter["cutterFluteLength"]),
+    "diameter": str(cutter["cutterMaxDiameter"]),
+    "tipdiameter": str(cutter["cutterTipDiameter"]),
+    "cornerradius": str(cutter["cutterCornerRadius"]),
+    "angle": str(cutter["cutterAngle"]),
+    "halfAngle": str(cutter["cutterHalfAngle"]),
+  }
+
+
+def load_library(path: str = CUTTERS_JSON) -> list[StudioTool]:
+  """Makera Studio's own tools; empty if the library file is not there."""
+  if not os.path.exists(path):
+    return []
+  with open(path) as fh:
+    return [tool_from_fields(library_fields(c)) for c in json.load(fh)["cutters"]]
+
+
+def library_tool_named_in(tool: StudioTool, library: list[StudioTool]) -> StudioTool | None:
+  """The library tool whose name a custom tool's name contains (the longest:
+  "...Flat End" is also inside "...Flat End(Metal)"), with the same shank."""
+  name = tool.name.lower()
+  named = [t for t in library
+           if t.name.lower() in name and abs(t.shank - tool.shank) < 0.02]
+  return max(named, key=lambda t: len(t.name), default=None)
+
+
+def match_tool(tool: StudioTool, bits: list[dict],
+               library: list[StudioTool] | None = None) -> Match:
+  if tool.custom and library:
+    original = library_tool_named_in(tool, library)
+    if original:
+      match = match_tool(original, bits)
+      if match.exact:
+        return Match(tool, match.bit, True, f"your copy of Studio's '{original.name}'")
   kind = kind_of(tool)
   if kind is None:
     return Match(tool, None, False, f"unknown tool type '{tool.type}'")
@@ -253,8 +301,10 @@ class Plan:
 
 
 def plan(path: str, mapping: dict[int, str] | None = None,
-         bits: list[dict] | None = None) -> Plan:
+         bits: list[dict] | None = None,
+         library: list[StudioTool] | None = None) -> Plan:
   bits = load_bits() if bits is None else bits
+  library = load_library() if library is None else library
   by_id = {b["id"]: b for b in bits}
   mapping = mapping or {}
   tools, used = read_tools(path)
@@ -277,7 +327,7 @@ def plan(path: str, mapping: dict[int, str] | None = None,
     elif not tool.name and not tool.type:
       match = Match(tool, None, False, "no tool data in the file")
     else:
-      match = match_tool(tool, bits)
+      match = match_tool(tool, bits, library)
     matches.append(match)
     if tool.number not in ATC_SLOTS:
       problems.append(f"T{tool.number} ({tool.name}): the ATC has slots 1..6 only")
