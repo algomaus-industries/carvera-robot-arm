@@ -57,9 +57,9 @@ python3 fab/gen_fab.py        # params + STL / DXF / SVG / PNG (needs OpenSCAD w
 | 8 | Rim segment, PETG | `rim_segment.stl`: rim under the plate's edge, rides on the rollers |
 | 4 | Roller bracket, PETG | `roller_bracket.stl` (print on its side as exported) |
 | 1 | Servo cradle, PETG | `servo_cradle.stl` |
-| 1 | Feetech STS3215 servo, 12 V, 1:345, with round horn | Seeed "ST3215-C047 12V 30Kg" ([link](https://www.seeedstudio.com/STS3215-30KG-Serial-Servo-p-6340.html)), the SO-101 Pro kit's follower-arm servo; same body, so the cradle and horn fit unchanged |
-| 1 | Bus servo driver board | the same Seeed board the SO-101 kit has one of per arm: the carousel gets its own, with its own USB link, not the arm's bus |
-| 1 | 12 V 2 A power supply (DC barrel to suit the board) | the carousel's own; the follower arm's 12 V 2 A supply stays for its six servos |
+| 1 | Feetech STS3215 servo, 7.4 V, 1:345, with round horn | Seeed "STS3215 19 kg·cm 7.4 V" (C001, 19.5 kg·cm stall, [link](https://www.seeedstudio.com/STS3215-19kg-cm-7-4V-Serial-Servo-p-6338.html)); if out of stock, the C046 (7.4 V, 1:147, 14.4 kg·cm, [link](https://www.seeedstudio.com/Feetech-ST-3215-C046-Standard-Torque-Servo-7-4V-1-147-Gear-Reduction-p-6461.html)). Same body and horn as the arm's servos, so the cradle and horn fit unchanged |
+| 1 | Bus servo driver board | Seeed [Bus Servo Driver Board for XIAO](https://www.seeedstudio.com/Bus-Servo-Driver-Board-for-XIAO-p-6413.html) (5–12 V in): the carousel gets its own, with its own USB link, not the arm's bus |
+| 1 | 5 V 2–3 A power supply (DC barrel to suit the board) | the carousel's own, as Seeed runs the 7.4 V STS3215s (leader arm); they take 5–8.4 V, **never 12 V** (the follower arm's supply) |
 | 1 | 3-pin servo cable, ~40 cm, and a USB cable | servo to the driver board on the cart shelf; board to the computer |
 | 4 | 608-2RS bearing (22 × 8 × 7 mm) | rollers |
 | 4 | M8 × 30 bolt, nut, 2 washers | roller axles |
@@ -138,7 +138,7 @@ the leg length so the top stays at 915 mm.
    with Feetech FD software or LeRobot's motor setup, position mode, centre
    it (2048). Drop it into the cradle,
    output shaft up and on the centre mark, cable out of the slot and down
-   through the base and cart top to the driver board and its 12 V supply on
+   through the base and cart top to the driver board and its 5 V supply on
    the cart shelf; screw the cradle down. Fit the round horn.
 5. **Seat plate**: join the two halves upside down on a flat table with the
    splice strips along the seam (M3 × 16 + nut). Screw the hub (centre) and
