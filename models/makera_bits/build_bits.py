@@ -29,10 +29,9 @@ import os
 import sys
 
 import bpy
-from mathutils import Vector
 
 IN = 0.0254
-SH18 = 0.125 * IN                       # 1/8" shank
+SH18 = 0.125 * IN  # 1/8" shank
 
 # Collar (ESTIMATED): ring pressed on the shank, OD = shank + 6 mm, 5 mm tall;
 # 15 mm of shank stick up above it for the collet / gripper.
@@ -40,87 +39,390 @@ COLLAR_H = 0.005
 STICK_UP = 0.015
 
 CARBIDE = (0.58, 0.59, 0.61, 1.0)
-METAL_COAT = (0.24, 0.22, 0.30, 1.0)    # "for Metal" bits: dark AlTiN-style (estimated)
-TIN = (0.86, 0.69, 0.27, 1.0)           # TiN, as stated on the store
+METAL_COAT = (
+  0.24,
+  0.22,
+  0.30,
+  1.0,
+)  # "for Metal" bits: dark AlTiN-style (estimated)
+TIN = (0.86, 0.69, 0.27, 1.0)  # TiN, as stated on the store
 COLLAR = (0.12, 0.12, 0.13, 1.0)
 STEEL = (0.75, 0.76, 0.78, 1.0)
 GROOVE = (0.20, 0.20, 0.22, 1.0)
 
 
-def bit(id_, title, kind, d, shank, cut, overall, flutes=2, coat=CARBIDE, est_len=False, **kw):
-  return dict(id=id_, title=title, kind=kind, d=d / 1000, shank=shank, cut=cut / 1000,
-              overall=overall / 1000, flutes=flutes, coat=coat, est_len=est_len, **kw)
+def bit(
+  id_,
+  title,
+  kind,
+  d,
+  shank,
+  cut,
+  overall,
+  flutes=2,
+  coat=CARBIDE,
+  est_len=False,
+  **kw,
+):
+  return dict(
+    id=id_,
+    title=title,
+    kind=kind,
+    d=d / 1000,
+    shank=shank,
+    cut=cut / 1000,
+    overall=overall / 1000,
+    flutes=flutes,
+    coat=coat,
+    est_len=est_len,
+    **kw,
+  )
 
 
 def catalog():
   b = []
   for c, o in ((22, 45), (25, 50), (32, 55)):
-    b.append(bit(f"ofl4_{c}", f'Spiral O Single Flute 4mm x {c}mm', "endmill", 4, 0.004, c, o, 1))
+    b.append(
+      bit(
+        f"ofl4_{c}",
+        f"Spiral O Single Flute 4mm x {c}mm",
+        "endmill",
+        4,
+        0.004,
+        c,
+        o,
+        1,
+      )
+    )
   for c in (12, 17, 22):
-    b.append(bit(f"oflm4_{c}", f'Spiral O Single Flute for Metal 4mm x {c}mm', "endmill", 4,
-                 0.004, c, 50, 1, METAL_COAT))
+    b.append(
+      bit(
+        f"oflm4_{c}",
+        f"Spiral O Single Flute for Metal 4mm x {c}mm",
+        "endmill",
+        4,
+        0.004,
+        c,
+        50,
+        1,
+        METAL_COAT,
+      )
+    )
   for c, o in ((22, 50), (25, 55), (32, 60)):
-    b.append(bit(f"ofl6_{c}", f'Spiral O Single Flute 6mm x {c}mm', "endmill", 6, 0.006, c, o, 1))
+    b.append(
+      bit(
+        f"ofl6_{c}",
+        f"Spiral O Single Flute 6mm x {c}mm",
+        "endmill",
+        6,
+        0.006,
+        c,
+        o,
+        1,
+      )
+    )
   for c, o in ((17, 50), (25, 55), (30, 60)):
-    b.append(bit(f"oflm6_{c}", f'Spiral O Single Flute for Metal 6mm x {c}mm', "endmill", 6,
-                 0.006, c, o, 1, METAL_COAT))
+    b.append(
+      bit(
+        f"oflm6_{c}",
+        f"Spiral O Single Flute for Metal 6mm x {c}mm",
+        "endmill",
+        6,
+        0.006,
+        c,
+        o,
+        1,
+        METAL_COAT,
+      )
+    )
   for c in (25, 42):
-    b.append(bit(f"ofl18_{c}", f'Spiral O Single Flute 1/8" x {c}mm', "endmill", 3.175, SH18, c,
-                 max(38, c + 18), 1, est_len=True))
+    b.append(
+      bit(
+        f"ofl18_{c}",
+        f'Spiral O Single Flute 1/8" x {c}mm',
+        "endmill",
+        3.175,
+        SH18,
+        c,
+        max(38, c + 18),
+        1,
+        est_len=True,
+      )
+    )
   for d, c in ((3.175, 12), (2.5, 12), (2, 8), (1.5, 6), (1, 3)):
-    b.append(bit(f"oflm18_{d:g}x{c}".replace(".", "p"), f'Spiral O Single Flute for Metal 1/8" {d:g}x{c}mm',
-                 "endmill", d, SH18, c, 38, 1, METAL_COAT))
+    b.append(
+      bit(
+        f"oflm18_{d:g}x{c}".replace(".", "p"),
+        f'Spiral O Single Flute for Metal 1/8" {d:g}x{c}mm',
+        "endmill",
+        d,
+        SH18,
+        c,
+        38,
+        1,
+        METAL_COAT,
+      )
+    )
   for t in (0.1, 0.2, 0.3, 0.4, 0.5):
-    b.append(bit(f"eng4_30x{t:g}".replace(".", "p"), f"Single Flute Engraving 4mm 30deg x {t:g}mm",
-                 "vbit", t, 0.004, 0, 42, 1, angle=30))
-  for t in (0.1, 0.2, 0.3, 0.4, 0.5):   # store page: 3.175 mm shank, ~38 mm overall
-    b.append(bit(f"eng18_30x{t:g}".replace(".", "p"), f'Single Flute Engraving 1/8" 30deg x {t:g}mm',
-                 "vbit", t, SH18, 0, 38, 1, angle=30))
+    b.append(
+      bit(
+        f"eng4_30x{t:g}".replace(".", "p"),
+        f"Single Flute Engraving 4mm 30deg x {t:g}mm",
+        "vbit",
+        t,
+        0.004,
+        0,
+        42,
+        1,
+        angle=30,
+      )
+    )
+  for t in (
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+  ):  # store page: 3.175 mm shank, ~38 mm overall
+    b.append(
+      bit(
+        f"eng18_30x{t:g}".replace(".", "p"),
+        f'Single Flute Engraving 1/8" 30deg x {t:g}mm',
+        "vbit",
+        t,
+        SH18,
+        0,
+        38,
+        1,
+        angle=30,
+      )
+    )
   for t in (0.3, 0.4, 0.5):
-    b.append(bit(f"engm4_30x{t:g}".replace(".", "p"), f"Single Flute Engraving for Metal 4mm 30deg x {t:g}mm",
-                 "vbit", t, 0.004, 0, 45, 1, METAL_COAT, angle=30))
+    b.append(
+      bit(
+        f"engm4_30x{t:g}".replace(".", "p"),
+        f"Single Flute Engraving for Metal 4mm 30deg x {t:g}mm",
+        "vbit",
+        t,
+        0.004,
+        0,
+        45,
+        1,
+        METAL_COAT,
+        angle=30,
+      )
+    )
   for a, t in ((60, 0.1), (30, 0.2), (30, 0.3), (30, 0.4), (30, 0.5)):
-    b.append(bit(f"engm18_{a}x{t:g}".replace(".", "p"),
-                 f'Single Flute Engraving for Metal 1/8" {a}deg x {t:g}mm', "vbit", t, SH18, 0, 38, 1,
-                 METAL_COAT, angle=a))
+    b.append(
+      bit(
+        f"engm18_{a}x{t:g}".replace(".", "p"),
+        f'Single Flute Engraving for Metal 1/8" {a}deg x {t:g}mm',
+        "vbit",
+        t,
+        SH18,
+        0,
+        38,
+        1,
+        METAL_COAT,
+        angle=a,
+      )
+    )
   for t in (0.3, 0.4, 0.5):
-    b.append(bit(f"eng6_20x{t:g}".replace(".", "p"), f"Two Flute Engraving 6mm 20deg x {t:g}mm",
-                 "vbit", t, 0.006, 0, 50, 2, angle=20))
+    b.append(
+      bit(
+        f"eng6_20x{t:g}".replace(".", "p"),
+        f"Two Flute Engraving 6mm 20deg x {t:g}mm",
+        "vbit",
+        t,
+        0.006,
+        0,
+        50,
+        2,
+        angle=20,
+      )
+    )
   for d in (0.5, 1, 2):
-    b.append(bit(f"bneng6_{d:g}".replace(".", "p"), f"Two Flute Ball Nose Engraving 6mm, {d:g}mm",
-                 "tapered_ball", d, 0.006, 30.5, 50, 2, est_len=True))
+    b.append(
+      bit(
+        f"bneng6_{d:g}".replace(".", "p"),
+        f"Two Flute Ball Nose Engraving 6mm, {d:g}mm",
+        "tapered_ball",
+        d,
+        0.006,
+        30.5,
+        50,
+        2,
+        est_len=True,
+      )
+    )
   for c, o in ((12, 45), (22, 45), (32, 60)):
-    b.append(bit(f"bn4_{c}", f"Two Flute Ball Nose 4mm x {c}mm", "ballnose", 4, 0.004, c, o))
+    b.append(
+      bit(
+        f"bn4_{c}",
+        f"Two Flute Ball Nose 4mm x {c}mm",
+        "ballnose",
+        4,
+        0.004,
+        c,
+        o,
+      )
+    )
   for c, o in ((12, 50), (22, 50), (32, 60)):
-    b.append(bit(f"bn6_{c}", f"Two Flute Ball Nose 6mm x {c}mm", "ballnose", 6, 0.006, c, o))
-  b.append(bit("bnm4_12", "Two Flute Ball Nose for Metal 4mm x 12mm", "ballnose", 4, 0.004, 12, 50,
-               coat=METAL_COAT))
-  b.append(bit("bnm6_18", "Two Flute Ball Nose for Metal 6mm x 18mm", "ballnose", 6, 0.006, 18, 50,
-               coat=METAL_COAT))
+    b.append(
+      bit(
+        f"bn6_{c}",
+        f"Two Flute Ball Nose 6mm x {c}mm",
+        "ballnose",
+        6,
+        0.006,
+        c,
+        o,
+      )
+    )
+  b.append(
+    bit(
+      "bnm4_12",
+      "Two Flute Ball Nose for Metal 4mm x 12mm",
+      "ballnose",
+      4,
+      0.004,
+      12,
+      50,
+      coat=METAL_COAT,
+    )
+  )
+  b.append(
+    bit(
+      "bnm6_18",
+      "Two Flute Ball Nose for Metal 6mm x 18mm",
+      "ballnose",
+      6,
+      0.006,
+      18,
+      50,
+      coat=METAL_COAT,
+    )
+  )
   for d, c in ((3.175, 22), (2.5, 15), (2, 12), (1.5, 8), (1, 4)):
-    b.append(bit(f"bn18_{d:g}x{c}".replace(".", "p"), f'Two Flute Ball Nose 1/8" {d:g}x{c}mm',
-                 "ballnose", d, SH18, c, 38))
+    b.append(
+      bit(
+        f"bn18_{d:g}x{c}".replace(".", "p"),
+        f'Two Flute Ball Nose 1/8" {d:g}x{c}mm',
+        "ballnose",
+        d,
+        SH18,
+        c,
+        38,
+      )
+    )
   for d, c in ((3.175, 10), (2.5, 7.5), (2, 6), (1.5, 4.5), (1, 3)):
-    b.append(bit(f"bnm18_{d:g}x{c:g}".replace(".", "p"), f'Two Flute Ball Nose for Metal 1/8" {d:g}x{c:g}mm',
-                 "ballnose", d, SH18, c, 38, coat=METAL_COAT))
+    b.append(
+      bit(
+        f"bnm18_{d:g}x{c:g}".replace(".", "p"),
+        f'Two Flute Ball Nose for Metal 1/8" {d:g}x{c:g}mm',
+        "ballnose",
+        d,
+        SH18,
+        c,
+        38,
+        coat=METAL_COAT,
+      )
+    )
   for s, o in ((SH18, 38), (0.004, 50), (0.006, 50)):
-    b.append(bit(f"chamfer90_{s * 1000:.3g}".replace(".", "p"), f"Chamfering Bit 90deg, {s * 1000:.3g}mm shank",
-                 "chamfer", 0.3, s, 0, o, 2, angle=90))
+    b.append(
+      bit(
+        f"chamfer90_{s * 1000:.3g}".replace(".", "p"),
+        f"Chamfering Bit 90deg, {s * 1000:.3g}mm shank",
+        "chamfer",
+        0.3,
+        s,
+        0,
+        o,
+        2,
+        angle=90,
+      )
+    )
   for m, d, c, p in (("M6", 4.8, 18, 1.0), ("M8", 6.0, 24, 1.25)):
-    b.append(bit(f"thread6_{m.lower()}", f"Thread Milling 6mm {m} (d{d:g} x {c}mm)", "threadmill", d,
-                 0.006, c, 50, 3, pitch=p))
-  for m, d, c, p in (("M1", 0.75, 3, 0.25), ("M2", 1.5, 6, 0.4), ("M2.5", 1.9, 7.5, 0.45),
-                     ("M3", 2.3, 9, 0.5), ("M4", 3.1, 12, 0.7), ("M5", 3.1, 15, 0.8)):
-    b.append(bit(f"thread18_{m.lower().replace('.', 'p')}", f'Thread Milling 1/8" {m} x {c:g}mm',
-                 "threadmill", d, SH18, c, 38, 3, est_len=True, pitch=p))
+    b.append(
+      bit(
+        f"thread6_{m.lower()}",
+        f"Thread Milling 6mm {m} (d{d:g} x {c}mm)",
+        "threadmill",
+        d,
+        0.006,
+        c,
+        50,
+        3,
+        pitch=p,
+      )
+    )
+  for m, d, c, p in (
+    ("M1", 0.75, 3, 0.25),
+    ("M2", 1.5, 6, 0.4),
+    ("M2.5", 1.9, 7.5, 0.45),
+    ("M3", 2.3, 9, 0.5),
+    ("M4", 3.1, 12, 0.7),
+    ("M5", 3.1, 15, 0.8),
+  ):
+    b.append(
+      bit(
+        f"thread18_{m.lower().replace('.', 'p')}",
+        f'Thread Milling 1/8" {m} x {c:g}mm',
+        "threadmill",
+        d,
+        SH18,
+        c,
+        38,
+        3,
+        est_len=True,
+        pitch=p,
+      )
+    )
   for d in (1, 2, 2.5, 3):
-    b.append(bit(f"drill18_{d:g}".replace(".", "p"), f'TiN Coating Drill 1/8" {d:g}mm', "drill", d,
-                 SH18, 4 * d + 4, 38, 2, TIN, est_len=True))
+    b.append(
+      bit(
+        f"drill18_{d:g}".replace(".", "p"),
+        f'TiN Coating Drill 1/8" {d:g}mm',
+        "drill",
+        d,
+        SH18,
+        4 * d + 4,
+        38,
+        2,
+        TIN,
+        est_len=True,
+      )
+    )
   for d in (0.6, 1, 2, 3):
-    b.append(bit(f"corn18_{d:g}".replace(".", "p"), f'TiN Coating Corn 1/8" {d:g}mm', "corn", d,
-                 SH18, 3 * d + 3, 38, 8, TIN, est_len=True))
-  b.append(bit("uv_soldermask", 'UV Solder Mask Removal Tool 1/8"', "spring_tool", 0.3, SH18, 0, 50,
-               1, STEEL, est_len=True, angle=30))
+    b.append(
+      bit(
+        f"corn18_{d:g}".replace(".", "p"),
+        f'TiN Coating Corn 1/8" {d:g}mm',
+        "corn",
+        d,
+        SH18,
+        3 * d + 3,
+        38,
+        8,
+        TIN,
+        est_len=True,
+      )
+    )
+  b.append(
+    bit(
+      "uv_soldermask",
+      'UV Solder Mask Removal Tool 1/8"',
+      "spring_tool",
+      0.3,
+      SH18,
+      0,
+      50,
+      1,
+      STEEL,
+      est_len=True,
+      angle=30,
+    )
+  )
   return studio_library(b)
 
 
@@ -131,7 +433,9 @@ def catalog():
 # flute lengths replace the estimates. Overall lengths are not in the
 # library: ESTIMATED as 38 mm (1/8" shank, Makera's usual), longer for long
 # flutes.
-STUDIO_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "makera_studio_cutters.json")
+STUDIO_JSON = os.path.join(
+  os.path.dirname(os.path.abspath(__file__)), "makera_studio_cutters.json"
+)
 
 
 def _num(v):
@@ -140,41 +444,93 @@ def _num(v):
 
 def studio_library(b):
   import re  # pylint: disable=import-outside-toplevel
+
   with open(STUDIO_JSON) as fh:
     cutters = json.load(fh)["cutters"]
   have = {x["id"]: x for x in b}
-  pat = re.compile(r"^([\d.]+)\*(?:([\d.]+)\*)?([\d.]+)mm (Ball Nose|Flat End|Corn|Drill)(\(Metal\))?$")
+  pat = re.compile(
+    r"^([\d.]+)\*(?:([\d.]+)\*)?([\d.]+)mm (Ball Nose|Flat End|Corn|Drill)(\(Metal\))?$"
+  )
   for c in cutters:
     m = pat.match(c["cutterName"])
     if not m:
-      continue            # engraving, chamfer, thread, solder mask: all in the store list
-    shank_mm, d_mm, cut, family, metal = float(m[1]), m[2], float(m[3]), m[4], bool(m[5])
+      continue  # engraving, chamfer, thread, solder mask: all in the store list
+    shank_mm, d_mm, cut, family, metal = (
+      float(m[1]),
+      m[2],
+      float(m[3]),
+      m[4],
+      bool(m[5]),
+    )
     d = float(d_mm) if d_mm else shank_mm
     shank = SH18 if abs(shank_mm - 3.175) < 1e-3 else shank_mm / 1000
     if family in ("Corn", "Drill"):
       kind = family.lower()
       id_ = f"{kind}18_{_num(d)}"
-      if id_ in have:     # store bit: take the library's flute length
+      if id_ in have:  # store bit: take the library's flute length
         have[id_]["cut"] = cut / 1000
         continue
       if family == "Corn":
-        x = bit(id_, f'TiN Coating Corn 1/8" {d:g}mm', "corn", d, shank, cut, 38, 8, TIN, est_len=True)
+        x = bit(
+          id_,
+          f'TiN Coating Corn 1/8" {d:g}mm',
+          "corn",
+          d,
+          shank,
+          cut,
+          38,
+          8,
+          TIN,
+          est_len=True,
+        )
       else:
-        x = bit(id_, f'TiN Coating Drill 1/8" {d:g}mm', "drill", d, shank, cut, max(38, cut + 22), 2, TIN,
-                est_len=True)
+        x = bit(
+          id_,
+          f'TiN Coating Drill 1/8" {d:g}mm',
+          "drill",
+          d,
+          shank,
+          cut,
+          max(38, cut + 22),
+          2,
+          TIN,
+          est_len=True,
+        )
     else:
       kind = "ballnose" if family == "Ball Nose" else "endmill"
       # already in the store list? (same kind, shank, diameter, length, metal)
-      if any(x["kind"] == kind and abs(x["shank"] - shank) < 1e-5 and abs(x["d"] * 1000 - d) < 0.01
-             and abs(x["cut"] * 1000 - cut) < 0.05 and (x["coat"] == METAL_COAT) == metal for x in b):
+      if any(
+        x["kind"] == kind
+        and abs(x["shank"] - shank) < 1e-5
+        and abs(x["d"] * 1000 - d) < 0.01
+        and abs(x["cut"] * 1000 - cut) < 0.05
+        and (x["coat"] == METAL_COAT) == metal
+        for x in b
+      ):
         continue
-      tag = ("bnm" if metal else "bn") if kind == "ballnose" else ("fem" if metal else "fe")
+      tag = (
+        ("bnm" if metal else "bn")
+        if kind == "ballnose"
+        else ("fem" if metal else "fe")
+      )
       size = "18" if shank == SH18 else _num(shank_mm)
       id_ = f"{tag}{size}_{_num(d)}x{_num(cut)}"
-      title = (f'{"Ball Nose" if kind == "ballnose" else "Flat End Mill"}{" for Metal" if metal else ""} '
-               f'{"1/8" + chr(34) if shank == SH18 else f"{shank_mm:g}mm"} {d:g}x{cut:g}mm')
-      x = bit(id_, title, kind, d, shank, cut, max(38, cut + 18), 2,
-              METAL_COAT if metal else CARBIDE, est_len=True)
+      title = (
+        f"{'Ball Nose' if kind == 'ballnose' else 'Flat End Mill'}{' for Metal' if metal else ''} "
+        f"{'1/8' + chr(34) if shank == SH18 else f'{shank_mm:g}mm'} {d:g}x{cut:g}mm"
+      )
+      x = bit(
+        id_,
+        title,
+        kind,
+        d,
+        shank,
+        cut,
+        max(38, cut + 18),
+        2,
+        METAL_COAT if metal else CARBIDE,
+        est_len=True,
+      )
     x["source"] = "Makera Studio library"
     b.append(x)
     have[x["id"]] = x
@@ -183,7 +539,7 @@ def studio_library(b):
 
 # ---------------------------------------------------------------- geometry
 def material(color):
-  key = "m_%02x%02x%02x%02x" % tuple(int(c * 255) for c in color)
+  key = "m_" + "".join(f"{int(c * 255):02x}" for c in color)
   m = bpy.data.materials.get(key)
   if m:
     return m
@@ -191,7 +547,9 @@ def material(color):
   m.use_nodes = True
   bsdf = m.node_tree.nodes["Principled BSDF"]
   bsdf.inputs["Base Color"].default_value = color
-  bsdf.inputs["Metallic"].default_value = 0.85 if color not in (COLLAR, GROOVE) else 0.3
+  bsdf.inputs["Metallic"].default_value = (
+    0.85 if color not in (COLLAR, GROOVE) else 0.3
+  )
   bsdf.inputs["Roughness"].default_value = 0.3
   m.diffuse_color = color
   return m
@@ -205,8 +563,9 @@ def _finish(o, color):
 
 
 def cyl(r, z0, z1, color, verts=32):
-  bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=r, depth=z1 - z0,
-                                      location=(0, 0, (z0 + z1) / 2))
+  bpy.ops.mesh.primitive_cylinder_add(
+    vertices=verts, radius=r, depth=z1 - z0, location=(0, 0, (z0 + z1) / 2)
+  )
   o = _finish(bpy.context.object, color)
   for f in o.data.polygons:
     f.use_smooth = len(f.vertices) == 4
@@ -214,13 +573,20 @@ def cyl(r, z0, z1, color, verts=32):
 
 
 def cone(r_top, r_bot, z_top, z_bot, color, verts=32):
-  bpy.ops.mesh.primitive_cone_add(vertices=verts, radius1=r_bot, radius2=r_top,
-                                  depth=z_top - z_bot, location=(0, 0, (z_top + z_bot) / 2))
+  bpy.ops.mesh.primitive_cone_add(
+    vertices=verts,
+    radius1=r_bot,
+    radius2=r_top,
+    depth=z_top - z_bot,
+    location=(0, 0, (z_top + z_bot) / 2),
+  )
   return _finish(bpy.context.object, color)
 
 
 def sphere(r, z, color):
-  bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, radius=r, location=(0, 0, z))
+  bpy.ops.mesh.primitive_uv_sphere_add(
+    segments=24, ring_count=12, radius=r, location=(0, 0, z)
+  )
   return _finish(bpy.context.object, color)
 
 
@@ -251,12 +617,23 @@ def fluted(r, z_bot, z_top, flutes, pitch, coat, hand=1):
   """Cutting section: core cylinder plus raised helical lands."""
   cyl(r * 0.78, z_bot, z_top, coat)
   for k in range(flutes):
-    helix(r * 0.80, z_bot, z_top, pitch, r * 0.22, coat, 2 * math.pi * k / flutes, hand)
+    helix(
+      r * 0.80,
+      z_bot,
+      z_top,
+      pitch,
+      r * 0.22,
+      coat,
+      2 * math.pi * k / flutes,
+      hand,
+    )
 
 
 def build_bit(b):
   r, rs = b["d"] / 2, b["shank"] / 2
-  below = b["overall"] - COLLAR_H - STICK_UP        # length below the collar (to the tip)
+  below = (
+    b["overall"] - COLLAR_H - STICK_UP
+  )  # length below the collar (to the tip)
   tip = -below
   coat = b["coat"]
   kind = b["kind"]
@@ -264,8 +641,14 @@ def build_bit(b):
   # Shank: from the top of the cutting part (or neck) to STICK_UP above the collar.
   neck_top = tip + cut
   if kind in ("vbit", "chamfer", "spring_tool", "tapered_ball"):
-    neck_top = tip                                   # handled below
-  if kind == "endmill" or kind == "drill" or kind == "corn" or kind == "threadmill" or kind == "ballnose":
+    neck_top = tip  # handled below
+  if (
+    kind == "endmill"
+    or kind == "drill"
+    or kind == "corn"
+    or kind == "threadmill"
+    or kind == "ballnose"
+  ):
     if r < rs - 0.0003:
       # Reduced-diameter cutter: a taper from the shank down to the cutter.
       taper = min(0.006, (rs - r) * 4)
@@ -282,10 +665,26 @@ def build_bit(b):
     elif kind == "corn":
       cyl(r * 0.85, tip, tip + cut, coat, verts=24)
       for k in range(4):
-        helix(r * 0.88, tip, tip + cut, max(1.2 * b["d"], 0.0012), r * 0.14, coat,
-              k * math.pi / 2, 1)
-        helix(r * 0.88, tip, tip + cut, max(1.2 * b["d"], 0.0012), r * 0.14, coat,
-              k * math.pi / 2, -1)
+        helix(
+          r * 0.88,
+          tip,
+          tip + cut,
+          max(1.2 * b["d"], 0.0012),
+          r * 0.14,
+          coat,
+          k * math.pi / 2,
+          1,
+        )
+        helix(
+          r * 0.88,
+          tip,
+          tip + cut,
+          max(1.2 * b["d"], 0.0012),
+          r * 0.14,
+          coat,
+          k * math.pi / 2,
+          -1,
+        )
     elif kind == "threadmill":
       p = b["pitch"] / 1000
       cyl(r * 0.72, tip, tip + cut, coat, verts=24)
@@ -299,8 +698,10 @@ def build_bit(b):
     half = math.radians(b["angle"] / 2)
     length = max(0.0005, (rs - r / 2) / math.tan(half))
     cone(rs, r / 2, tip + length, tip, coat)
-    if b["flutes"] == 1:     # single flute: the cone is ground half away
-      bpy.ops.mesh.primitive_cube_add(size=1, location=(-rs * 0.55, 0, tip + length * 0.55))
+    if b["flutes"] == 1:  # single flute: the cone is ground half away
+      bpy.ops.mesh.primitive_cube_add(
+        size=1, location=(-rs * 0.55, 0, tip + length * 0.55)
+      )
       c = bpy.context.object
       c.scale = (rs * 0.9, rs * 2.2, length * 1.1)
       _finish(c, GROOVE)
@@ -309,7 +710,9 @@ def build_bit(b):
     taper = 0.020
     sphere(r, tip + r, coat)
     cone(rs, r, tip + r + taper, tip + r, coat)
-    helix(rs * 0.6, tip + r, tip + r + taper, 0.008, max(r * 0.25, 0.0003), coat)
+    helix(
+      rs * 0.6, tip + r, tip + r + taper, 0.008, max(r * 0.25, 0.0003), coat
+    )
     cyl(rs, tip + r + taper, COLLAR_H + STICK_UP, CARBIDE)
   elif kind == "spring_tool":
     shell_r = 0.004
@@ -319,8 +722,12 @@ def build_bit(b):
     cyl(shell_r, tip + 0.016, -0.002, STEEL)
     cyl(rs, -0.002, COLLAR_H + STICK_UP, CARBIDE)
   # Collar on the seat.
-  bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=rs + 0.003, depth=COLLAR_H,
-                                      location=(0, 0, COLLAR_H / 2))
+  bpy.ops.mesh.primitive_cylinder_add(
+    vertices=40,
+    radius=rs + 0.003,
+    depth=COLLAR_H,
+    location=(0, 0, COLLAR_H / 2),
+  )
   c = bpy.context.object
   mod = c.modifiers.new("bevel", "BEVEL")
   mod.width, mod.segments = 0.0005, 2
@@ -342,14 +749,14 @@ def grip_z():
 def bit_sdf(b):
   rs = b["shank"] / 2
   return f"""{HEADER}
-<!-- {b['title']}{' (overall length estimated)' if b['est_len'] else ''}.
+<!-- {b["title"]}{" (overall length estimated)" if b["est_len"] else ""}.
      Origin: collar bottom on the seat; cutter below, shank above. -->
 <sdf xmlns:intrinsic="https://intrinsic.ai/" version="1.9">
-  <model name="makera_bit_{b['id']}">
+  <model name="makera_bit_{b["id"]}">
     <link name="base_link">
       <inertial><mass>0.01</mass></inertial>
       <visual name="bit_visual">
-        <geometry><mesh><uri>{b['id']}.glb</uri></mesh></geometry>
+        <geometry><mesh><uri>{b["id"]}.glb</uri></mesh></geometry>
       </visual>
       <collision name="collar_collision">
         <pose>0 0 {COLLAR_H / 2 + 0.0005:.5f} 0 0 0</pose>
@@ -397,7 +804,7 @@ def preview(png, bits):
 
 
 def main():
-  args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else ["out"]
+  args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else ["out"]
   bits = catalog()
   assert len({b["id"] for b in bits}) == len(bits), "duplicate bit ids"
   if len(args) > 1:
@@ -408,23 +815,45 @@ def main():
   for b in bits:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     build_bit(b)
-    bpy.ops.export_scene.gltf(filepath=os.path.abspath(os.path.join(out, b["id"] + ".glb")),
-                              export_format="GLB", export_yup=False, export_apply=True)
+    bpy.ops.export_scene.gltf(
+      filepath=os.path.abspath(os.path.join(out, b["id"] + ".glb")),
+      export_format="GLB",
+      export_yup=False,
+      export_apply=True,
+    )
     with open(os.path.join(out, b["id"] + ".sdf"), "w") as fh:
       fh.write(bit_sdf(b))
     with open(os.path.join(out, b["id"] + "_manifest.textproto"), "w") as fh:
-      fh.write("# proto-file: intrinsic/assets/scene_objects/proto/scene_object_manifest.proto\n"
-               "# proto-message: intrinsic_proto.scene_objects.SceneObjectManifest\n\n"
-               f'metadata {{\n  id {{\n    name: "makera_bit_{b["id"]}"\n    package: "ai.intrinsic"\n  }}\n'
-               f'  vendor {{\n    display_name: "intrinsic"\n  }}\n'
-               f'  display_name: "Makera {b["title"].replace(chr(34), " in")}"\n}}\n')
+      fh.write(
+        "# proto-file: intrinsic/assets/scene_objects/proto/scene_object_manifest.proto\n"
+        "# proto-message: intrinsic_proto.scene_objects.SceneObjectManifest\n\n"
+        f'metadata {{\n  id {{\n    name: "makera_bit_{b["id"]}"\n    package: "ai.intrinsic"\n  }}\n'
+        f'  vendor {{\n    display_name: "intrinsic"\n  }}\n'
+        f'  display_name: "Makera {b["title"].replace(chr(34), " in")}"\n}}\n'
+      )
   with open(os.path.join(out, "bits.bzl"), "w") as fh:
-    fh.write('"""Generated by build_bits.py: Makera bit ids, catalogue order."""\n\n'
-             "MAKERA_BITS = [\n" + "".join(f'    "{b["id"]}",\n' for b in bits) + "]\n")
+    fh.write(
+      '"""Generated by build_bits.py: Makera bit ids, catalogue order."""\n\n'
+      "MAKERA_BITS = [\n" + "".join(f'    "{b["id"]}",\n' for b in bits) + "]\n"
+    )
   with open(os.path.join(out, "makera_bits.json"), "w") as fh:
-    json.dump({"collar_h": COLLAR_H, "stick_up": STICK_UP, "grip_z": grip_z(),
-               "bits": [{k: (v if not isinstance(v, tuple) else None) for k, v in b.items()
-                         if k != "coat"} for b in bits]}, fh, indent=1)
+    json.dump(
+      {
+        "collar_h": COLLAR_H,
+        "stick_up": STICK_UP,
+        "grip_z": grip_z(),
+        "bits": [
+          {
+            k: (v if not isinstance(v, tuple) else None)
+            for k, v in b.items()
+            if k != "coat"
+          }
+          for b in bits
+        ],
+      },
+      fh,
+      indent=1,
+    )
   print("BITS", len(bits))
 
 

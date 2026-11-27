@@ -14,6 +14,7 @@ camera:
 
 World coordinates come from the SO-101 cell (configs/carvera_so101).
 """
+
 import argparse
 import os
 import re
@@ -24,9 +25,9 @@ SRC = os.path.join(REPO, "configs", "omts", "omts.rviz")
 # name: (x, y, w, h), focal point, distance, pitch, yaw (RViz orbit: the camera
 # sits at focal + distance * (cos p cos y, cos p sin y, sin p))
 VIEWS = {
-    "overview": ((0, 0, 1280, 1080), (-0.20, -0.17, 0.98), 1.55, 0.42, -0.75),
-    "carousel": ((1280, 0, 640, 360), (-0.10, -0.20, 0.99), 0.40, 1.05, -0.35),
-    "atc": ((1280, 360, 640, 360), (-0.415, -0.03, 1.00), 0.36, 0.55, -0.55),
+  "overview": ((0, 0, 1280, 1080), (-0.20, -0.17, 0.98), 1.55, 0.42, -0.75),
+  "carousel": ((1280, 0, 640, 360), (-0.10, -0.20, 0.99), 0.40, 1.05, -0.35),
+  "atc": ((1280, 360, 640, 360), (-0.415, -0.03, 1.00), 0.36, 0.55, -0.55),
 }
 
 
@@ -38,13 +39,22 @@ def view_config(text: str, geom, focal, dist, pitch, yaw) -> str:
   block = re.sub(r"Distance: [-\d.e]+", f"Distance: {dist}", block, count=1)
   block = re.sub(r"Pitch: [-\d.e]+", f"Pitch: {pitch}", block, count=1)
   block = re.sub(r"Yaw: [-\d.e]+", f"Yaw: {yaw}", block, count=1)
-  block = re.sub(r"Focal Point:\n\s+X: [-\d.e]+\n\s+Y: [-\d.e]+\n\s+Z: [-\d.e]+",
-                 f"Focal Point:\n        X: {focal[0]}\n        Y: {focal[1]}\n        Z: {focal[2]}", block)
+  block = re.sub(
+    r"Focal Point:\n\s+X: [-\d.e]+\n\s+Y: [-\d.e]+\n\s+Z: [-\d.e]+",
+    f"Focal Point:\n        X: {focal[0]}\n        Y: {focal[1]}\n        Z: {focal[2]}",
+    block,
+  )
   text = text[:cur] + block + text[end:]
   geo = text.index("Window Geometry:")
   tail = text[geo:]
-  for key, val in (("Height", h), ("Width", w), ("X", x), ("Y", y),
-                   ("Hide Left Dock", "true"), ("Hide Right Dock", "true")):
+  for key, val in (
+    ("Height", h),
+    ("Width", w),
+    ("X", x),
+    ("Y", y),
+    ("Hide Left Dock", "true"),
+    ("Hide Right Dock", "true"),
+  ):
     tail = re.sub(rf"(\n  {key}: )[^\n]+", rf"\g<1>{val}", tail, count=1)
   tail = re.sub(r"(\n  Image:\n    collapsed: )\w+", r"\g<1>true", tail)
   # Only the 3D view: no side panels (the saved Qt window state would bring
@@ -53,12 +63,18 @@ def view_config(text: str, geom, focal, dist, pitch, yaw) -> str:
   tail = re.sub(r"(\n  \w+:\n    collapsed: )\w+", r"\g<1>true", tail)
   head = text[:geo]
   head = re.sub(r"^Panels:\n(  [^\n]*\n|  - [^\n]*\n)+", "Panels: []\n", head)
-  head = re.sub(r"    - Class: rviz_default_plugins/Image\n(      [^\n]*\n)+", "", head)
+  head = re.sub(
+    r"    - Class: rviz_default_plugins/Image\n(      [^\n]*\n)+", "", head
+  )
   # No TF axes or frame-editor handles in the video: with 140 seat frames and
   # every bit's frame they hide the arm and the bits. The meshes are the
   # Workcell Markers display.
   for cls in ("TF", "InteractiveMarkers"):
-    head = re.sub(rf"(- Class: rviz_default_plugins/{cls}\n(?:\s+[A-Z][^\n]*\n)*?\s+Enabled: )true", r"\g<1>false", head)
+    head = re.sub(
+      rf"(- Class: rviz_default_plugins/{cls}\n(?:\s+[A-Z][^\n]*\n)*?\s+Enabled: )true",
+      r"\g<1>false",
+      head,
+    )
   return head + tail
 
 

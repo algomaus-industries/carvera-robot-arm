@@ -12,6 +12,7 @@
 
 Exits non-zero if the open moving tip comes within 1.5 mm of a collar.
 """
+
 import math
 import os
 import struct
@@ -46,7 +47,7 @@ def stl_vertices(path):
   for i in range(n):
     v = struct.unpack_from("<12f", data, 84 + 50 * i)
     for k in (3, 6, 9):
-      yield v[k:k + 3]
+      yield v[k : k + 3]
 
 
 def main():
@@ -64,20 +65,28 @@ def main():
     a_close = (d - gap0) / per_rad
     a_open = (d + g.OPEN_EXTRA - gap0) / per_rad
     turn = g._mul(joint, g._mul(rot_z(a_open - J["A_REF"]), joint_inv))
-    low = max(apply(turn, (x, 0.0, J["TIP_Z_MOVING"]))[2] for x in (xf - J["PAD_T"], xc))
+    low = max(
+      apply(turn, (x, 0.0, J["TIP_Z_MOVING"]))[2] for x in (xf - J["PAD_T"], xc)
+    )
     clear = collar_top - low
     ok &= clear >= NEED
-    print(f"{d:5.3f} mm shank: closes at {a_close:+.3f} rad, opens to {a_open:+.3f} rad; "
-          f"open moving tip {clear:.2f} mm above the collar")
+    print(
+      f"{d:5.3f} mm shank: closes at {a_close:+.3f} rad, opens to {a_open:+.3f} rad; "
+      f"open moving tip {clear:.2f} mm above the collar"
+    )
   # print height: the exported part (official mesh frame) lies on the stock
   # part's flat back, the mesh's -x up (the inner finger face, tool +x, is
   # 0.08 rad off it); its new tip is everything past BLOCK_Z0 in the tool frame
-  mesh_to_tool = g._mul(joint, g._mul(rot_z(J["A_REF"]), trans(0, 0, g.JAW_VISUAL_Z * g.MM)))
+  mesh_to_tool = g._mul(
+    joint, g._mul(rot_z(J["A_REF"]), trans(0, 0, g.JAW_VISUAL_Z * g.MM))
+  )
   vs = list(stl_vertices(os.path.join(HERE, "out", "moving_jaw_vjaw.stl")))
   bed = min(-v[0] for v in vs)
   tip = min(-v[0] for v in vs if apply(mesh_to_tool, v)[2] > J["BLOCK_Z0"])
-  print(f"moving jaw printed inner face up: its new tip's underside is "
-        f"{tip - bed:.1f} mm above the bed (support it)")
+  print(
+    f"moving jaw printed inner face up: its new tip's underside is "
+    f"{tip - bed:.1f} mm above the bed (support it)"
+  )
   sys.exit(0 if ok else 1)
 
 

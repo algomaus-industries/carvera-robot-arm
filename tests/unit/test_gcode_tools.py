@@ -22,10 +22,15 @@ M6 T2
 G1 X1 F100
 T5 M06
 """
-CUSTOM = (";@MKR|TOOL|number=2|id=|name=Custom 3.175*1.5*6mm Flat End(Metal) - adjusted diameter"
-          "|type=Flat End|handlediameter=3.175|sticklength=0|shoulderlength=6|flutelength=6"
-          "|diameter=1.32|tipdiameter=1.32|cornerradius=0|angle=0|halfAngle=0\nT2 M6\n")
-OWN = CUSTOM.replace("Custom 3.175*1.5*6mm Flat End(Metal) - adjusted diameter", "My small cutter (Metal)")
+CUSTOM = (
+  ";@MKR|TOOL|number=2|id=|name=Custom 3.175*1.5*6mm Flat End(Metal) - adjusted diameter"
+  "|type=Flat End|handlediameter=3.175|sticklength=0|shoulderlength=6|flutelength=6"
+  "|diameter=1.32|tipdiameter=1.32|cornerradius=0|angle=0|halfAngle=0\nT2 M6\n"
+)
+OWN = CUSTOM.replace(
+  "Custom 3.175*1.5*6mm Flat End(Metal) - adjusted diameter",
+  "My small cutter (Metal)",
+)
 
 
 def _plan(text, mapping=None):
@@ -38,7 +43,6 @@ def _plan(text, mapping=None):
 
 
 class GcodeToolsTest(unittest.TestCase):
-
   def test_every_studio_library_tool_is_exactly_one_bit(self):
     with open(gcode_tools.CUTTERS_JSON) as fh:
       cutters = json.load(fh)["cutters"]
@@ -54,7 +58,9 @@ class GcodeToolsTest(unittest.TestCase):
 
   def test_studio_job(self):
     job = _plan(JOB)
-    self.assertEqual(job.targets, {1: "engm18_30x0p2", 2: "corn18_0p8", 5: "uv_soldermask"})
+    self.assertEqual(
+      job.targets, {1: "engm18_30x0p2", 2: "corn18_0p8", 5: "uv_soldermask"}
+    )
     self.assertEqual(job.spec, "1=engm18_30x0p2,2=corn18_0p8,5=uv_soldermask")
     self.assertEqual((job.problems, job.guesses), ([], []))
 
@@ -73,13 +79,17 @@ class GcodeToolsTest(unittest.TestCase):
 
   def test_map_overrides_and_is_not_a_guess(self):
     job = _plan(OWN, {2: "fe18_1p5x8"})
-    self.assertEqual((job.targets, job.guesses, job.problems), ({2: "fe18_1p5x8"}, [], []))
+    self.assertEqual(
+      (job.targets, job.guesses, job.problems), ({2: "fe18_1p5x8"}, [], [])
+    )
     self.assertTrue(_plan(OWN, {2: "no_such_bit"}).problems)
     self.assertTrue(_plan(OWN, {3: "corn18_1"}).problems)
 
   def test_parse_map(self):
-    self.assertEqual(gcode_tools.parse_map(["2=bit_corn18_1,T3=corn18_2", "6=uv_soldermask"]),
-                     {2: "corn18_1", 3: "corn18_2", 6: "uv_soldermask"})
+    self.assertEqual(
+      gcode_tools.parse_map(["2=bit_corn18_1,T3=corn18_2", "6=uv_soldermask"]),
+      {2: "corn18_1", 3: "corn18_2", 6: "uv_soldermask"},
+    )
 
   def test_gcode_without_studio_header(self):
     job = _plan("G21\nT3 M6\nG0 X0\nM6 T1\n")
@@ -91,18 +101,27 @@ class GcodeToolsTest(unittest.TestCase):
   def test_problems(self):
     seven = JOB.replace("number=5", "number=7").replace("T5 M06", "T7 M06")
     self.assertTrue(any("slots 1..6" in p for p in _plan(seven).problems))
-    twice = JOB.replace("number=5|id=122011034730|name=3.175mm Solder Mask Removal",
-                        "number=5|id=111218083806|name=3.175*0.8*5.5mm Corn")
-    twice = twice.replace("type=Engraving|handlediameter=0|sticklength=0|shoulderlength=0|flutelength=3"
-                          "|diameter=3.175|tipdiameter=0.3",
-                          "type=Flat End|handlediameter=3.175|sticklength=0|shoulderlength=5.5"
-                          "|flutelength=5.5|diameter=0.8|tipdiameter=0.8")
+    twice = JOB.replace(
+      "number=5|id=122011034730|name=3.175mm Solder Mask Removal",
+      "number=5|id=111218083806|name=3.175*0.8*5.5mm Corn",
+    )
+    twice = twice.replace(
+      "type=Engraving|handlediameter=0|sticklength=0|shoulderlength=0|flutelength=3"
+      "|diameter=3.175|tipdiameter=0.3",
+      "type=Flat End|handlediameter=3.175|sticklength=0|shoulderlength=5.5"
+      "|flutelength=5.5|diameter=0.8|tipdiameter=0.8",
+    )
     self.assertTrue(any("one of each" in p for p in _plan(twice).problems))
     unused = JOB.replace("T5 M06\n", "")
-    self.assertTrue(any("never changes to it" in p for p in _plan(unused).problems))
+    self.assertTrue(
+      any("never changes to it" in p for p in _plan(unused).problems)
+    )
     gone = JOB.replace("3.175*0.8*5.5mm Corn", "3.175*0.85*5.5mm Corn").replace(
-      "diameter=0.8|tipdiameter=0.8", "diameter=0.85|tipdiameter=0.85")
-    self.assertTrue(any("not in the bit catalogue" in p for p in _plan(gone).problems))
+      "diameter=0.8|tipdiameter=0.8", "diameter=0.85|tipdiameter=0.85"
+    )
+    self.assertTrue(
+      any("not in the bit catalogue" in p for p in _plan(gone).problems)
+    )
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ Uses xwd (X11 window dump) and PIL, which the omts container has:
 Frames are <out>/000001.jpg ...; frames.txt lists each frame's capture time (Unix),
 so ffmpeg can play them back at their real pace (or faster).
 """
+
 import argparse
 import os
 import struct
@@ -20,26 +21,67 @@ from PIL import Image
 
 def xwd_to_image(data: bytes) -> Image.Image:
   """Decodes a 24/32-bit ZPixmap XWD dump (what `xwd -root` writes)."""
-  (header_size, _version, _fmt, depth, width, height, _xoff, byte_order, _unit, _bit_order,
-   _pad, bpp, bytes_per_line, _visual, red_mask, green_mask, blue_mask, _bits_rgb,
-   _cmap_entries, ncolors, _ww, _wh, _wx, _wy, _bw) = struct.unpack(">25I", data[:100])
+  (
+    header_size,
+    _version,
+    _fmt,
+    depth,
+    width,
+    height,
+    _xoff,
+    byte_order,
+    _unit,
+    _bit_order,
+    _pad,
+    bpp,
+    bytes_per_line,
+    _visual,
+    red_mask,
+    green_mask,
+    blue_mask,
+    _bits_rgb,
+    _cmap_entries,
+    ncolors,
+    _ww,
+    _wh,
+    _wx,
+    _wy,
+    _bw,
+  ) = struct.unpack(">25I", data[:100])
   start = header_size + ncolors * 12
   if bpp == 32:
-    px = np.frombuffer(data, dtype="<u4" if byte_order == 0 else ">u4", count=height * bytes_per_line // 4,
-                       offset=start).reshape(height, bytes_per_line // 4)[:, :width]
-  elif bpp == 24:   # packed 3 bytes per pixel (the VNC display in the omts container)
-    b = np.frombuffer(data, dtype=np.uint8, count=height * bytes_per_line, offset=start)
-    b = b.reshape(height, bytes_per_line)[:, :width * 3].reshape(height, width, 3).astype(np.uint32)
+    px = np.frombuffer(
+      data,
+      dtype="<u4" if byte_order == 0 else ">u4",
+      count=height * bytes_per_line // 4,
+      offset=start,
+    ).reshape(height, bytes_per_line // 4)[:, :width]
+  elif (
+    bpp == 24
+  ):  # packed 3 bytes per pixel (the VNC display in the omts container)
+    b = np.frombuffer(
+      data, dtype=np.uint8, count=height * bytes_per_line, offset=start
+    )
+    b = (
+      b.reshape(height, bytes_per_line)[:, : width * 3]
+      .reshape(height, width, 3)
+      .astype(np.uint32)
+    )
     if byte_order != 0:
       b = b[:, :, ::-1]
     px = b[:, :, 0] | (b[:, :, 1] << 8) | (b[:, :, 2] << 16)
   else:
-    raise ValueError(f"only 24 or 32 bits per pixel supported, got {bpp} (depth {depth})")
+    raise ValueError(
+      f"only 24 or 32 bits per pixel supported, got {bpp} (depth {depth})"
+    )
 
   def chan(mask):
     shift = (mask & -mask).bit_length() - 1
     return ((px & mask) >> shift).astype(np.uint8)
-  return Image.fromarray(np.dstack([chan(red_mask), chan(green_mask), chan(blue_mask)]), "RGB")
+
+  return Image.fromarray(
+    np.dstack([chan(red_mask), chan(green_mask), chan(blue_mask)]), "RGB"
+  )
 
 
 def main():
@@ -57,10 +99,15 @@ def main():
   t0, n = time.time(), 0
   while not os.path.exists(stop) and time.time() - t0 < args.seconds:
     t = time.time()
-    dump = subprocess.run(["xwd", "-root", "-silent", "-display", args.display],
-                          capture_output=True, check=True).stdout
+    dump = subprocess.run(
+      ["xwd", "-root", "-silent", "-display", args.display],
+      capture_output=True,
+      check=True,
+    ).stdout
     n += 1
-    xwd_to_image(dump).save(os.path.join(args.out, f"{n:06d}.jpg"), quality=args.quality)
+    xwd_to_image(dump).save(
+      os.path.join(args.out, f"{n:06d}.jpg"), quality=args.quality
+    )
     log.write(f"{n:06d}.jpg {t:.3f}\n")
     log.flush()
     time.sleep(max(0.0, 1.0 / args.fps - (time.time() - t)))

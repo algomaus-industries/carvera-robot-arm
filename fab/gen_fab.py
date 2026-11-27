@@ -13,6 +13,7 @@ matches the simulated one:
 Exports need OpenSCAD with the Manifold backend; set OPENSCAD to override
 the command (default: openscad).
 """
+
 import math
 import os
 import shlex
@@ -34,11 +35,16 @@ CART = dict(w=0.355, d=0.435, h=0.84 + 0.150 - cl.SEAT_Z)
 # ---- mirrored from configs/carvera_so101/gen_cell_configs.py (world, metres)
 CART_C = (-0.0175, -0.1525)
 PAN_AXIS = (-0.22, -0.025)
-CART_EDGE_PAN = (CART_C[0] - CART["w"] / 2) - PAN_AXIS[0]   # cart's front edge, pan frame x
+CART_EDGE_PAN = (CART_C[0] - CART["w"] / 2) - PAN_AXIS[
+  0
+]  # cart's front edge, pan frame x
 
 # ---- mirrored from models/so101/build_so101.py (gripper_link frame, URDF)
 TIP = ((-0.0079, -0.000218121, -0.0981274), (0.0, 3.14159, 0.0))
-FOLLOWER_VISUAL = ((8.32667e-17, -0.000218214, 0.000949706), (-3.14159, -5.55112e-17, 0))
+FOLLOWER_VISUAL = (
+  (8.32667e-17, -0.000218214, 0.000949706),
+  (-3.14159, -5.55112e-17, 0),
+)
 JAW_ORIGIN = ((0.0202, 0.0188, -0.0234), (1.5708, -5.24284e-08, -1.41553e-15))
 JAW_VISUAL_Z = 0.0189
 
@@ -47,43 +53,52 @@ JAW_VISUAL_Z = 0.0189
 # tools/atc/so101_jaws.py. Tool frame, mm: origin on the fixed finger's face,
 # z along the fingers towards the tip, the moving jaw on -x.
 JAW = dict(
-    V_DEPTH=3.0,        # the V's apex this far behind the fixed finger's face
-    V_ANGLE=90.0,       # its included angle
-    FUNNEL=1.75,        # 45 deg lead-in at the V's mouth, at the fingertip
-    TIP_Z=6.0,          # the fixed fingertip ends here
-    TIP_Z_MOVING=4.0,   # the moving one 2 mm shorter: it swings towards the
-                        # collar as it opens (fab/jaws/check_jaws.py)
-    BLOCK_Z0=-13.0,     # the new tips start here (a shank sticks up to z = -6)
-    HALF_W=5.5,         # half width of the fixed tip (stock: 5.0 at z = 0)
-    TIP_T=6.0,          # fixed tip thickness at its end (3 mm behind the V)
-    RAMP=4.0,           # 45 deg ramp where the fixed tip leaves the stock finger
-    # Fitted to the official meshes (in the tool frame, the moving jaw at
-    # A_REF): the stock fixed finger's back face x = BACK_X0 - BACK_SLOPE z,
-    # and the stock moving finger's section at LEG_Z0 (inner face LEG_FRONT,
-    # back face LEG_BACK, half width LEG_HALF_W).
-    BACK_X0=7.29, BACK_SLOPE=0.365,
-    LEG_Z0=-29.0, LEG_FRONT=-16.1, LEG_BACK=-29.7, LEG_HALF_W=7.5,
-    SHANK_REF=4.0,      # the moving tip is drawn closed on this shank...
-    A_REF=-0.08,        # ...at this jaw_joint angle (rad; limits -0.1745 .. 1.745)
-    PAD_HALF_W=5.0,     # moving tip half width
-    PAD_T=8.0,          # moving tip thickness (stock ~8.3)
-    # TPU pad in the moving tip's face: a rib across the finger (radius
-    # RIB_R, RIB_H proud of the PETG) on a base INSERT_T thick that slides
-    # sideways into a dovetail slot (walls DOVETAIL deg off square), so the
-    # shank's drag along the finger cannot peel it out; CA glue only keeps
-    # it from sliding sideways. INSERT_Z0..Z1: the slot's mouth along z.
-    RIB_R=8.0, RIB_H=1.0, INSERT_T=1.6, INSERT_Z0=-8.0, INSERT_Z1=2.0,
-    DOVETAIL=30.0, INSERT_CLEAR=0.15,
-    COLLAR_CLEAR=3.0,   # fixed fingertip above the bit's collar when gripping
+  V_DEPTH=3.0,  # the V's apex this far behind the fixed finger's face
+  V_ANGLE=90.0,  # its included angle
+  FUNNEL=1.75,  # 45 deg lead-in at the V's mouth, at the fingertip
+  TIP_Z=6.0,  # the fixed fingertip ends here
+  TIP_Z_MOVING=4.0,  # the moving one 2 mm shorter: it swings towards the
+  # collar as it opens (fab/jaws/check_jaws.py)
+  BLOCK_Z0=-13.0,  # the new tips start here (a shank sticks up to z = -6)
+  HALF_W=5.5,  # half width of the fixed tip (stock: 5.0 at z = 0)
+  TIP_T=6.0,  # fixed tip thickness at its end (3 mm behind the V)
+  RAMP=4.0,  # 45 deg ramp where the fixed tip leaves the stock finger
+  # Fitted to the official meshes (in the tool frame, the moving jaw at
+  # A_REF): the stock fixed finger's back face x = BACK_X0 - BACK_SLOPE z,
+  # and the stock moving finger's section at LEG_Z0 (inner face LEG_FRONT,
+  # back face LEG_BACK, half width LEG_HALF_W).
+  BACK_X0=7.29,
+  BACK_SLOPE=0.365,
+  LEG_Z0=-29.0,
+  LEG_FRONT=-16.1,
+  LEG_BACK=-29.7,
+  LEG_HALF_W=7.5,
+  SHANK_REF=4.0,  # the moving tip is drawn closed on this shank...
+  A_REF=-0.08,  # ...at this jaw_joint angle (rad; limits -0.1745 .. 1.745)
+  PAD_HALF_W=5.0,  # moving tip half width
+  PAD_T=8.0,  # moving tip thickness (stock ~8.3)
+  # TPU pad in the moving tip's face: a rib across the finger (radius
+  # RIB_R, RIB_H proud of the PETG) on a base INSERT_T thick that slides
+  # sideways into a dovetail slot (walls DOVETAIL deg off square), so the
+  # shank's drag along the finger cannot peel it out; CA glue only keeps
+  # it from sliding sideways. INSERT_Z0..Z1: the slot's mouth along z.
+  RIB_R=8.0,
+  RIB_H=1.0,
+  INSERT_T=1.6,
+  INSERT_Z0=-8.0,
+  INSERT_Z1=2.0,
+  DOVETAIL=30.0,
+  INSERT_CLEAR=0.15,
+  COLLAR_CLEAR=3.0,  # fixed fingertip above the bit's collar when gripping
 )
-COLLAR_H = 5.0          # mirrored from models/makera_bits/build_bits.py (ESTIMATED)
+COLLAR_H = 5.0  # mirrored from models/makera_bits/build_bits.py (ESTIMATED)
 # move_bit: the tool frame's height above the seat when gripping
 GRASP_Z = JAW["TIP_Z"] + JAW["COLLAR_CLEAR"] + COLLAR_H
 # The descent and the lift go this far off the shank (tool towards +x, the
 # fixed finger away from it, into the room the open pad leaves), then move
 # sideways onto it at grasp height.
 APPROACH_OFFSET = 2.5
-OPEN_EXTRA = 5.0        # the open jaw: this much wider than the shank
+OPEN_EXTRA = 5.0  # the open jaw: this much wider than the shank
 # Closing goes this far past contact. In the sim that is all; the real
 # driver must close against a torque/current limit instead (a print error of
 # +-0.2 mm moves contact by up to +-0.5 mm), commanding ~2 mm past contact.
@@ -110,16 +125,27 @@ def write(path, header, values):
 def _xform(xyz, rpy):
   """URDF pose (metres, roll-pitch-yaw) as a 4x4 matrix in mm."""
   (r, p, y) = rpy
-  cx, sx, cy, sy, cz, sz = (math.cos(r), math.sin(r), math.cos(p), math.sin(p),
-                            math.cos(y), math.sin(y))
-  rot = [[cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx],
-         [sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx],
-         [-sy, cy * sx, cy * cx]]
+  cx, sx, cy, sy, cz, sz = (
+    math.cos(r),
+    math.sin(r),
+    math.cos(p),
+    math.sin(p),
+    math.cos(y),
+    math.sin(y),
+  )
+  rot = [
+    [cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx],
+    [sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx],
+    [-sy, cy * sx, cy * cx],
+  ]
   return [rot[i] + [xyz[i] * MM] for i in range(3)] + [[0.0, 0.0, 0.0, 1.0]]
 
 
 def _mul(a, b):
-  return [[sum(a[i][k] * b[k][j] for k in range(4)) for j in range(4)] for i in range(4)]
+  return [
+    [sum(a[i][k] * b[k][j] for k in range(4)) for j in range(4)]
+    for i in range(4)
+  ]
 
 
 def _inv(m):
@@ -144,74 +170,151 @@ def jaw_gap_table(joint):
 def write_jaws_py(joint):
   gap0, per_rad = jaw_gap_table(joint)
   values = dict(
-      V_DEPTH_M=JAW["V_DEPTH"], V_ANGLE_DEG=JAW["V_ANGLE"],
-      GRASP_Z_M=GRASP_Z, APPROACH_OFFSET_M=APPROACH_OFFSET, OPEN_EXTRA_M=OPEN_EXTRA,
-      CLOSE_SQUEEZE_M=CLOSE_SQUEEZE, CLOSE_PAST_CONTACT_REAL_M=CLOSE_PAST_CONTACT_REAL,
-      GAP_AT_ZERO_M=gap0, GAP_PER_RAD_M=per_rad)
+    V_DEPTH_M=JAW["V_DEPTH"],
+    V_ANGLE_DEG=JAW["V_ANGLE"],
+    GRASP_Z_M=GRASP_Z,
+    APPROACH_OFFSET_M=APPROACH_OFFSET,
+    OPEN_EXTRA_M=OPEN_EXTRA,
+    CLOSE_SQUEEZE_M=CLOSE_SQUEEZE,
+    CLOSE_PAST_CONTACT_REAL_M=CLOSE_PAST_CONTACT_REAL,
+    GAP_AT_ZERO_M=gap0,
+    GAP_PER_RAD_M=per_rad,
+  )
   path = os.path.join(REPO, "tools", "atc", "so101_jaws.py")
   with open(path, "w") as fh:
-    fh.write('"""SO-101 V-groove jaw numbers for move_bit, in metres (angles in degrees).\n\n'
-             "Generated by fab/gen_fab.py from its JAW table - do not edit.\n\"\"\"\n")
+    fh.write(
+      '"""SO-101 V-groove jaw numbers for move_bit, in metres (angles in degrees).\n\n'
+      'Generated by fab/gen_fab.py from its JAW table - do not edit.\n"""\n\n'
+    )
     for k, v in values.items():
-      fh.write(f"{k} = {v if k.endswith('_DEG') else round(v / MM, 7):g}"
-               + ("  # per rad" if k == "GAP_PER_RAD_M" else "") + "\n")
+      fh.write(
+        f"{k} = {v if k.endswith('_DEG') else round(v / MM, 7):g}"
+        + ("  # per rad" if k == "GAP_PER_RAD_M" else "")
+        + "\n"
+      )
 
 
 def params():
   seats = [(x * MM, y * MM) for _, _, x, y, _ in cl.cells()]
-  mid = [(a + b) / 2 * MM for a, b in zip(cl.RINGS, cl.RINGS[1:])]
-  write(os.path.join(FAB, "carousel", "carousel_params.scad"),
-        "models/bit_carousel/carousel_layout.py", dict(
-          SEATS=seats, SEAT_COUNT=len(seats), SEAT_Z=cl.SEAT_Z * MM,
-          PLATE_R=cl.PLATE_R * MM, PLATE_T=cl.PLATE_T * MM, HOLE_D=cl.HOLE_D * MM,
-          BASE_R=cl.BASE_R * MM, BASE_T=cl.BASE_T * MM,
-          RIM_R0=cl.RIM_R[0] * MM, RIM_R1=cl.RIM_R[1] * MM, RIM_Z0=cl.RIM_Z0 * MM,
-          RIM_SEGMENTS=8, ROLLER_R=cl.ROLLER_R * MM, ROLLERS=cl.ROLLERS, ROLLER_A0=45.0,
-          BEARING_OD=cl.BEARING_OD * MM, BEARING_W=cl.BEARING_W * MM,
-          HUB_R=cl.HUB_R * MM, HORN_TOP=cl.HORN_TOP * MM,
-          HORN_D=HORN_D, HORN_T=HORN_T, HORN_SCREW_R=HORN_SCREW_R,
-          SERVO_W=cl.SERVO_BODY[0] * MM, SERVO_L=cl.SERVO_BODY[1] * MM,
-          SERVO_H=cl.SERVO_BODY[2] * MM, SHAFT_FROM_END=cl.SERVO_SHAFT_FROM_END * MM,
-          SEAM_A=0.0, SPLICE_SCREWS_R=mid))
-  write(os.path.join(FAB, "pedestal", "pedestal_params.scad"),
-        "models/so101/build_so101.py", dict(
-          PED_LO=[v * MM for v in PEDESTAL_LO], PED_HI=[v * MM for v in PEDESTAL_HI],
-          CART_EDGE=CART_EDGE_PAN * MM, FOOT_X=85.0))
+  mid = [(a + b) / 2 * MM for a, b in zip(cl.RINGS, cl.RINGS[1:], strict=False)]
+  write(
+    os.path.join(FAB, "carousel", "carousel_params.scad"),
+    "models/bit_carousel/carousel_layout.py",
+    dict(
+      SEATS=seats,
+      SEAT_COUNT=len(seats),
+      SEAT_Z=cl.SEAT_Z * MM,
+      PLATE_R=cl.PLATE_R * MM,
+      PLATE_T=cl.PLATE_T * MM,
+      HOLE_D=cl.HOLE_D * MM,
+      BASE_R=cl.BASE_R * MM,
+      BASE_T=cl.BASE_T * MM,
+      RIM_R0=cl.RIM_R[0] * MM,
+      RIM_R1=cl.RIM_R[1] * MM,
+      RIM_Z0=cl.RIM_Z0 * MM,
+      RIM_SEGMENTS=8,
+      ROLLER_R=cl.ROLLER_R * MM,
+      ROLLERS=cl.ROLLERS,
+      ROLLER_A0=45.0,
+      BEARING_OD=cl.BEARING_OD * MM,
+      BEARING_W=cl.BEARING_W * MM,
+      HUB_R=cl.HUB_R * MM,
+      HORN_TOP=cl.HORN_TOP * MM,
+      HORN_D=HORN_D,
+      HORN_T=HORN_T,
+      HORN_SCREW_R=HORN_SCREW_R,
+      SERVO_W=cl.SERVO_BODY[0] * MM,
+      SERVO_L=cl.SERVO_BODY[1] * MM,
+      SERVO_H=cl.SERVO_BODY[2] * MM,
+      SHAFT_FROM_END=cl.SERVO_SHAFT_FROM_END * MM,
+      SEAM_A=0.0,
+      SPLICE_SCREWS_R=mid,
+    ),
+  )
+  write(
+    os.path.join(FAB, "pedestal", "pedestal_params.scad"),
+    "models/so101/build_so101.py",
+    dict(
+      PED_LO=[v * MM for v in PEDESTAL_LO],
+      PED_HI=[v * MM for v in PEDESTAL_HI],
+      CART_EDGE=CART_EDGE_PAN * MM,
+      FOOT_X=85.0,
+    ),
+  )
   # jaws: the official meshes placed in the gripper's tool frame (between the
   # fingertips, z along the approach), where jaws.scad cuts the new tips
   tool = _inv(_xform(*TIP))
   fixed = _mul(tool, _xform(*FOLLOWER_VISUAL))
   joint = _mul(tool, _xform(*JAW_ORIGIN))
-  write(os.path.join(FAB, "jaws", "jaws_params.scad"),
-        "models/so101/build_so101.py and JAW in fab/gen_fab.py", dict(
-          TOOL_FROM_FIXED=fixed, FIXED_FROM_TOOL=_inv(fixed),
-          TOOL_FROM_JAW_JOINT=joint, JAW_JOINT_FROM_TOOL=_inv(joint),
-          JAW_MESH_Z=JAW_VISUAL_Z * MM, JAW_PIVOT=[joint[i][3] for i in range(3)],
-          GRASP_Z=GRASP_Z, COLLAR_H=COLLAR_H, **JAW))
+  write(
+    os.path.join(FAB, "jaws", "jaws_params.scad"),
+    "models/so101/build_so101.py and JAW in fab/gen_fab.py",
+    dict(
+      TOOL_FROM_FIXED=fixed,
+      FIXED_FROM_TOOL=_inv(fixed),
+      TOOL_FROM_JAW_JOINT=joint,
+      JAW_JOINT_FROM_TOOL=_inv(joint),
+      JAW_MESH_Z=JAW_VISUAL_Z * MM,
+      JAW_PIVOT=[joint[i][3] for i in range(3)],
+      GRASP_Z=GRASP_Z,
+      COLLAR_H=COLLAR_H,
+      **JAW,
+    ),
+  )
   write_jaws_py(joint)
   # cart frame: origin under the middle of the top, axes along the world's
   pan = (PAN_AXIS[0] - CART_C[0], PAN_AXIS[1] - CART_C[1])
   car = (pan[0] + cl.CENTER_IN_PAN[0], pan[1] + cl.CENTER_IN_PAN[1])
-  servo_hole = (car[0], car[1] - cl.SERVO_SHAFT_FROM_END + cl.SERVO_BODY[1] + 0.012)
-  write(os.path.join(FAB, "cart", "cart_params.scad"),
-        "models/so101/build_so101.py and configs/carvera_so101/gen_cell_configs.py", dict(
-          CART_W=CART["w"] * MM, CART_D=CART["d"] * MM, CART_H=round(CART["h"] * MM, 1),
-          TOP_T=18.0, LEG=40.0, LEG_INSET=35.0, CASTER_H=75.0, APRON_H=60.0, SHELF_Z=150.0,
-          PEDESTAL_XY=[(pan[0] + PEDESTAL_LO[0]) * MM, (pan[1] + PEDESTAL_LO[1]) * MM],
-          PEDESTAL_WH=[(PEDESTAL_HI[0] - PEDESTAL_LO[0]) * MM, (PEDESTAL_HI[1] - PEDESTAL_LO[1]) * MM],
-          CAROUSEL_XY=[car[0] * MM, car[1] * MM], CAROUSEL_R=cl.BASE_R * MM,
-          CABLE_ARM=[(pan[0] + CART_EDGE_PAN) * MM + 12, pan[1] * MM],
-          CABLE_SERVO=[servo_hole[0] * MM, servo_hole[1] * MM]))
+  servo_hole = (
+    car[0],
+    car[1] - cl.SERVO_SHAFT_FROM_END + cl.SERVO_BODY[1] + 0.012,
+  )
+  write(
+    os.path.join(FAB, "cart", "cart_params.scad"),
+    "models/so101/build_so101.py and configs/carvera_so101/gen_cell_configs.py",
+    dict(
+      CART_W=CART["w"] * MM,
+      CART_D=CART["d"] * MM,
+      CART_H=round(CART["h"] * MM, 1),
+      TOP_T=18.0,
+      LEG=40.0,
+      LEG_INSET=35.0,
+      CASTER_H=75.0,
+      APRON_H=60.0,
+      SHELF_Z=150.0,
+      PEDESTAL_XY=[
+        (pan[0] + PEDESTAL_LO[0]) * MM,
+        (pan[1] + PEDESTAL_LO[1]) * MM,
+      ],
+      PEDESTAL_WH=[
+        (PEDESTAL_HI[0] - PEDESTAL_LO[0]) * MM,
+        (PEDESTAL_HI[1] - PEDESTAL_LO[1]) * MM,
+      ],
+      CAROUSEL_XY=[car[0] * MM, car[1] * MM],
+      CAROUSEL_R=cl.BASE_R * MM,
+      CABLE_ARM=[(pan[0] + CART_EDGE_PAN) * MM + 12, pan[1] * MM],
+      CABLE_SERVO=[servo_hole[0] * MM, servo_hole[1] * MM],
+    ),
+  )
 
 
 # (assembly dir, scad, part, outputs)
-PARTS = [
+PARTS = (
+  [
     ("carousel", "carousel.scad", p, ("dxf", "svg"))
-    for p in ("seat_plate_0", "seat_plate_1", "base_plate_0", "base_plate_1", "splice_strip")
-] + [
+    for p in (
+      "seat_plate_0",
+      "seat_plate_1",
+      "base_plate_0",
+      "base_plate_1",
+      "splice_strip",
+    )
+  ]
+  + [
     ("carousel", "carousel.scad", p, ("stl",))
     for p in ("hub", "rim_segment", "roller_bracket", "servo_cradle")
-] + [
+  ]
+  + [
     ("pedestal", "pedestal.scad", "pedestal", ("stl",)),
     ("jaws", "jaws.scad", "wrist_roll_follower_vjaw", ("stl",)),
     ("jaws", "jaws.scad", "moving_jaw_vjaw", ("stl",)),
@@ -219,14 +322,24 @@ PARTS = [
     ("jaws", "jaws.scad", "sim_moving_jaw", ("stl",)),
     ("cart", "cart.scad", "top", ("dxf", "svg")),
     ("cart", "cart.scad", "shelf", ("dxf", "svg")),
-] + [
+  ]
+  + [
     # the sim models' meshes (build_carvera.py, build_so101.py load these)
     ("carousel", "carousel.scad", p, ("stl",))
-    for p in ("sim_base_ply", "sim_base_print", "sim_base_servo", "sim_base_steel",
-              "sim_platter_ply", "sim_platter_print")
-] + [
-    ("cart", "cart.scad", p, ("stl",)) for p in ("sim_wood", "sim_metal", "sim_rubber", "sim_brake")
-] + [
+    for p in (
+      "sim_base_ply",
+      "sim_base_print",
+      "sim_base_servo",
+      "sim_base_steel",
+      "sim_platter_ply",
+      "sim_platter_print",
+    )
+  ]
+  + [
+    ("cart", "cart.scad", p, ("stl",))
+    for p in ("sim_wood", "sim_metal", "sim_rubber", "sim_brake")
+  ]
+  + [
     ("carousel", "carousel.scad", "assembly", ("png",)),
     ("pedestal", "pedestal.scad", "pedestal", ("png",)),
     ("jaws", "jaws.scad", "assembly", ("png",)),
@@ -235,14 +348,15 @@ PARTS = [
     ("jaws", "jaws.scad", "view_moving", ("png",)),
     ("jaws", "jaws.scad", "section", ("svg",)),
     ("cart", "cart.scad", "assembly", ("png",)),
-]
+  ]
+)
 
 
 # Close-up views of the jaws: eye x,y,z, centre x,y,z (tool frame, mm).
 CAMERAS = {
-    "view_closed": "-18,-30,48,-3,0,0",
-    "view_fixed": "-45,-12,22,1,0,-4",
-    "view_moving": "42,-44,22,-10,3,-3",
+  "view_closed": "-18,-30,48,-3,0,0",
+  "view_fixed": "-45,-12,22,1,0,-4",
+  "view_moving": "42,-44,22,-10,3,-3",
 }
 
 
@@ -258,14 +372,26 @@ def export():
         # 6.6 mm seat hole needs ~10), so RViz gets ~10x fewer triangles.
         args += ["-D", "$fn=0", "-D", "$fa=8", "-D", "$fs=2.5"]
       if d == "jaws" and ext == "stl":
-        args += ["--export-format", "binstl"]   # ~25k facets each: 1 MB, not 8
+        args += ["--export-format", "binstl"]  # ~25k facets each: 1 MB, not 8
       if ext == "png" and part in CAMERAS:
-        args += ["--render", "--imgsize=900,900", "--colorscheme=Tomorrow",
-                 "--camera=" + CAMERAS[part]]
+        args += [
+          "--render",
+          "--imgsize=900,900",
+          "--colorscheme=Tomorrow",
+          "--camera=" + CAMERAS[part],
+        ]
       elif ext == "png":
-        args += ["--render", "--imgsize=1200,900", "--viewall", "--autocenter",
-                 "--colorscheme=Tomorrow", "--camera=0,0,0,55,0,30,0"]
-      r = subprocess.run(args + [os.path.join(FAB, d, scad)], capture_output=True, text=True)
+        args += [
+          "--render",
+          "--imgsize=1200,900",
+          "--viewall",
+          "--autocenter",
+          "--colorscheme=Tomorrow",
+          "--camera=0,0,0,55,0,30,0",
+        ]
+      r = subprocess.run(
+        args + [os.path.join(FAB, d, scad)], capture_output=True, text=True
+      )
       ok = r.returncode == 0 and os.path.exists(out)
       print(("ok  " if ok else "FAIL") + f" {d}/out/{part}.{ext}")
       if not ok:

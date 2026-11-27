@@ -65,14 +65,17 @@ from typing import Any
 
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import deployments, execution
-from intrinsic.world.proto import object_world_refs_pb2, object_world_updates_pb2
+from intrinsic.world.proto import (
+  object_world_refs_pb2,
+  object_world_updates_pb2,
+)
 from intrinsic.world.python import object_world_resources
 
+from models.bit_carousel import carousel_layout
 from src.core.config import AppConfig, load_app_config
 from src.hardware.gripper import GripperInterface
 from src.hardware.machine import DioCncMachine
 from src.hardware.robot import Robot
-from models.bit_carousel import carousel_layout
 from tools.atc import gcode_tools, so101_ik, so101_jaws
 
 GRID_OBJECT = "bit_grid"
@@ -127,12 +130,18 @@ class GraspProfile:
 
 
 PROFILES = {
-    # The SO-101's V-groove fingers (fab/jaws): grasp_z keeps the fixed
-    # fingertip 3 mm above the collar (fab/gen_fab.py JAW).
-    "so101": GraspProfile(grasp_z=so101_jaws.GRASP_Z_M, pre_z=0.064, off_centre=True,
-                          joint_ik=True, v_depth=so101_jaws.V_DEPTH_M,
-                          approach_offset=so101_jaws.APPROACH_OFFSET_M),
+  # The SO-101's V-groove fingers (fab/jaws): grasp_z keeps the fixed
+  # fingertip 3 mm above the collar (fab/gen_fab.py JAW).
+  "so101": GraspProfile(
+    grasp_z=so101_jaws.GRASP_Z_M,
+    pre_z=0.064,
+    off_centre=True,
+    joint_ik=True,
+    v_depth=so101_jaws.V_DEPTH_M,
+    approach_offset=so101_jaws.APPROACH_OFFSET_M,
+  ),
 }
+
 
 class So101Jaw(GripperInterface):
   """SO-ARM101 moving jaw, set through the world (update_world).
@@ -153,7 +162,9 @@ class So101Jaw(GripperInterface):
   GAP_PER_RAD_M = so101_jaws.GAP_PER_RAD_M
   LIMITS = (-0.1745, 1.745)
 
-  def __init__(self, solution: Any, object_name: str, open_gap_m: float, close_gap_m: float):
+  def __init__(
+    self, solution: Any, object_name: str, open_gap_m: float, close_gap_m: float
+  ):
     self._skill = solution.skills.ai.intrinsic.update_world
     self._object = object_name
     self._open = self.angle_for_gap(open_gap_m)
@@ -168,7 +179,9 @@ class So101Jaw(GripperInterface):
     update = object_world_updates_pb2.ObjectWorldUpdate(
       update_object_joints=object_world_updates_pb2.UpdateObjectJointsRequest(
         object=object_world_refs_pb2.ObjectReference(
-          by_name=object_world_refs_pb2.ObjectReferenceByName(object_name=self._object)
+          by_name=object_world_refs_pb2.ObjectReferenceByName(
+            object_name=self._object
+          )
         ),
         joint_positions=[angle],
       )
@@ -195,10 +208,15 @@ def shank_m(holder: str, catalog: dict[str, dict]) -> float:
   return float(catalog.get(holder, {}).get("shank", DEFAULT_SHANK_M))
 
 
-def make_gripper(solution: Any, config: AppConfig, shank: float) -> GripperInterface:
-  return So101Jaw(solution, config.robot.tool_object_name,
-                  open_gap_m=shank + so101_jaws.OPEN_EXTRA_M,
-                  close_gap_m=shank - so101_jaws.CLOSE_SQUEEZE_M)
+def make_gripper(
+  solution: Any, config: AppConfig, shank: float
+) -> GripperInterface:
+  return So101Jaw(
+    solution,
+    config.robot.tool_object_name,
+    open_gap_m=shank + so101_jaws.OPEN_EXTRA_M,
+    close_gap_m=shank - so101_jaws.CLOSE_SQUEEZE_M,
+  )
 
 
 def parse_slot(spec: str) -> tuple[str, str]:
@@ -218,19 +236,29 @@ def parse_slot(spec: str) -> tuple[str, str]:
 
 def parse_move(spec: str) -> tuple[str, str]:
   """Splits 'grid:0,0:atc:1' into ('grid:0,0', 'atc:1')."""
-  m = re.fullmatch(r"((?:grid:\d+,\d+)|(?:atc:\d+)):((?:grid:\d+,\d+)|(?:atc:\d+))", spec)
+  m = re.fullmatch(
+    r"((?:grid:\d+,\d+)|(?:atc:\d+)):((?:grid:\d+,\d+)|(?:atc:\d+))", spec
+  )
   if not m:
-    raise ValueError(f"Move must be '<slot>:<slot>', e.g. grid:0,0:atc:1, got {spec!r}")
+    raise ValueError(
+      f"Move must be '<slot>:<slot>', e.g. grid:0,0:atc:1, got {spec!r}"
+    )
   return m.group(1), m.group(2)
 
 
 def _frame_ref(object_name: str, frame_name: str | None) -> Any:
-  by_name = object_world_refs_pb2.TransformNodeReferenceByName(
-    frame=object_world_refs_pb2.FrameReferenceByName(
-      object_name=object_name, frame_name=frame_name
+  by_name = (
+    object_world_refs_pb2.TransformNodeReferenceByName(
+      frame=object_world_refs_pb2.FrameReferenceByName(
+        object_name=object_name, frame_name=frame_name
+      )
     )
-  ) if frame_name else object_world_refs_pb2.TransformNodeReferenceByName(
-    object=object_world_refs_pb2.ObjectReferenceByName(object_name=object_name)
+    if frame_name
+    else object_world_refs_pb2.TransformNodeReferenceByName(
+      object=object_world_refs_pb2.ObjectReferenceByName(
+        object_name=object_name
+      )
+    )
   )
   return object_world_refs_pb2.TransformNodeReference(by_name=by_name)
 
@@ -295,8 +323,10 @@ def _offset(z: float, yaw_deg: float, x_tool: float = 0.0):
   The tool's x axis then lies along (cos yaw, -sin yaw, 0) in the seat frame."""
   h = math.radians(yaw_deg) / 2
   yaw = math.radians(yaw_deg)
-  return ((x_tool * math.cos(yaw), -x_tool * math.sin(yaw), z),
-          (math.cos(h), -math.sin(h), 0.0, 0.0))
+  return (
+    (x_tool * math.cos(yaw), -x_tool * math.sin(yaw), z),
+    (math.cos(h), -math.sin(h), 0.0, 0.0),
+  )
 
 
 # Steps per LINEAR segment when moving by joint targets. Each step is its own
@@ -337,7 +367,7 @@ class JointTargets:
     self._base = _matrix(world.get_transform(world.root, arm))
     self._base_inv = _inverse(self._base)
     self.q = list(arm.joint_positions)
-    self._last = None   # (obj, frame, z, x_tool) of the previous target
+    self._last = None  # (obj, frame, z, x_tool) of the previous target
     self._seats = None  # rack seat name -> world xy
 
   def via_home(self) -> None:
@@ -345,10 +375,20 @@ class JointTargets:
     self.q = list(so101_ik.HOME)
     self._last = None
 
-  def to(self, obj: str, frame: str, z: float, offset, linear: bool,
-         x_tool: float | None = None) -> list[list[float]]:
-    seat = _matrix(self._world.get_transform(
-      self._world.root, self._world.get_transform_node(_frame_ref(obj, frame))))
+  def to(
+    self,
+    obj: str,
+    frame: str,
+    z: float,
+    offset,
+    linear: bool,
+    x_tool: float | None = None,
+  ) -> list[list[float]]:
+    seat = _matrix(
+      self._world.get_transform(
+        self._world.root, self._world.get_transform_node(_frame_ref(obj, frame))
+      )
+    )
     # The shank axis between the jaws (x_tool along the tool's -x, see
     # GraspProfile.tool_x_from_shank_axis; it can be negative) goes onto the
     # seat axis, tool straight down; the yaw about the shank is left free
@@ -362,10 +402,17 @@ class JointTargets:
     follow = bool(linear and self._last and self._last[:2] == (obj, frame))
     if follow:
       z0, x0 = self._last[2:]
-      n = max(1, min(JOINT_IK_LINEAR_STEPS,
-                     math.ceil(math.hypot(z - z0, x_tool - x0) / LINEAR_STEP_M - 1e-9)))
-      steps = [(z0 + (z - z0) * (i + 1) / n, x0 + (x_tool - x0) * (i + 1) / n)
-               for i in range(n)]
+      n = max(
+        1,
+        min(
+          JOINT_IK_LINEAR_STEPS,
+          math.ceil(math.hypot(z - z0, x_tool - x0) / LINEAR_STEP_M - 1e-9),
+        ),
+      )
+      steps = [
+        (z0 + (z - z0) * (i + 1) / n, x0 + (x_tool - x0) * (i + 1) / n)
+        for i in range(n)
+      ]
     out = []
     down = self._base_inv[:3, :3] @ (-seat[:3, 2])
     # In the bit rack the neighbours stand only one pitch away, closer than
@@ -374,24 +421,33 @@ class JointTargets:
     # the diagonal of a square grid, a gap between rings in the curved rack.
     diagonals = []
     if frame.startswith(GRID_CELL_PREFIX) and obj == GRID_OBJECT:
-      diagonals = [self._base_inv[:3, :3] @ [*d, 0.0] for d in self._jaw_axes(frame, seat)]
+      diagonals = [
+        self._base_inv[:3, :3] @ [*d, 0.0] for d in self._jaw_axes(frame, seat)
+      ]
     for zi, xi in steps:
       point = (self._base_inv @ seat @ [0.0, 0.0, zi, 1.0])[:3]
       # Free (ANY) targets take the elbow-up branch; LINEAR steps stay on the
       # branch of the step before.
       if diagonals:
-        q = self._solve_diagonal(point, xi, down, diagonals, elbow_up=not follow)
+        q = self._solve_diagonal(
+          point, xi, down, diagonals, elbow_up=not follow
+        )
       else:
-        q = so101_ik.solve_down(point, (-xi, 0.0, 0.0), down, self.q, elbow_up=not follow)
+        q = so101_ik.solve_down(
+          point, (-xi, 0.0, 0.0), down, self.q, elbow_up=not follow
+        )
       if q is None:
         raise ValueError(
           f"SO-101 cannot reach {obj}.{frame} at z={zi:.3f} m with the gripper "
-          "vertical (out of reach of this arm from where it stands)")
+          "vertical (out of reach of this arm from where it stands)"
+        )
       self.q = [float(v) for v in q]
       if os.environ.get("MOVE_BIT_PRINT_JOINTS"):
-        print(f"    {obj}.{frame} z={zi:.3f}: tool at "
-              f"{[round(float(v), 4) for v in (self._base @ so101_ik.fk(q))[:3, 3]]}"
-              f" q={[round(v, 3) for v in self.q]}")
+        print(
+          f"    {obj}.{frame} z={zi:.3f}: tool at "
+          f"{[round(float(v), 4) for v in (self._base @ so101_ik.fk(q))[:3, 3]]}"
+          f" q={[round(v, 3) for v in self.q]}"
+        )
       out.append(self.q)
     self._last = (obj, frame, z, x_tool)
     return out
@@ -406,7 +462,9 @@ class JointTargets:
         name = str(name)
         if name.startswith(GRID_CELL_PREFIX):
           t = self._world.get_transform(
-            self._world.root, self._world.get_transform_node(_frame_ref(GRID_OBJECT, name)))
+            self._world.root,
+            self._world.get_transform_node(_frame_ref(GRID_OBJECT, name)),
+          )
           self._seats[name] = _matrix(t)[:2, 3]
     return self._seats
 
@@ -414,18 +472,26 @@ class JointTargets:
     """World xy jaw axes (both signs) that keep the jaws clearest of the
     neighbouring seats: within JAW_AXIS_SLACK of the best clearance."""
     import numpy as np  # pylint: disable=import-outside-toplevel
+
     centre = seat[:2, 3]
-    near = [p - centre for name, p in self._rack_seats().items()
-            if name != frame and np.linalg.norm(p - centre) < JAW_REACH + PUCK_CLEAR]
+    near = [
+      p - centre
+      for name, p in self._rack_seats().items()
+      if name != frame and np.linalg.norm(p - centre) < JAW_REACH + PUCK_CLEAR
+    ]
     scored = []
     for i in range(36):
       th = math.pi * i / 36
       d = np.array([math.cos(th), math.sin(th)])
-      clear = min((_segment_distance(n, d, JAW_REACH) for n in near), default=1.0)
+      clear = min(
+        (_segment_distance(n, d, JAW_REACH) for n in near), default=1.0
+      )
       scored.append((clear, d))
     best = max(c for c, _ in scored)
     if os.environ.get("MOVE_BIT_PRINT_JOINTS"):
-      print(f"    {frame}: jaw clearance to the nearest seat {best * 1000:.1f} mm")
+      print(
+        f"    {frame}: jaw clearance to the nearest seat {best * 1000:.1f} mm"
+      )
     axes = []
     for c, d in scored:
       if c >= best - JAW_AXIS_SLACK:
@@ -434,12 +500,15 @@ class JointTargets:
 
   def _solve_diagonal(self, point, x_tool, down, diagonals, elbow_up):
     import numpy as np  # pylint: disable=import-outside-toplevel
+
     z_axis = np.asarray(down, float)
     targets = []
     for x_axis in diagonals:
       x_axis = np.asarray(x_axis, float)
       target = np.eye(4)
-      target[:3, :3] = np.column_stack([x_axis, np.cross(z_axis, x_axis), z_axis])
+      target[:3, :3] = np.column_stack(
+        [x_axis, np.cross(z_axis, x_axis), z_axis]
+      )
       # Shank axis at tool -x by x_tool: the tool frame goes +x of it.
       target[:3, 3] = np.asarray(point, float) + x_tool * x_axis
       targets.append(target)
@@ -450,11 +519,13 @@ class JointTargets:
 def _matrix(pose: Any):
   return so101_ik.pose_matrix(
     [float(v) for v in pose.translation],
-    [float(v) for v in pose.rotation.quaternion.xyzw])
+    [float(v) for v in pose.rotation.quaternion.xyzw],
+  )
 
 
 def _inverse(m):
   import numpy as np  # pylint: disable=import-outside-toplevel
+
   return np.linalg.inv(m)
 
 
@@ -476,13 +547,14 @@ def carousel_angle(world: Any) -> float | None:
 # travel (0..2 pi, no wrapping past the end stop), a smooth start and stop,
 # about CAROUSEL_PEAK_SPEED at most (conservative for the loaded 352 mm
 # plate; the servo itself does ~4.7 rad/s unloaded).
-CAROUSEL_PEAK_SPEED = 1.2      # rad/s
-CAROUSEL_MIN_TURN_TIME = 0.5   # s
+CAROUSEL_PEAK_SPEED = 1.2  # rad/s
+CAROUSEL_MIN_TURN_TIME = 0.5  # s
 CAROUSEL_UPDATE_HZ = 20
 
 
 def _turn_smoothly(world: Any, obj: Any, start: float, goal: float) -> None:
   import time  # pylint: disable=import-outside-toplevel
+
   dist = abs(goal - start)
   if dist < 1e-4:
     return
@@ -503,11 +575,13 @@ def turn_carousel(world: Any, slot: str) -> None:
   pick position (belief world; the real carousel's servo follows it)."""
   obj = carousel(world)
   _, frame = parse_slot(slot)
-  r, c = (int(v) for v in frame[len(GRID_CELL_PREFIX):].split("_"))
+  r, c = (int(v) for v in frame[len(GRID_CELL_PREFIX) :].split("_"))
   angle = carousel_layout.platter_angle_for(r, c)
   print(f"  turning the carousel to {math.degrees(angle):.1f} deg for {slot}")
   _turn_smoothly(world, obj, float(list(obj.joint_positions)[0]), angle)
-  p = world.get_transform(world.root, world.get_transform_node(_frame_ref(GRID_OBJECT, frame)))
+  p = world.get_transform(
+    world.root, world.get_transform_node(_frame_ref(GRID_OBJECT, frame))
+  )
   print(f"  {slot} now at world {[round(float(v), 4) for v in p.translation]}")
 
 
@@ -521,8 +595,12 @@ def _seat_in_world(world: Any, holder: str, slot: str) -> None:
   obj, frame = parse_slot(slot)
   seat = world.get_transform_node(_frame_ref(obj, frame))
   bit = world.get_object(holder)
-  world.update_transform(node_a=world.root, node_b=bit,
-                         a_t_b=world.get_transform(world.root, seat), node_to_update=bit)
+  world.update_transform(
+    node_a=world.root,
+    node_b=bit,
+    a_t_b=world.get_transform(world.root, seat),
+    node_to_update=bit,
+  )
   # Attached to the seat, so a bit on the carousel turns with it.
   world.reparent_object(bit, seat)
 
@@ -547,29 +625,45 @@ def build_move_tree(
   """
   tool = config.robot.tool_object_name
   x_tool = profile.tool_x_from_shank_axis(shank)
-  x_beside = x_tool + profile.approach_offset   # tool off the shank, fixed finger away
+  x_beside = (
+    x_tool + profile.approach_offset
+  )  # tool off the shank, fixed finger away
   PRE_Z, GRASP_Z = profile.pre_z, profile.grasp_z
   src_obj, src_frame = parse_slot(src)
   dst_obj, dst_frame = parse_slot(dst)
   held = [(tool, holder)]
 
   def move(obj, frame, z, motion, pairs, label, x=x_tool):
-    qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x),
-                   linear=motion == "LINEAR", x_tool=x)
+    qs = joints.to(
+      obj,
+      frame,
+      z,
+      lambda zi: _offset(zi, yaw_deg, x),
+      linear=motion == "LINEAR",
+      x_tool=x,
+    )
     # The jaw is hinged inside the gripper body (so101_arm.gripper_link), so
     # the two always overlap; the planner would reject every configuration.
     # The fixed jaw is part of the arm (gripper_link), so contacts allowed
     # for the gripper object are allowed for the arm as well.
     arm = config.robot.arm_part_name
-    jaw_pairs = [(tool, arm)] + list(pairs or []) + [
-      (arm, b) for a, b in (pairs or []) if a == tool]
-    steps = [robot.build_move_joint_task(
-               object_world_resources.JointConfiguration(joint_position=q),
-               name=f"{label} ({i + 1}/{len(qs)})",
-               excluded_collision_pairs=jaw_pairs,
-               motion_type="JOINT" if motion == "LINEAR" else "ANY")
-             for i, q in enumerate(qs)]
-    return steps[0] if len(steps) == 1 else bt.Sequence(name=label, children=steps)
+    jaw_pairs = (
+      [(tool, arm)]
+      + list(pairs or [])
+      + [(arm, b) for a, b in (pairs or []) if a == tool]
+    )
+    steps = [
+      robot.build_move_joint_task(
+        object_world_resources.JointConfiguration(joint_position=q),
+        name=f"{label} ({i + 1}/{len(qs)})",
+        excluded_collision_pairs=jaw_pairs,
+        motion_type="JOINT" if motion == "LINEAR" else "ANY",
+      )
+      for i, q in enumerate(qs)
+    ]
+    return (
+      steps[0] if len(steps) == 1 else bt.Sequence(name=label, children=steps)
+    )
 
   def via_home(label):
     # SO-101: the planner's free path between grid and ATC can swing the
@@ -577,8 +671,11 @@ def build_move_tree(
     joints.via_home()
     arm = config.robot.arm_part_name
     return robot.build_move_joint_task(
-      "home", name=label, motion_type="ANY",
-      excluded_collision_pairs=[(tool, arm), (arm, holder)] + held)
+      "home",
+      name=label,
+      motion_type="ANY",
+      excluded_collision_pairs=[(tool, arm), (arm, holder)] + held,
+    )
 
   tasks: list[bt.Node] = []
   if machine is not None and ATC_OBJECT in (src_obj, dst_obj):
@@ -587,23 +684,56 @@ def build_move_tree(
     gripper.build_open_task(name="Open Gripper"),
     # held: a stopped earlier run may have left the gripper touching this bit.
     move(src_obj, src_frame, PRE_Z, "ANY", held, f"Above {src}", x=x_beside),
-    move(src_obj, src_frame, GRASP_Z, "LINEAR", held, f"Descend beside {holder}",
-         x=x_beside),
+    move(
+      src_obj,
+      src_frame,
+      GRASP_Z,
+      "LINEAR",
+      held,
+      f"Descend beside {holder}",
+      x=x_beside,
+    ),
     move(src_obj, src_frame, GRASP_Z, "LINEAR", held, f"Onto {holder}'s shank"),
     gripper.build_close_task(name=f"Grip {holder}"),
     robot.build_attach_object_task(object_name=holder, name=f"Attach {holder}"),
-    move(src_obj, src_frame, PRE_Z, "LINEAR", held + [(holder, src_obj)],
-         f"Lift {holder} out of {src}"),
+    move(
+      src_obj,
+      src_frame,
+      PRE_Z,
+      "LINEAR",
+      held + [(holder, src_obj)],
+      f"Lift {holder} out of {src}",
+    ),
     via_home(f"Carry {holder} via home"),
     move(dst_obj, dst_frame, PRE_Z, "ANY", held, f"Carry {holder} above {dst}"),
-    move(dst_obj, dst_frame, GRASP_Z, "LINEAR", held + [(holder, dst_obj)],
-         f"Seat {holder} in {dst}"),
+    move(
+      dst_obj,
+      dst_frame,
+      GRASP_Z,
+      "LINEAR",
+      held + [(holder, dst_obj)],
+      f"Seat {holder} in {dst}",
+    ),
     gripper.build_open_task(name=f"Release {holder}"),
     robot.build_detach_object_task(object_name=holder, name=f"Detach {holder}"),
-    move(dst_obj, dst_frame, GRASP_Z, "LINEAR", held + [(holder, dst_obj)],
-         f"Off {holder}'s shank", x=x_beside),
-    move(dst_obj, dst_frame, PRE_Z, "LINEAR", held + [(holder, dst_obj)],
-         f"Lift clear of {dst}", x=x_beside),
+    move(
+      dst_obj,
+      dst_frame,
+      GRASP_Z,
+      "LINEAR",
+      held + [(holder, dst_obj)],
+      f"Off {holder}'s shank",
+      x=x_beside,
+    ),
+    move(
+      dst_obj,
+      dst_frame,
+      PRE_Z,
+      "LINEAR",
+      held + [(holder, dst_obj)],
+      f"Lift clear of {dst}",
+      x=x_beside,
+    ),
   ]
   return bt.Sequence(name=f"Move {holder}: {src} -> {dst}", children=tasks)
 
@@ -622,28 +752,42 @@ def slot_name(slot: str) -> str:
 def progress(i: int, n: int, phase: str, move: str, text: str) -> None:
   """One machine-readable progress line (the ATC picker shows them): move i of
   n (0-based; i == n after the last), the phase and what is going on."""
-  print("@progress " + json.dumps({"i": i, "n": n, "phase": phase, "move": move,
-                                   "text": text}), flush=True)
+  print(
+    "@progress "
+    + json.dumps({"i": i, "n": n, "phase": phase, "move": move, "text": text}),
+    flush=True,
+  )
 
 
-def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
-              home_frame: str | None) -> bool:
+def run_moves(
+  solution: Any,
+  config: AppConfig,
+  moves,
+  yaw_deg: float,
+  home_frame: str | None,
+) -> bool:
   robot = Robot(solution=solution, config=config.robot)
   if config.gripper.type != "so101":
-    raise SystemExit("move_bit drives the SO-101 cell (--config=configs/carvera_so101/app_config.yaml).")
+    raise SystemExit(
+      "move_bit drives the SO-101 cell (--config=configs/carvera_so101/app_config.yaml)."
+    )
   profile = PROFILES["so101"]
   catalog = load_bit_catalog()
   machine = (
     DioCncMachine(solution=solution, config=config.machine)
-    if config.machine is not None else None
+    if config.machine is not None
+    else None
   )
   world = solution.world
   if not getattr(solution, "is_simulated", False) and any(
-      s.startswith("atc:") for move in moves for s in move):
+    s.startswith("atc:") for move in moves for s in move
+  ):
     # After a job the Carvera may keep a bit in the spindle; its ATC slot then
     # looks empty to the arm, which would put another bit there.
-    input("Make sure the Carvera's spindle holds no tool (Makera Studio / controller: "
-          "drop the tool), then press Enter: ")
+    input(
+      "Make sure the Carvera's spindle holds no tool (Makera Studio / controller: "
+      "drop the tool), then press Enter: "
+    )
   n = len(moves)
   for i, (src, dst) in enumerate(moves):
     holders = holder_positions(world)
@@ -655,24 +799,47 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     if occupant is not None:
       print(f"[!] {dst} is occupied by {occupant}; skipping.")
       return False
-    on_carousel = [s for s in (src, dst) if s.startswith("grid:")] if carousel(world) else []
+    on_carousel = (
+      [s for s in (src, dst) if s.startswith("grid:")]
+      if carousel(world)
+      else []
+    )
     if len(on_carousel) == 2:
-      print(f"[!] {src} -> {dst}: both seats are on the carousel; move the bit to a "
-            "free ATC slot and from there to the other seat.")
+      print(
+        f"[!] {src} -> {dst}: both seats are on the carousel; move the bit to a "
+        "free ATC slot and from there to the other seat."
+      )
       return False
     shank = shank_m(holder, catalog)
     title = catalog.get(holder, {}).get("title", holder)
     what = f"{title}: {slot_name(src)} → {slot_name(dst)}"
     if on_carousel:
-      progress(i, n, "turn", what, f"turning the carousel to {slot_name(on_carousel[0])}")
+      progress(
+        i,
+        n,
+        "turn",
+        what,
+        f"turning the carousel to {slot_name(on_carousel[0])}",
+      )
       turn_carousel(world, on_carousel[0])
     print(f"Moving {holder} ({title}): {src} -> {dst} ...")
     progress(i, n, "plan", what, "working out the arm's joint path")
     gripper = make_gripper(solution, config, shank)
     joints = JointTargets(world, config.robot.arm_part_name)
     try:
-      tree = build_move_tree(robot, gripper, machine, config, holder, src, dst, yaw_deg,
-                             profile, shank, joints)
+      tree = build_move_tree(
+        robot,
+        gripper,
+        machine,
+        config,
+        holder,
+        src,
+        dst,
+        yaw_deg,
+        profile,
+        shank,
+        joints,
+      )
       progress(i, n, "arm", what, "arm: pick, carry, place")
       solution.executive.run(tree)
       _seat_in_world(world, holder, dst)
@@ -690,9 +857,16 @@ def run_moves(solution: Any, config: AppConfig, moves, yaw_deg: float,
     solution.simulator.reset()
   if home_frame:
     progress(n, n, "home", "", "arm back to home")
-    solution.executive.run(robot.build_move_joint_task(
-      "home", name="Return to home", motion_type="ANY",
-      excluded_collision_pairs=[(config.robot.tool_object_name, config.robot.arm_part_name)]))
+    solution.executive.run(
+      robot.build_move_joint_task(
+        "home",
+        name="Return to home",
+        motion_type="ANY",
+        excluded_collision_pairs=[
+          (config.robot.tool_object_name, config.robot.arm_part_name)
+        ],
+      )
+    )
   return True
 
 
@@ -710,16 +884,21 @@ ANIM_STEPS = 40
 
 def _cart_target(world: Any, parked: bool):
   from intrinsic.math.python import data_types  # pylint: disable=import-outside-toplevel
-  cnc = world.get_transform(world.root, world.get_object(ATC_OBJECT)).translation
+
+  cnc = world.get_transform(
+    world.root, world.get_object(ATC_OBJECT)
+  ).translation
   cart = world.get_transform(world.root, world.get_object(CART_OBJECT))
   x = float(cnc[0]) + CART_DOCK_FROM_CARVERA[0] + (PARK_DX if parked else 0.0)
   y = float(cnc[1]) + CART_DOCK_FROM_CARVERA[1]
-  return cart, data_types.Pose3(rotation=cart.rotation,
-                                translation=[x, y, float(cart.translation[2])])
+  return cart, data_types.Pose3(
+    rotation=cart.rotation, translation=[x, y, float(cart.translation[2])]
+  )
 
 
 def _animate(n: int, step, pause: float = 0.03) -> None:
   import time  # pylint: disable=import-outside-toplevel
+
   for i in range(1, n + 1):
     # ease in and out
     t = i / n
@@ -731,17 +910,27 @@ def roll_cart(solution: Any, config: AppConfig, parked: bool) -> None:
   """Rolls the cart to its parked or docked position (sim: animated in the
   world; the real cart is pushed by hand)."""
   from intrinsic.math.python import data_types  # pylint: disable=import-outside-toplevel
+
   world = solution.world
   start, goal = _cart_target(world, parked)
   if not getattr(solution, "is_simulated", False):
-    input(f"Push the cart {'away from' if parked else 'up to'} the Carvera, then press Enter: ")
+    input(
+      f"Push the cart {'away from' if parked else 'up to'} the Carvera, then press Enter: "
+    )
   cart = world.get_object(CART_OBJECT)
   a, b = start.translation, goal.translation
 
   def step(t):
-    world.update_transform(node_a=world.root, node_b=cart, node_to_update=cart,
-                           a_t_b=data_types.Pose3(rotation=goal.rotation,
-                                                  translation=[a[k] + (b[k] - a[k]) * t for k in range(3)]))
+    world.update_transform(
+      node_a=world.root,
+      node_b=cart,
+      node_to_update=cart,
+      a_t_b=data_types.Pose3(
+        rotation=goal.rotation,
+        translation=[a[k] + (b[k] - a[k]) * t for k in range(3)],
+      ),
+    )
+
   _animate(ANIM_STEPS, step)
 
 
@@ -750,20 +939,30 @@ def set_hood(solution: Any, open_: bool) -> None:
   real hood is lifted by hand)."""
   world = solution.world
   if not getattr(solution, "is_simulated", False):
-    input(f"{'Open' if open_ else 'Close'} the Carvera's hood, then press Enter: ")
+    input(
+      f"{'Open' if open_ else 'Close'} the Carvera's hood, then press Enter: "
+    )
   cnc = world.get_kinematic_object(ATC_OBJECT)
   q0 = float(list(cnc.joint_positions)[0])
   q1 = HOOD_OPEN if open_ else 0.0
-  _animate(ANIM_STEPS, lambda t: world.update_joint_positions(cnc, [q0 + (q1 - q0) * t]))
+  _animate(
+    ANIM_STEPS,
+    lambda t: world.update_joint_positions(cnc, [q0 + (q1 - q0) * t]),
+  )
 
 
 def park(solution: Any, config: AppConfig) -> None:
   """Arm home, cart away from the Carvera, hood closed."""
   robot = Robot(solution=solution, config=config.robot)
   tool = config.robot.tool_object_name
-  solution.executive.run(robot.build_move_joint_task(
-    "home", name="Arm home", motion_type="ANY",
-    excluded_collision_pairs=[(tool, config.robot.arm_part_name)]))
+  solution.executive.run(
+    robot.build_move_joint_task(
+      "home",
+      name="Arm home",
+      motion_type="ANY",
+      excluded_collision_pairs=[(tool, config.robot.arm_part_name)],
+    )
+  )
   print("Rolling the cart away ...")
   roll_cart(solution, config, parked=True)
   print("Closing the hood ...")
@@ -783,17 +982,31 @@ def dock(solution: Any, config: AppConfig) -> None:
 def plan_fill_atc(world: Any) -> list[tuple[str, str]]:
   """Fills empty ATC slots T1..T6 from the first occupied grid cells."""
   holders = holder_positions(world)
-  sources = [s for s in all_slots(world) if s.startswith("grid:") and holder_at(world, s, holders)]
-  targets = [f"atc:{n}" for n in ATC_SLOTS if holder_at(world, f"atc:{n}", holders) is None]
-  return list(zip(sources, targets))
+  sources = [
+    s
+    for s in all_slots(world)
+    if s.startswith("grid:") and holder_at(world, s, holders)
+  ]
+  targets = [
+    f"atc:{n}"
+    for n in ATC_SLOTS
+    if holder_at(world, f"atc:{n}", holders) is None
+  ]
+  return list(zip(sources, targets, strict=False))
 
 
 def plan_empty_atc(world: Any) -> list[tuple[str, str]]:
   """Returns holders in T1..T6 to the first free grid cells."""
   holders = holder_positions(world)
-  sources = [f"atc:{n}" for n in ATC_SLOTS if holder_at(world, f"atc:{n}", holders)]
-  free = [s for s in all_slots(world) if s.startswith("grid:") and holder_at(world, s, holders) is None]
-  return list(zip(sources, free))
+  sources = [
+    f"atc:{n}" for n in ATC_SLOTS if holder_at(world, f"atc:{n}", holders)
+  ]
+  free = [
+    s
+    for s in all_slots(world)
+    if s.startswith("grid:") and holder_at(world, s, holders) is None
+  ]
+  return list(zip(sources, free, strict=False))
 
 
 def occupancy(world: Any) -> dict[str, str | None]:
@@ -826,25 +1039,34 @@ def parse_set_atc(spec: str) -> dict[int, str | None]:
   return out
 
 
-def gcode_targets(path: str, maps: list[str], accept_closest: bool) -> dict[int, str | None]:
+def gcode_targets(
+  path: str, maps: list[str], accept_closest: bool
+) -> dict[int, str | None]:
   """ATC targets for a Makera Studio job (--from_gcode), or exits with why not.
 
   Nothing moves unless every tool of the job has its bit: a wrong bit in a
   slot is worse than an empty one.
   """
   job = gcode_tools.plan(path, gcode_tools.parse_map(maps))
-  print(f"Tools of {os.path.basename(path)}:\n{gcode_tools.report(job)}", flush=True)
+  print(
+    f"Tools of {os.path.basename(path)}:\n{gcode_tools.report(job)}", flush=True
+  )
   if job.problems:
-    sys.exit("Not loading the ATC: fix the lines marked '!' above (--gcode_map N=<bit id>).")
+    sys.exit(
+      "Not loading the ATC: fix the lines marked '!' above (--gcode_map N=<bit id>)."
+    )
   if job.guesses and not accept_closest:
     slots = ", ".join(f"T{n}" for n in job.guesses)
-    sys.exit(f"Not loading the ATC: {slots} are custom tools (~). Name their bits with "
-             "--gcode_map N=<bit id>, or pass --accept_closest to take the closest bits.")
+    sys.exit(
+      f"Not loading the ATC: {slots} are custom tools (~). Name their bits with "
+      "--gcode_map N=<bit id>, or pass --accept_closest to take the closest bits."
+    )
   return parse_set_atc(job.spec)
 
 
-def plan_set_atc(world: Any, targets: dict[int, str | None],
-                 catalog: dict[str, dict]) -> list[tuple[str, str]]:
+def plan_set_atc(
+  world: Any, targets: dict[int, str | None], catalog: dict[str, dict]
+) -> list[tuple[str, str]]:
   """Moves that leave ATC slot n holding targets[n] (None: empty).
 
   First every slot that holds a bit it should not goes back to the
@@ -892,7 +1114,8 @@ def plan_set_atc(world: Any, targets: dict[int, str | None],
 # so there the picker offers to restore it.
 STATE_PATH = os.environ.get(
   "CARVERA_CELL_STATE",
-  os.path.expanduser("~/.local/state/carvera_so101/cell_state.json"))
+  os.path.expanduser("~/.local/state/carvera_so101/cell_state.json"),
+)
 
 
 def cart_parked(world: Any) -> bool:
@@ -901,11 +1124,15 @@ def cart_parked(world: Any) -> bool:
 
 
 def hood_open(world: Any) -> bool:
-  return float(list(world.get_kinematic_object(ATC_OBJECT).joint_positions)[0]) > HOOD_OPEN / 2
+  return (
+    float(list(world.get_kinematic_object(ATC_OBJECT).joint_positions)[0])
+    > HOOD_OPEN / 2
+  )
 
 
 def snapshot(world: Any) -> dict:
   import datetime  # pylint: disable=import-outside-toplevel
+
   return {
     "slots": {slot: bit for slot, bit in occupancy(world).items() if bit},
     "carousel_rad": carousel_angle(world),
@@ -940,8 +1167,10 @@ def state_differences(saved: dict | None, now: dict) -> list[str]:
   out = []
   for slot in sorted(set(saved["slots"]) | set(now["slots"])):
     if saved["slots"].get(slot) != now["slots"].get(slot):
-      out.append(f"{slot}: saved {saved['slots'].get(slot) or 'empty'}, "
-                 f"world {now['slots'].get(slot) or 'empty'}")
+      out.append(
+        f"{slot}: saved {saved['slots'].get(slot) or 'empty'}, "
+        f"world {now['slots'].get(slot) or 'empty'}"
+      )
   for key in ("cart", "hood"):
     if saved.get(key) != now.get(key):
       out.append(f"{key}: saved {saved.get(key)}, world {now.get(key)}")
@@ -955,16 +1184,22 @@ def restore_state(solution: Any, state: dict) -> None:
     world.update_joint_positions(carousel(world), [state["carousel_rad"]])
   cart, goal = _cart_target(world, parked=state.get("cart") == "parked")
   obj = world.get_object(CART_OBJECT)
-  world.update_transform(node_a=world.root, node_b=obj, node_to_update=obj, a_t_b=goal)
-  world.update_joint_positions(world.get_kinematic_object(ATC_OBJECT),
-                               [HOOD_OPEN if state.get("hood") == "open" else 0.0])
+  world.update_transform(
+    node_a=world.root, node_b=obj, node_to_update=obj, a_t_b=goal
+  )
+  world.update_joint_positions(
+    world.get_kinematic_object(ATC_OBJECT),
+    [HOOD_OPEN if state.get("hood") == "open" else 0.0],
+  )
   for slot, bit in state["slots"].items():
     _seat_in_world(world, bit, slot)
   if getattr(solution, "is_simulated", False) and solution.simulator:
     solution.simulator.reset()
 
 
-def record_set_atc(solution: Any, targets: dict[int, str | None]) -> list[tuple[str, str]]:
+def record_set_atc(
+  solution: Any, targets: dict[int, str | None]
+) -> list[tuple[str, str]]:
   """Records that the ATC was changed by hand: the same moves as --set_atc,
   but the bits are only put there in the world, the arm does not move."""
   world = solution.world
@@ -982,47 +1217,103 @@ def record_set_atc(solution: Any, targets: dict[int, str | None]) -> list[tuple[
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
   parser.add_argument("--address", default="localhost:17080")
-  parser.add_argument("--config", default="configs/carvera_so101/app_config.yaml")
-  parser.add_argument("--move", action="append", default=[],
-                      help="'<src>:<dst>', e.g. grid:0,0:atc:1 (repeatable).")
-  parser.add_argument("--fill_atc", action="store_true",
-                      help="Fill empty ATC slots T1..T6 from the grid.")
-  parser.add_argument("--empty_atc", action="store_true",
-                      help="Return all holders in T1..T6 to free grid cells.")
-  parser.add_argument("--list", action="store_true",
-                      help="Print which holder sits in which slot and exit.")
-  parser.add_argument("--set_atc", default="",
-                      help="Make the ATC hold these bits, e.g. '1=bit_ofl4_22,2=,6=bn4_12' "
-                           "(empty = empty slot; slots not named stay as they are).")
-  parser.add_argument("--from_gcode", default="",
-                      help="Load the ATC for a Makera Studio job: the G-code file's header "
-                           "says which bit is tool 1..6 (tools/atc/gcode_tools.py). Slots the "
-                           "job does not use stay as they are.")
-  parser.add_argument("--gcode_map", action="append", default=[],
-                      help="With --from_gcode: the bit for a tool number, e.g. 2=fe18_1p5x8 "
-                           "(repeatable); needed for custom tools.")
-  parser.add_argument("--accept_closest", action="store_true",
-                      help="With --from_gcode: for a custom tool, load the closest bit "
-                           "instead of stopping.")
-  parser.add_argument("--list_json", action="store_true",
-                      help="Print the ATC slots' bits and the carousel angle as JSON and exit.")
-  parser.add_argument("--park", action="store_true",
-                      help="SO-101 cell: arm home, roll the cart away, close the hood.")
-  parser.add_argument("--dock", action="store_true",
-                      help="SO-101 cell: open the hood, roll the cart up to the Carvera.")
-  parser.add_argument("--set_state", default="",
-                      help="Record bits changed by hand, same form as --set_atc: the world "
-                           "is set to match, the arm does not move.")
-  parser.add_argument("--save_state", action="store_true",
-                      help=f"Write the world's cell state to {STATE_PATH} and exit.")
-  parser.add_argument("--restore_state", action="store_true",
-                      help="Put the world back to the saved cell state (no arm motion) and exit.")
-  parser.add_argument("--turn", default="",
-                      help="Carousel only: turn seat grid:R,C to its pick position and exit.")
-  parser.add_argument("--yaw_deg", type=float, default=0.0,
-                      help="Gripper rotation about the tool axis at the seats.")
-  parser.add_argument("--home_frame", default="view",
-                      help="Root frame to return to afterwards ('' to stay).")
+  parser.add_argument(
+    "--config", default="configs/carvera_so101/app_config.yaml"
+  )
+  parser.add_argument(
+    "--move",
+    action="append",
+    default=[],
+    help="'<src>:<dst>', e.g. grid:0,0:atc:1 (repeatable).",
+  )
+  parser.add_argument(
+    "--fill_atc",
+    action="store_true",
+    help="Fill empty ATC slots T1..T6 from the grid.",
+  )
+  parser.add_argument(
+    "--empty_atc",
+    action="store_true",
+    help="Return all holders in T1..T6 to free grid cells.",
+  )
+  parser.add_argument(
+    "--list",
+    action="store_true",
+    help="Print which holder sits in which slot and exit.",
+  )
+  parser.add_argument(
+    "--set_atc",
+    default="",
+    help="Make the ATC hold these bits, e.g. '1=bit_ofl4_22,2=,6=bn4_12' "
+    "(empty = empty slot; slots not named stay as they are).",
+  )
+  parser.add_argument(
+    "--from_gcode",
+    default="",
+    help="Load the ATC for a Makera Studio job: the G-code file's header "
+    "says which bit is tool 1..6 (tools/atc/gcode_tools.py). Slots the "
+    "job does not use stay as they are.",
+  )
+  parser.add_argument(
+    "--gcode_map",
+    action="append",
+    default=[],
+    help="With --from_gcode: the bit for a tool number, e.g. 2=fe18_1p5x8 "
+    "(repeatable); needed for custom tools.",
+  )
+  parser.add_argument(
+    "--accept_closest",
+    action="store_true",
+    help="With --from_gcode: for a custom tool, load the closest bit "
+    "instead of stopping.",
+  )
+  parser.add_argument(
+    "--list_json",
+    action="store_true",
+    help="Print the ATC slots' bits and the carousel angle as JSON and exit.",
+  )
+  parser.add_argument(
+    "--park",
+    action="store_true",
+    help="SO-101 cell: arm home, roll the cart away, close the hood.",
+  )
+  parser.add_argument(
+    "--dock",
+    action="store_true",
+    help="SO-101 cell: open the hood, roll the cart up to the Carvera.",
+  )
+  parser.add_argument(
+    "--set_state",
+    default="",
+    help="Record bits changed by hand, same form as --set_atc: the world "
+    "is set to match, the arm does not move.",
+  )
+  parser.add_argument(
+    "--save_state",
+    action="store_true",
+    help=f"Write the world's cell state to {STATE_PATH} and exit.",
+  )
+  parser.add_argument(
+    "--restore_state",
+    action="store_true",
+    help="Put the world back to the saved cell state (no arm motion) and exit.",
+  )
+  parser.add_argument(
+    "--turn",
+    default="",
+    help="Carousel only: turn seat grid:R,C to its pick position and exit.",
+  )
+  parser.add_argument(
+    "--yaw_deg",
+    type=float,
+    default=0.0,
+    help="Gripper rotation about the tool axis at the seats.",
+  )
+  parser.add_argument(
+    "--home_frame",
+    default="view",
+    help="Root frame to return to afterwards ('' to stay).",
+  )
   return parser.parse_args(argv)
 
 
@@ -1064,13 +1355,20 @@ def main(argv: Sequence[str] | None = None) -> None:
     now = snapshot(world)
     saved = load_state()
     angle = now["carousel_rad"]
-    print(json.dumps({
-      "atc": {str(n): now["slots"].get(f"atc:{n}") for n in ATC_SLOTS},
-      "carousel_deg": None if angle is None else round(math.degrees(angle), 1),
-      "cart": now["cart"], "hood": now["hood"],
-      "saved": None if saved is None else saved.get("updated"),
-      "differs": state_differences(saved, now),
-    }))
+    print(
+      json.dumps(
+        {
+          "atc": {str(n): now["slots"].get(f"atc:{n}") for n in ATC_SLOTS},
+          "carousel_deg": None
+          if angle is None
+          else round(math.degrees(angle), 1),
+          "cart": now["cart"],
+          "hood": now["hood"],
+          "saved": None if saved is None else saved.get("updated"),
+          "differs": state_differences(saved, now),
+        }
+      )
+    )
     return
 
   if args.list:
@@ -1090,13 +1388,20 @@ def main(argv: Sequence[str] | None = None) -> None:
   if args.from_gcode or args.set_atc:
     targets = {}
     if args.from_gcode:
-      targets.update(gcode_targets(args.from_gcode, args.gcode_map, args.accept_closest))
-    targets.update(parse_set_atc(args.set_atc))   # slots named by hand win
+      targets.update(
+        gcode_targets(args.from_gcode, args.gcode_map, args.accept_closest)
+      )
+    targets.update(parse_set_atc(args.set_atc))  # slots named by hand win
 
     def plan_set():
       moves = plan_set_atc(world, targets, load_bit_catalog())
-      print(f"Plan: {len(moves)} moves" + "".join(f"\n  {a} -> {b}" for a, b in moves), flush=True)
+      print(
+        f"Plan: {len(moves)} moves"
+        + "".join(f"\n  {a} -> {b}" for a, b in moves),
+        flush=True,
+      )
       return moves
+
     batches.append(plan_set)
   if args.fill_atc:
     batches.append(lambda: plan_fill_atc(world))
@@ -1107,13 +1412,18 @@ def main(argv: Sequence[str] | None = None) -> None:
     moves = plan()
     if not moves:
       continue
-    if not run_moves(solution, config, moves, args.yaw_deg, args.home_frame or None):
+    if not run_moves(
+      solution, config, moves, args.yaw_deg, args.home_frame or None
+    ):
       sys.exit(1)
     ran = True
   if not ran:
-    print("[✓] The ATC already holds those bits." if args.set_atc or args.from_gcode else
-          "Nothing to do: give --move, --set_atc, --from_gcode, --fill_atc, --empty_atc, "
-          "--park, --dock or --list.")
+    print(
+      "[✓] The ATC already holds those bits."
+      if args.set_atc or args.from_gcode
+      else "Nothing to do: give --move, --set_atc, --from_gcode, --fill_atc, --empty_atc, "
+      "--park, --dock or --list."
+    )
 
 
 if __name__ == "__main__":

@@ -17,38 +17,39 @@ Shared by the sim model (models/makera_carvera/build_carvera.py), the cell
 layout (configs/carvera_so101/gen_cell_configs.py), move_bit (via the seat
 frames) and the fabrication files (models/bit_carousel/fab/).
 """
+
 import math
 
 # ---------------------------------------------------------------- seats
-SEAT_PITCH = 0.022        # min centre distance along a ring
-RING_PITCH = 0.028        # between rings
+SEAT_PITCH = 0.022  # min centre distance along a ring
+RING_PITCH = 0.028  # between rings
 # The open jaw needs >= ~12 mm sideways to a neighbouring bit (see
 # tools/atc/move_bit.py); at these pitches every seat has a jaw direction with
 # >= 13.3 mm (fab/check_layout.py). Tighter rings (21 x 25 mm) left the
 # innermost ring only 5.5 mm, and the jaw hit its neighbours.
-RINGS = tuple(round(0.045 + k * RING_PITCH, 4) for k in range(5))   # 45..157 mm
-SEAT_Z = 0.075            # seat plate top above the cart top
-PLATE_T = 0.006           # seat plate thickness
-PLATE_R = 0.176           # seat plate radius
-PUCK_R = 0.0105           # seat boss radius in the sim model
+RINGS = tuple(round(0.045 + k * RING_PITCH, 4) for k in range(5))  # 45..157 mm
+SEAT_Z = 0.075  # seat plate top above the cart top
+PLATE_T = 0.006  # seat plate thickness
+PLATE_R = 0.176  # seat plate radius
+PUCK_R = 0.0105  # seat boss radius in the sim model
 
 # ---------------------------------------------------------------- mechanics
 # Shared by the sim model and the fabrication files (fab/). Heights above
 # the cart top.
-BASE_T = 0.006            # base plate (plywood, screwed to the cart top)
+BASE_T = 0.006  # base plate (plywood, screwed to the cart top)
 BASE_R = 0.178
-RIM_R = (0.162, 0.170)    # printed rim under the seat plate's edge
-RIM_Z0 = 0.032            # rim bottom, riding on the rollers
-ROLLER_R = 0.166          # 608 roller circle (rim centre line)
+RIM_R = (0.162, 0.170)  # printed rim under the seat plate's edge
+RIM_Z0 = 0.032  # rim bottom, riding on the rollers
+ROLLER_R = 0.166  # 608 roller circle (rim centre line)
 ROLLERS = 4
-BEARING_OD, BEARING_W = 0.022, 0.007   # 608 skate bearing
-HUB_R = 0.022             # printed hub: servo horn to seat plate
-SERVO_BODY = (0.0247, 0.0452, 0.035)   # STS3215 W x L x H (datasheet)
-SERVO_SHAFT_FROM_END = 0.0115           # output shaft from the near end (CHECK on yours)
-HORN_TOP = BASE_T + 0.0015 + SERVO_BODY[2] + 0.0045   # cradle floor, body, horn
-HOLE_D = 0.0066           # seat hole: passes any Makera bit's cutter and
-                          # shank (<= 6 mm), the collar (>= shank + 6 mm) rests
-                          # on the plate
+BEARING_OD, BEARING_W = 0.022, 0.007  # 608 skate bearing
+HUB_R = 0.022  # printed hub: servo horn to seat plate
+SERVO_BODY = (0.0247, 0.0452, 0.035)  # STS3215 W x L x H (datasheet)
+SERVO_SHAFT_FROM_END = 0.0115  # output shaft from the near end (CHECK on yours)
+HORN_TOP = BASE_T + 0.0015 + SERVO_BODY[2] + 0.0045  # cradle floor, body, horn
+HOLE_D = 0.0066  # seat hole: passes any Makera bit's cutter and
+# shank (<= 6 mm), the collar (>= shank + 6 mm) rests
+# on the plate
 
 # ---------------------------------------------------------------- placement
 # Turntable axis in the arm's pan frame (origin on the SO-101's pan axis,
@@ -122,5 +123,7 @@ if __name__ == "__main__":
   for r in range(len(RINGS)):
     a = PICK_ANGLE[r]
     px, py = cx + RINGS[r] * math.cos(a), cy + RINGS[r] * math.sin(a)
-    print(f"ring {r}: pick at pan-frame ({px:.3f}, {py:.3f}), "
-          f"{math.hypot(px, py):.3f} m, {math.degrees(math.atan2(py, px)) % 360:.0f} deg")
+    print(
+      f"ring {r}: pick at pan-frame ({px:.3f}, {py:.3f}), "
+      f"{math.hypot(px, py):.3f} m, {math.degrees(math.atan2(py, px)) % 360:.0f} deg"
+    )

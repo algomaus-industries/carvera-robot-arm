@@ -33,14 +33,27 @@ import sys
 
 BITS_JSON = os.path.join(
   os.path.dirname(os.path.abspath(__file__)),
-  "..", "..", "models", "makera_bits", "makera_bits.json",
+  "..",
+  "..",
+  "models",
+  "makera_bits",
+  "makera_bits.json",
 )
-CUTTERS_JSON = os.path.join(os.path.dirname(BITS_JSON), "makera_studio_cutters.json")
+CUTTERS_JSON = os.path.join(
+  os.path.dirname(BITS_JSON), "makera_studio_cutters.json"
+)
 # Makera Studio's tool categories (t_MakeraCutterList.cutterCategoryId) as the
 # header's type field. "Flat End" and "Engraving" are as Studio 0.1.3 writes
 # them; the others are not confirmed, and kind_of also reads the name.
-CATEGORY_TYPES = {0: "Ball Nose", 1: "Flat End", 2: "Chamfer", 3: "Engraving",
-                  5: "Drill", 6: "Thread", 7: "Ball Nose Engraving"}
+CATEGORY_TYPES = {
+  0: "Ball Nose",
+  1: "Flat End",
+  2: "Chamfer",
+  3: "Engraving",
+  5: "Drill",
+  6: "Thread",
+  7: "Ball Nose Engraving",
+}
 ATC_SLOTS = range(1, 7)
 HEADER = ";@MKR|"
 # A custom tool this close to a catalogue bit is taken to be that bit.
@@ -205,7 +218,9 @@ def _distance(tool: StudioTool, kind: str, bit: dict) -> tuple[float, bool]:
 def library_fields(cutter: dict) -> dict:
   """A Studio library cutter as the fields of the header line it gets."""
   return {
-    "number": "0", "id": cutter["g_ID"], "name": cutter["cutterName"],
+    "number": "0",
+    "id": cutter["g_ID"],
+    "name": cutter["cutterName"],
     "type": CATEGORY_TYPES.get(cutter["cutterCategoryId"], ""),
     "handlediameter": str(cutter["cutterDiameter"]),
     "flutelength": str(cutter["cutterFluteLength"]),
@@ -222,35 +237,51 @@ def load_library(path: str = CUTTERS_JSON) -> list[StudioTool]:
   if not os.path.exists(path):
     return []
   with open(path) as fh:
-    return [tool_from_fields(library_fields(c)) for c in json.load(fh)["cutters"]]
+    return [
+      tool_from_fields(library_fields(c)) for c in json.load(fh)["cutters"]
+    ]
 
 
-def library_tool_named_in(tool: StudioTool, library: list[StudioTool]) -> StudioTool | None:
+def library_tool_named_in(
+  tool: StudioTool, library: list[StudioTool]
+) -> StudioTool | None:
   """The library tool whose name a custom tool's name contains (the longest:
   "...Flat End" is also inside "...Flat End(Metal)"), with the same shank."""
   name = tool.name.lower()
-  named = [t for t in library
-           if t.name.lower() in name and abs(t.shank - tool.shank) < 0.02]
+  named = [
+    t
+    for t in library
+    if t.name.lower() in name and abs(t.shank - tool.shank) < 0.02
+  ]
   return max(named, key=lambda t: len(t.name), default=None)
 
 
-def match_tool(tool: StudioTool, bits: list[dict],
-               library: list[StudioTool] | None = None) -> Match:
+def match_tool(
+  tool: StudioTool, bits: list[dict], library: list[StudioTool] | None = None
+) -> Match:
   if tool.custom and library:
     original = library_tool_named_in(tool, library)
     if original:
       match = match_tool(original, bits)
       if match.exact:
-        return Match(tool, match.bit, True, f"your copy of Studio's '{original.name}'")
+        return Match(
+          tool, match.bit, True, f"your copy of Studio's '{original.name}'"
+        )
   kind = kind_of(tool)
   if kind is None:
     return Match(tool, None, False, f"unknown tool type '{tool.type}'")
-  same = [b for b in bits
-          if b["kind"] == kind and abs(b["shank"] * 1000 - tool.shank) < 0.02]
+  same = [
+    b
+    for b in bits
+    if b["kind"] == kind and abs(b["shank"] * 1000 - tool.shank) < 0.02
+  ]
   if not same:
-    return Match(tool, None, False, f"no {kind} bit with a {tool.shank:g} mm shank")
-  ranked = sorted(((*_distance(tool, kind, b), b["id"], b) for b in same),
-                  key=lambda r: r[:3])
+    return Match(
+      tool, None, False, f"no {kind} bit with a {tool.shank:g} mm shank"
+    )
+  ranked = sorted(
+    ((*_distance(tool, kind, b), b["id"], b) for b in same), key=lambda r: r[:3]
+  )
   dist, exact, _, bit = ranked[0]
   if math.isinf(dist):
     return Match(tool, None, False, f"cannot tell which {kind} bit this is")
@@ -258,9 +289,13 @@ def match_tool(tool: StudioTool, bits: list[dict],
     return Match(tool, bit, True)
   if not tool.custom:
     # A library tool that is not in the catalogue: the library has changed.
-    return Match(tool, None, False,
-                 f"Studio library tool {tool.id} is not in the bit catalogue "
-                 f"(closest: {bit['id']})")
+    return Match(
+      tool,
+      None,
+      False,
+      f"Studio library tool {tool.id} is not in the bit catalogue "
+      f"(closest: {bit['id']})",
+    )
   return Match(tool, bit, False, f"custom tool, closest bit: {bit['title']}")
 
 
@@ -276,7 +311,9 @@ def parse_map(specs: list[str]) -> dict[int, str]:
     for part in filter(None, spec.split(",")):
       n, _, bit = part.partition("=")
       bit = bit.strip()
-      out[int(n.strip().lstrip("Tt"))] = bit[4:] if bit.startswith("bit_") else bit
+      out[int(n.strip().lstrip("Tt"))] = (
+        bit[4:] if bit.startswith("bit_") else bit
+      )
   return out
 
 
@@ -300,9 +337,12 @@ class Plan:
     return ",".join(f"{n}={b}" for n, b in sorted(self.targets.items()))
 
 
-def plan(path: str, mapping: dict[int, str] | None = None,
-         bits: list[dict] | None = None,
-         library: list[StudioTool] | None = None) -> Plan:
+def plan(
+  path: str,
+  mapping: dict[int, str] | None = None,
+  bits: list[dict] | None = None,
+  library: list[StudioTool] | None = None,
+) -> Plan:
   bits = load_bits() if bits is None else bits
   library = load_library() if library is None else library
   by_id = {b["id"]: b for b in bits}
@@ -311,9 +351,14 @@ def plan(path: str, mapping: dict[int, str] | None = None,
   problems, guesses, matches, targets = [], [], [], {}
   if not tools:
     problems.append(
-      "no ;@MKR|TOOL lines: not exported by Makera Studio" +
-      (f" (the program changes to T{', T'.join(map(str, used))}; name their "
-       "bits with --map)" if used else ""))
+      "no ;@MKR|TOOL lines: not exported by Makera Studio"
+      + (
+        f" (the program changes to T{', T'.join(map(str, used))}; name their "
+        "bits with --map)"
+        if used
+        else ""
+      )
+    )
     tools = [StudioTool(n, "", "", "", 0, 0, 0, 0, 0, 0, 0) for n in used]
   for n in mapping:
     if n not in [t.number for t in tools]:
@@ -322,7 +367,9 @@ def plan(path: str, mapping: dict[int, str] | None = None,
     if tool.number in mapping:
       bit = by_id.get(mapping[tool.number])
       if bit is None:
-        problems.append(f"T{tool.number}: --map names an unknown bit '{mapping[tool.number]}'")
+        problems.append(
+          f"T{tool.number}: --map names an unknown bit '{mapping[tool.number]}'"
+        )
       match = Match(tool, bit, bit is not None, "set with --map")
     elif not tool.name and not tool.type:
       match = Match(tool, None, False, "no tool data in the file")
@@ -330,7 +377,9 @@ def plan(path: str, mapping: dict[int, str] | None = None,
       match = match_tool(tool, bits, library)
     matches.append(match)
     if tool.number not in ATC_SLOTS:
-      problems.append(f"T{tool.number} ({tool.name}): the ATC has slots 1..6 only")
+      problems.append(
+        f"T{tool.number} ({tool.name}): the ATC has slots 1..6 only"
+      )
       continue
     if match.bit is None:
       if tool.number not in mapping:
@@ -345,8 +394,10 @@ def plan(path: str, mapping: dict[int, str] | None = None,
     problems.append(f"{slots} all want bit {b}: the carousel holds one of each")
   unused = [t.number for t in tools if used and t.number not in used]
   if unused and tools and tools[0].name:
-    problems.extend(f"T{n} is in the header but the program never changes to it"
-                    for n in unused)
+    problems.extend(
+      f"T{n} is in the header but the program never changes to it"
+      for n in unused
+    )
   return Plan(targets, matches, problems, guesses)
 
 
@@ -355,8 +406,10 @@ def report(p: Plan) -> str:
   for m in p.matches:
     t = m.tool
     mark = "=" if m.exact else ("~" if m.bit else "?")
-    lines.append(f"  T{t.number}  {t.name or '(no name)':48s} {mark} "
-                 f"{m.bit_id or '-':18s} {m.note}")
+    lines.append(
+      f"  T{t.number}  {t.name or '(no name)':48s} {mark} "
+      f"{m.bit_id or '-':18s} {m.note}"
+    )
   for msg in p.problems:
     lines.append(f"  ! {msg}")
   return "\n".join(lines)
@@ -365,23 +418,45 @@ def report(p: Plan) -> str:
 def main():
   ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
   ap.add_argument("gcode", help="G-code file exported by Makera Studio (.nc)")
-  ap.add_argument("--map", action="append", default=[],
-                  help="Bit for a tool number, e.g. 2=fe18_1p5x8 (repeatable); "
-                       "overrides the match, needed for custom tools.")
+  ap.add_argument(
+    "--map",
+    action="append",
+    default=[],
+    help="Bit for a tool number, e.g. 2=fe18_1p5x8 (repeatable); "
+    "overrides the match, needed for custom tools.",
+  )
   ap.add_argument("--json", action="store_true", help="Print the plan as JSON.")
   args = ap.parse_args()
   p = plan(args.gcode, parse_map(args.map))
   if args.json:
-    print(json.dumps({
-      "set_atc": p.spec, "targets": p.targets, "guesses": p.guesses,
-      "problems": p.problems,
-      "tools": [{"number": m.tool.number, "name": m.tool.name, "studio_id": m.tool.id,
-                 "bit": m.bit_id, "exact": m.exact, "note": m.note} for m in p.matches],
-    }, indent=2))
+    print(
+      json.dumps(
+        {
+          "set_atc": p.spec,
+          "targets": p.targets,
+          "guesses": p.guesses,
+          "problems": p.problems,
+          "tools": [
+            {
+              "number": m.tool.number,
+              "name": m.tool.name,
+              "studio_id": m.tool.id,
+              "bit": m.bit_id,
+              "exact": m.exact,
+              "note": m.note,
+            }
+            for m in p.matches
+          ],
+        },
+        indent=2,
+      )
+    )
   else:
     print(report(p))
     if p.guesses:
-      print("  ~ = closest bit for a custom tool: check it, or name the bit with --map")
+      print(
+        "  ~ = closest bit for a custom tool: check it, or name the bit with --map"
+      )
     if p.targets:
       print(f"\nmove_bit --set_atc='{p.spec}'")
   sys.exit(1 if p.problems else 0)

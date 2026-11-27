@@ -15,8 +15,16 @@ import numpy as np
 
 # (origin xyz, origin rpy, (lower, upper)) per revolute joint, base to wrist.
 JOINTS = (
-  ((0.0388353, -8.97657e-09, 0.0624), (3.14159, 4.18253e-17, -3.14159), (-1.91986, 1.91986)),
-  ((-0.0303992, -0.0182778, -0.0542), (-1.5708, -1.5708, 0.0), (-1.74533, 1.74533)),
+  (
+    (0.0388353, -8.97657e-09, 0.0624),
+    (3.14159, 4.18253e-17, -3.14159),
+    (-1.91986, 1.91986),
+  ),
+  (
+    (-0.0303992, -0.0182778, -0.0542),
+    (-1.5708, -1.5708, 0.0),
+    (-1.74533, 1.74533),
+  ),
   ((-0.11257, -0.028, 0.0), (0.0, 0.0, 1.5708), (-1.69, 1.69)),
   ((-0.1349, 0.0052, 0.0), (0.0, 0.0, -1.5708), (-1.65806, 1.65806)),
   ((0.0, -0.0611, 0.0181), (1.5708, 0.0486795, 3.14159), (-2.74385, 2.84121)),
@@ -32,12 +40,21 @@ LIMIT_SCALE = 0.985
 
 
 def _rpy(r: float, p: float, y: float) -> np.ndarray:
-  cr, sr, cp, sp, cy, sy = np.cos(r), np.sin(r), np.cos(p), np.sin(p), np.cos(y), np.sin(y)
-  return np.array([
-    [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
-    [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
-    [-sp, cp * sr, cp * cr],
-  ])
+  cr, sr, cp, sp, cy, sy = (
+    np.cos(r),
+    np.sin(r),
+    np.cos(p),
+    np.sin(p),
+    np.cos(y),
+    np.sin(y),
+  )
+  return np.array(
+    [
+      [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+      [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+      [-sp, cp * sr, cp * cr],
+    ]
+  )
 
 
 def _tf(xyz, rpy) -> np.ndarray:
@@ -59,7 +76,9 @@ _O_ROT = np.array([o[:3, :3] for o in _ORIGINS])
 _O_POS = np.array([o[:3, 3] for o in _ORIGINS])
 _TIP_ROT, _TIP_POS = _TIP[:3, :3], _TIP[:3, 3]
 # Random restarts, the same for every call (deterministic results).
-_RANDOM_SEEDS = np.random.default_rng(0).uniform(LIMITS[:, 0], LIMITS[:, 1], size=(64, 5))
+_RANDOM_SEEDS = np.random.default_rng(0).uniform(
+  LIMITS[:, 0], LIMITS[:, 1], size=(64, 5)
+)
 
 
 def _chain(q: np.ndarray):
@@ -110,23 +129,33 @@ def _pose_residual(target: np.ndarray):
     e = np.concatenate([tp - pos, 0.5 * (tr - rot).reshape(-1, 9)], axis=1)
     # Columns are -de/dq_i: z_i x (p - o_i) for the position, 0.5 * z_i x R
     # (each column of R) for the rotation.
-    jp = np.cross(axes, (pos[:, None, :] - origins))                       # (N, 5, 3)
-    jr = 0.5 * np.cross(axes[:, :, None, :], np.swapaxes(rot, 1, 2)[:, None, :, :])  # (N, 5, col, row)
+    jp = np.cross(axes, (pos[:, None, :] - origins))  # (N, 5, 3)
+    jr = 0.5 * np.cross(
+      axes[:, :, None, :], np.swapaxes(rot, 1, 2)[:, None, :, :]
+    )  # (N, 5, col, row)
     jac = np.concatenate([jp, np.swapaxes(jr, 2, 3).reshape(-1, 5, 9)], axis=2)
-    return e, np.swapaxes(jac, 1, 2)                                       # (N, 12, 5)
+    return e, np.swapaxes(jac, 1, 2)  # (N, 12, 5)
+
   return f
 
 
 def _down_residual(point, local, down):
   """Residual and Jacobian for tool point `local` at `point`, tool z along `down`."""
+
   def f(q, rows):
     rot, pos, axes, origins = _chain(q)
     tip = rot @ local + pos
     z = rot[:, :, 2]
     e = np.concatenate([point - tip, down - z], axis=1)
-    jac = np.concatenate([np.cross(axes, tip[:, None, :] - origins),
-                          np.cross(axes, z[:, None, :])], axis=2)
-    return e, np.swapaxes(jac, 1, 2)                                       # (N, 6, 5)
+    jac = np.concatenate(
+      [
+        np.cross(axes, tip[:, None, :] - origins),
+        np.cross(axes, z[:, None, :]),
+      ],
+      axis=2,
+    )
+    return e, np.swapaxes(jac, 1, 2)  # (N, 6, 5)
+
   return f
 
 
@@ -188,7 +217,9 @@ def _closest(seed, residual, attempts, elbow_up, targets=1):
   # Row k * attempts + j: target k from random seed j.
   restarts = np.tile(_RANDOM_SEEDS[:attempts], (targets, 1))
   rows = np.repeat(np.arange(targets), attempts)
-  best = pick(*_solve_batch(restarts, lambda q, idx: residual(q, rows[idx])), best)
+  best = pick(
+    *_solve_batch(restarts, lambda q, idx: residual(q, rows[idx])), best
+  )
   return None if best is None else best[1]
 
 
@@ -202,18 +233,28 @@ def solve(target: np.ndarray, seed, attempts: int = 64, elbow_up: bool = False):
   elbow-down solutions that put the lower arm into the machine; near ones
   have folded solutions that put the gripper into the shoulder.
   """
-  return _closest(seed, _pose_residual(np.asarray(target, float)), attempts, elbow_up)
+  return _closest(
+    seed, _pose_residual(np.asarray(target, float)), attempts, elbow_up
+  )
 
 
 def solve_any(targets, seed, attempts: int = 64, elbow_up: bool = False):
   """Like solve(), for several alternative targets (e.g. the jaw turned to
   different directions): the solution closest to `seed` over all of them."""
   targets = np.asarray(targets, float)
-  return _closest(seed, _pose_residual(targets), attempts, elbow_up, len(targets))
+  return _closest(
+    seed, _pose_residual(targets), attempts, elbow_up, len(targets)
+  )
 
 
-def solve_down(point: np.ndarray, local, down, seed, attempts: int = 64,
-               elbow_up: bool = False):
+def solve_down(
+  point: np.ndarray,
+  local,
+  down,
+  seed,
+  attempts: int = 64,
+  elbow_up: bool = False,
+):
   """Joint positions putting tool-frame point `local` at `point` with the tool
   z axis along `down` (all in the arm base frame), at any yaw about it.
 
@@ -221,8 +262,9 @@ def solve_down(point: np.ndarray, local, down, seed, attempts: int = 64,
   matters for this arm: wrist_roll's limits and the jaw's offset from the
   roll axis rule out some yaws at some places.
   """
-  residual = _down_residual(np.asarray(point, float), np.asarray(local, float),
-                            np.asarray(down, float))
+  residual = _down_residual(
+    np.asarray(point, float), np.asarray(local, float), np.asarray(down, float)
+  )
   return _closest(seed, residual, attempts, elbow_up)
 
 
