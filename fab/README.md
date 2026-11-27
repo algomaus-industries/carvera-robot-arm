@@ -122,6 +122,14 @@ finger is left beside it. Only the last 20–35 mm of each finger differ:
   the side (below), which moves both by 2.5 mm; the carousel's spacing
   (`check_layout.py`, 20 mm either side) still holds.
 
+| Closed on a 4 mm shank, from the tip | Fixed finger: the V and its funnel | Moving finger: the TPU pad half in its dovetail slot |
+| :---: | :---: | :---: |
+| <img src="jaws/out/view_closed.png" width="260" alt="Fingertips closed on a 4 mm shank, seen from the tip: the shank in the fixed finger's V, the moving finger's black TPU rib against it"> | <img src="jaws/out/view_fixed.png" width="260" alt="Fixed fingertip seen from the front: the V groove along it, opening into a 45 degree funnel at the tip"> | <img src="jaws/out/view_moving.png" width="260" alt="Moving fingertip with the black TPU pad slid halfway out of the dovetail slot across its face"> |
+
+The cross-section through the grip for 1/8", 4 and 6 mm shanks is
+[`jaws/out/section.svg`](jaws/out/section.svg). `gen_fab.py` renders all
+of these.
+
 **How the arm grips.** The gripper comes down 2.5 mm off the shank (the
 fixed finger away from it, into the room the open pad leaves), moves
 sideways onto it at grasp height, then closes; to let go it opens, moves
@@ -130,6 +138,16 @@ In the sim the jaw closes to a position 0.3 mm past contact. **On the real
 arm the gripper driver must close against a torque (current) limit**,
 commanding ~2 mm past contact: a ±0.2 mm print error moves the contact by
 up to ±0.5 mm, more than any fixed overshoot.
+
+**Grip force** ([`jaws/check_grip.py`](jaws/check_grip.py), statics, since
+the sim does not model the grip; friction values assumed): at half the
+gripper servo's stall torque (12 V STS3215, 30 kg·cm) the jaw clamps with
+~20 N, and friction on the rib and the V holds a bit along its axis with
+~20 N, 80× the heaviest bit's weight. Tipping is the weak direction: a
+sideways push at the longest bit's cutter tip (54 mm below the grip) of
+~2 N in the jaw's plane, ~1 N across it, tips the bit in the jaw. So keep
+the seats' chamfers, the bits aligned and the moves slow near seats; a
+higher torque limit raises all of these in proportion.
 
 All the jaw numbers live in one table, `JAW` in [`gen_fab.py`](gen_fab.py):
 it writes `jaws/jaws_params.scad` for OpenSCAD and
