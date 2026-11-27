@@ -13,6 +13,7 @@ build scripts turn those into the sim models' meshes.
 | :--- | :--- | :--- | :--- |
 | **Bit carousel**: 140 seats on a turning plate; an STS3215 servo turns the wanted bit to the arm | <img src="carousel/out/assembly.png" width="260" alt="Bit carousel: plywood seat plate with 140 holes on a blue printed rim, rollers and base"> | plates: xTool M2 (6 mm birch ply) or the Carvera; small parts: Bambu X1 (PETG) | [`carousel/out/`](carousel/out/) |
 | **Arm pedestal**: lifts the SO-101 to 5 cm above the grip height, overhangs the cart edge towards the Carvera | <img src="pedestal/out/pedestal.png" width="200" alt="Printed pedestal block with top lip, foot and gussets"> | Bambu X1 (PETG) | [`pedestal/out/pedestal.stl`](pedestal/out/pedestal.stl) |
+| **V-groove jaws**: the SO-101's two gripper parts with new fingertips, so a bit's shank always sits on the same line | <img src="jaws/out/assembly.png" width="240" alt="Fingertips closed on a 1/8 inch, a 4 mm and a 6 mm shank: fixed finger with a V, moving finger with a pad"> | Bambu X1 (PETG) | [`jaws/out/`](jaws/out/) |
 | **Rolling cart**: carries both, rolls away when the Carvera's hood is shut | <img src="cart/out/assembly.png" width="200" alt="Plywood cart on four braked casters, carousel and pedestal on top"> | table saw / track saw (18 mm birch ply, 40 × 40 mm timber) | [`cart/out/`](cart/out/) |
 
 Regenerate after changing a layout or size:
@@ -23,7 +24,8 @@ python3 fab/gen_fab.py        # params + STL / DXF / SVG / PNG (needs OpenSCAD w
 ```
 
 `OPENSCAD=...` picks the OpenSCAD command; it needs the Manifold backend
-(OpenSCAD 2024+ / nightly).
+(OpenSCAD 2024+ / nightly). The jaws are cut from TheRobotStudio's meshes:
+run `models/so101/fetch_meshes.sh` once before regenerating them.
 
 ## Before you cut
 
@@ -45,6 +47,67 @@ python3 fab/gen_fab.py        # params + STL / DXF / SVG / PNG (needs OpenSCAD w
   Hold-down tabs where the halves' straight edge meets the circle.
 
 ## Bill of materials
+
+### SO-101 arm
+
+Only the **follower** arm is built: `move_bit` drives it directly, so the
+cell needs no leader arm.
+
+| Qty | Part | Notes |
+| ---: | :--- | :--- |
+| 1 | Seeed Studio SO-ARM101 servo motor kit **Pro** (without 3D printed parts) | [openelab](https://openelab.io/a/s/products/seeed-studio-so-101-pro-servo-motor-kit-lerobot). Use the six **12 V** STS3215 (1:345), one driver board and the **12 V** supply for the follower. The six 7.4 V servos are the leader's: one of them (the 1:345) is the carousel servo below, on the 5 V supply. |
+| 1 | WowRobo 2 MP USB camera for the SO-ARM101 (32 × 32 mm UVC board, 3 m cable) | [openelab](https://openelab.io/products/wowrobo-robotics-2mp-usb-camera). Wrist camera; nothing in `move_bit` uses it yet. |
+| 1 | Wrist camera mount, PETG | TheRobotStudio's [hex-nut mount for 32 × 32 UVC modules](https://github.com/TheRobotStudio/SO-ARM100/tree/main/Optional/SO101_Wrist_Cam_Hex-Nut_Mount_32x32_UVC_Module) |
+| 9 + 2 | Printed arm parts, PETG or PLA+ | the list below |
+
+**Printed parts of the follower arm.** Nine come unchanged from
+TheRobotStudio's [`STL/SO101/Individual`](https://github.com/TheRobotStudio/SO-ARM100/tree/main/STL/SO101/Individual)
+(Apache-2.0; their [README](https://github.com/TheRobotStudio/SO-ARM100#printing-the-parts) has the print
+settings and a calibration gauge), the two gripper parts come from here:
+
+| Qty | File | Part |
+| ---: | :--- | :--- |
+| 1 | [`Base_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Base_SO101.stl) | base |
+| 1 | [`Base_motor_holder_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Base_motor_holder_SO101.stl) | holds the pan servo in the base |
+| 1 | [`Seeedstudio_Mounting_Plate_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Seeedstudio_Mounting_Plate_SO101.stl) | plate for the kit's driver board ([`WaveShare_Mounting_Plate_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/WaveShare_Mounting_Plate_SO101.stl) for a Waveshare board) |
+| 1 | [`Rotation_Pitch_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Rotation_Pitch_SO101.stl) | shoulder |
+| 1 | [`Motor_holder_SO101_Base.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Motor_holder_SO101_Base.stl) | holds the shoulder-lift servo |
+| 1 | [`Upper_arm_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Upper_arm_SO101.stl) | upper arm |
+| 1 | [`Under_arm_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Under_arm_SO101.stl) | lower arm |
+| 1 | [`Motor_holder_SO101_Wrist.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Motor_holder_SO101_Wrist.stl) | holds the wrist-flex servo |
+| 1 | [`Wrist_Roll_Pitch_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/blob/main/STL/SO101/Individual/Wrist_Roll_Pitch_SO101.stl) | wrist |
+| 1 | [`jaws/out/wrist_roll_follower_vjaw.stl`](jaws/out/wrist_roll_follower_vjaw.stl) | gripper body with the fixed finger, **instead of** `Wrist_Roll_Follower_SO101.stl` |
+| 1 | [`jaws/out/moving_jaw_vjaw.stl`](jaws/out/moving_jaw_vjaw.stl) | moving finger, **instead of** `Moving_Jaw_SO101.stl` |
+
+Not needed (leader arm only): `Handle_SO101`, `Trigger_SO101`,
+`Wrist_Roll_SO101`. TheRobotStudio's one-plate file
+[`Prusa_Follower_SO101.stl`](https://github.com/TheRobotStudio/SO-ARM100/tree/main/STL/SO101/Follower) fits the X1's
+bed but has the two stock gripper parts on it: delete those in the slicer
+and add the two from `jaws/out/`.
+
+**The jaws.** Both files sit in the same position and orientation as the
+parts they replace, so they print and assemble the same way (on TheRobotStudio's
+plate both lie with the inner finger face up, on supports). Only the last
+~20 mm of each finger differ:
+
+- The fixed finger has a 90° V, 3 mm deep, along the finger. A shank from
+  1/8" to 6 mm pressed into it lies on the V's centre line: its axis is
+  `3 − 0.707 d` mm in front of the old flat face (d = shank diameter), not
+  wherever it landed on a flat finger.
+- The moving finger has a pad that stands ~8 mm proud of the stock face and
+  is crowned along the finger (60 mm radius), so it presses on one spot at
+  mid grip at any closing angle. It closes on a 1/8" shank at about
+  −0.093 rad, on 4 mm at −0.080 rad and on 6 mm at −0.048 rad of the jaw
+  joint; with nothing between them the fingers meet at −0.104 rad, well
+  inside the servo's range (the stock jaw only just reaches a 1/8" shank).
+- The fingertips end 6 mm past the tool frame (stock: ~7 mm), 3 mm above
+  the collar at the grasp height.
+
+Checked on the exported meshes: each of the three shank sizes touches both
+V faces over the whole grip and the pad at mid grip, with nothing
+overlapping. Not checked: a print, and the grip on a real bit. If a shank
+slips, a strip of thin rubber or heat-shrink on the pad adds friction
+without moving the bit's position, which the V sets.
 
 ### Bit carousel
 
@@ -167,9 +230,15 @@ sits just inside the open hood's front.
 ## Not done yet
 
 - There is no hardware driver for the SO-101 or the carousel servo yet
-  (the arm is not bought); everything above runs in simulation. The
+  (the servo kit and the camera are bought, the arm is not built);
+  everything above runs in simulation. The
   carousel has its own driver board and serial port on purpose: only one
   process can open a serial port, so LeRobot driving the follower arm
   would otherwise block a separate carousel driver, and a seventh servo
   stays off the follower's 2 A supply.
+- `move_bit` and the sim still use the stock flat jaws: the jaw gap table
+  (`So101Jaw` in `tools/atc/move_bit.py`) and the shank's place on the fixed
+  finger (half a shank in front of the face) need the V-groove numbers
+  above before the printed jaws are used, and the sim gripper still shows
+  the stock meshes.
 - The dimensions marked as datasheet values above are not measured.
