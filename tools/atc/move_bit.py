@@ -36,7 +36,8 @@ above the source seat (ANY), down (LINEAR), close, attach the bit, up
 
 The SO-ARM101 jaw is a separate world object (robot.tool_object_name) whose
 jaw_joint is set with update_world; its tool frame is on the FIXED jaw's
-face, so the shank axis sits half a shank diameter along the tool's -x. The
+face. The jaws are the V-groove ones (fab/jaws): the shank lies in the fixed
+finger's V, its axis GraspProfile.v_depth - 0.707 d along the tool's +x. The
 planner's IK does not converge for this 5-axis arm, so the joint targets
 come from tools/atc/so101_ik.py (gripper vertical, yaw free).
 
@@ -90,6 +91,9 @@ class GraspProfile:
       out of the seat bore.
   off_centre: True if the tool frame is on one jaw's face rather than centred
       between the jaws (then the tool moves half a shank along +x).
+  v_depth: depth of a 90 deg V along the fixed jaw (apex behind the tool
+      frame's face, fab/jaws/jaws.scad V_DEPTH); 0 for a flat jaw. The shank
+      lies in the V, see tool_x_from_shank_axis.
   joint_ik: True to solve the arm's IK here (tools/atc/so101_ik.py) and send
       joint targets, for arms the motion planner's IK cannot solve.
   """
@@ -98,24 +102,43 @@ class GraspProfile:
   pre_z: float
   off_centre: bool
   joint_ik: bool = False
+  v_depth: float = 0.0
+
+  def tool_x_from_shank_axis(self, shank: float) -> float:
+    """How far the tool frame is from the gripped shank's axis, along tool +x.
+
+    Flat jaw: half a shank. V jaw: the axis is sqrt(2) radii in front of the
+    V's apex, so the frame is 0.707 d - v_depth from it (negative for a
+    1/8" shank in a 3 mm V: that axis is behind the finger's face).
+    """
+    if not self.off_centre:
+      return 0.0
+    if self.v_depth:
+      return shank / math.sqrt(2.0) - self.v_depth
+    return shank / 2
 
 
 PROFILES = {
-    # The SO-101's fixed jaw reaches ~7 mm past its tool frame, so the tool
-    # frame stays 14 mm above the seat: jaw tips just above the 5 mm collar.
-    "so101": GraspProfile(grasp_z=0.014, pre_z=0.064, off_centre=True, joint_ik=True),
+    # The SO-101's V-groove fingers (fab/jaws) end 6 mm past the tool frame,
+    # so the tool frame stays 14 mm above the seat: fingertips 3 mm above the
+    # 5 mm collar.
+    "so101": GraspProfile(grasp_z=0.014, pre_z=0.064, off_centre=True, joint_ik=True,
+                          v_depth=0.003),
 }
 
 class So101Jaw(GripperInterface):
   """SO-ARM101 moving jaw, set through the world (update_world).
 
-  Jaw gap between the finger faces vs jaw_joint angle, measured on the
-  official meshes by models/so101/build_so101.py --calibrate-jaw: about
-  15.8 mm at 0 rad and 7.3 mm per 0.1 rad (linear over -0.17..0.1 rad).
+  V-groove jaws (fab/jaws): the "gap" is the diameter of the shank that,
+  lying in the fixed finger's V, the moving finger's pad just touches. From
+  fab/jaws/jaws.scad (jaw_angle): the pad meets a 4 mm shank at -0.08 rad
+  and moves 1.207 mm per mm of shank (sqrt(2)/2 + 1/2) on a 74.7 mm lever,
+  so 8.95 mm at 0 rad and 6.19 mm per 0.1 rad. A 1/8" shank is gripped at
+  -0.093 rad, a 6 mm one at -0.048 rad; the empty fingers meet at -0.104.
   """
 
-  GAP_AT_ZERO_M = 0.0158
-  GAP_PER_RAD_M = 0.073
+  GAP_AT_ZERO_M = 0.00895
+  GAP_PER_RAD_M = 0.0619
   LIMITS = (-0.1745, 1.745)
 
   def __init__(self, solution: Any, object_name: str, open_gap_m: float, close_gap_m: float):
@@ -306,7 +329,8 @@ class JointTargets:
     self.q = list(so101_ik.HOME)
     self._last = None
 
-  def to(self, obj: str, frame: str, z: float, offset, linear: bool) -> list[list[float]]:
+  def to(self, obj: str, frame: str, z: float, offset, linear: bool,
+         x_tool: float | None = None) -> list[list[float]]:
     seat = _matrix(self._world.get_transform(
       self._world.root, self._world.get_transform_node(_frame_ref(obj, frame))))
     zs = [z]
@@ -314,11 +338,13 @@ class JointTargets:
       z0 = self._last[2]
       zs = [z0 + (z - z0) * (i + 1) / JOINT_IK_LINEAR_STEPS for i in range(JOINT_IK_LINEAR_STEPS)]
     out = []
-    # The shank axis between the jaws (tool frame -x by half a shank, see
-    # GraspProfile.off_centre) goes onto the seat axis, tool straight down;
-    # the yaw about the shank is left free (round shank).
-    (ox, oy, _), _ = offset(0.0)
-    x_tool = math.hypot(ox, oy)
+    # The shank axis between the jaws (x_tool along the tool's -x, see
+    # GraspProfile.tool_x_from_shank_axis; it can be negative) goes onto the
+    # seat axis, tool straight down; the yaw about the shank is left free
+    # (round shank).
+    if x_tool is None:
+      (ox, oy, _), _ = offset(0.0)
+      x_tool = math.hypot(ox, oy)
     down = self._base_inv[:3, :3] @ (-seat[:3, 2])
     # In the bit rack the neighbours stand only one pitch away, closer than
     # the bulky moving jaw reaches when it opens, so the jaw axis (tool x, the
@@ -393,7 +419,7 @@ class JointTargets:
       x_axis = np.asarray(x_axis, float)
       target = np.eye(4)
       target[:3, :3] = np.column_stack([x_axis, np.cross(z_axis, x_axis), z_axis])
-      # Shank axis at tool -x by half a shank: the tool frame goes +x of it.
+      # Shank axis at tool -x by x_tool: the tool frame goes +x of it.
       target[:3, 3] = np.asarray(point, float) + x_tool * x_axis
       targets.append(target)
     # All jaw directions in one batched solve; the closest solution wins.
@@ -499,7 +525,7 @@ def build_move_tree(
   solutions computed here (`joints`, tools/atc/so101_ik.py).
   """
   tool = config.robot.tool_object_name
-  x_tool = shank / 2 if profile.off_centre else 0.0
+  x_tool = profile.tool_x_from_shank_axis(shank)
   PRE_Z, GRASP_Z = profile.pre_z, profile.grasp_z
   src_obj, src_frame = parse_slot(src)
   dst_obj, dst_frame = parse_slot(dst)
@@ -507,7 +533,7 @@ def build_move_tree(
 
   def move(obj, frame, z, motion, pairs, label):
     qs = joints.to(obj, frame, z, lambda zi: _offset(zi, yaw_deg, x_tool),
-                   linear=motion == "LINEAR")
+                   linear=motion == "LINEAR", x_tool=x_tool)
     # The jaw is hinged inside the gripper body (so101_arm.gripper_link), so
     # the two always overlap; the planner would reject every configuration.
     # The fixed jaw is part of the arm (gripper_link), so contacts allowed

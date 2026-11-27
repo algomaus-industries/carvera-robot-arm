@@ -86,26 +86,34 @@ bed but has the two stock gripper parts on it: delete those in the slicer
 and add the two from `jaws/out/`.
 
 **The jaws.** Both files sit in the same position and orientation as the
-parts they replace, so they print and assemble the same way (on TheRobotStudio's
-plate both lie with the inner finger face up, on supports). Only the last
-~20 mm of each finger differ:
+parts they replace, so they assemble the same way and print in the same
+orientation (on TheRobotStudio's plate both lie with the inner finger face
+up). The moving jaw's new tip stands ~18 mm above the bed in that
+orientation: print it with supports. Only the last 20–35 mm of each finger
+differ:
 
 - The fixed finger has a 90° V, 3 mm deep, along the finger. A shank from
   1/8" to 6 mm pressed into it lies on the V's centre line: its axis is
   `3 − 0.707 d` mm in front of the old flat face (d = shank diameter), not
   wherever it landed on a flat finger.
-- The moving finger has a pad that stands ~8 mm proud of the stock face and
-  is crowned along the finger (60 mm radius), so it presses on one spot at
-  mid grip at any closing angle. It closes on a 1/8" shank at about
+- The moving finger's tip is a dog-leg: 8 mm thick like the stock tip, but
+  ~8 mm closer to the fixed finger, with the stock tip behind it removed.
+  Its face is crowned along the finger (60 mm radius), so it presses on one
+  spot at mid grip at any closing angle. It closes on a 1/8" shank at about
   −0.093 rad, on 4 mm at −0.080 rad and on 6 mm at −0.048 rad of the jaw
   joint; with nothing between them the fingers meet at −0.104 rad, well
   inside the servo's range (the stock jaw only just reaches a 1/8" shank).
 - The fingertips end 6 mm past the tool frame (stock: ~7 mm), 3 mm above
   the collar at the grasp height.
+- Open for a bit (5 mm wider than its shank), the fingers reach 10–12 mm
+  (fixed) and 16–18 mm (moving) from the bit's axis where the neighbouring
+  bits stand; the stock jaw reached 12–13 and ~20 mm. The carousel's
+  spacing (`check_layout.py`, 20 mm) therefore still holds.
 
 Checked on the exported meshes: each of the three shank sizes touches both
 V faces over the whole grip and the pad at mid grip, with nothing
-overlapping. Not checked: a print, and the grip on a real bit. If a shank
+overlapping, at the jaw angles `move_bit` commands. Not checked: a print,
+the dog-leg's stiffness, and the grip on a real bit. If a shank
 slips, a strip of thin rubber or heat-shrink on the pad adds friction
 without moving the bit's position, which the V sets.
 
@@ -236,9 +244,7 @@ sits just inside the open hood's front.
   process can open a serial port, so LeRobot driving the follower arm
   would otherwise block a separate carousel driver, and a seventh servo
   stays off the follower's 2 A supply.
-- `move_bit` and the sim still use the stock flat jaws: the jaw gap table
-  (`So101Jaw` in `tools/atc/move_bit.py`) and the shank's place on the fixed
-  finger (half a shank in front of the face) need the V-groove numbers
-  above before the printed jaws are used, and the sim gripper still shows
-  the stock meshes.
+- `move_bit` and the sim gripper use the V-groove jaws (jaw angles and the
+  shank's place in the V from `fab/jaws/jaws.scad`), but no move has been
+  run in the simulator since the change: only the geometry was checked.
 - The dimensions marked as datasheet values above are not measured.

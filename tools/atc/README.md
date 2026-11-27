@@ -73,7 +73,10 @@ lift.
 
 The planner's generic IK does not converge for this 5-axis arm, so
 [`so101_ik.py`](so101_ik.py) solves for joint positions that keep the gripper
-vertical (yaw free) and grip the shank off-centre on the fixed jaw.
+vertical (yaw free) and put the shank into the fixed finger's V (the
+V-groove jaws of [`fab/jaws`](../../fab/README.md): the shank's axis is
+`3 − 0.707 d` mm in front of the finger's face, and the jaw closes to the
+angle at which the moving finger's pad meets a shank of that diameter).
 `move_bit` sends those as joint moves, which the planner still
 collision-checks. Carries go via the `home` configuration with the elbow up,
 clear of the Carvera.

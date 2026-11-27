@@ -114,15 +114,16 @@ The models and layouts are generated from scripts, so edit those rather than
 the `.sdf`, `.glb` or `.pbtxt` files:
 
 ```bash
-# Fabrication files first (OpenSCAD with Manifold): the carousel, pedestal
-# and cart meshes in the sim are these parts (fab/*/out/sim_*.stl)
+# TheRobotStudio's SO-101 meshes: the V-groove jaws are cut from them
+models/so101/fetch_meshes.sh
+# Fabrication files next (OpenSCAD with Manifold): the carousel, pedestal,
+# cart and gripper-jaw meshes in the sim are these parts (fab/*/out/)
 python3 fab/check_layout.py && python3 fab/gen_fab.py
 # Carvera and the bit carousel (Blender 3.4+)
 blender -b --python models/makera_carvera/build_carvera.py -- models
 # Bit catalogue: .glb, .sdf and manifests, bits.bzl, makera_bits.json
 blender -b --python models/makera_bits/build_bits.py -- models
-# SO-101, gripper, pedestal, bench and cart (needs TheRobotStudio's meshes)
-models/so101/fetch_meshes.sh
+# SO-101, gripper, pedestal, bench and cart
 blender -b --python models/so101/build_so101.py -- models
 # Cell and bit layouts
 python3 configs/carvera_so101/gen_cell_configs.py

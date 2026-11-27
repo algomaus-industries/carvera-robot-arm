@@ -39,6 +39,10 @@ SHANK_REF = 4.0;       // the pad is drawn closed on this shank...
 A_REF = -0.08;         // ...at this jaw_joint angle (rad; stock limits -0.1745 .. 1.745)
 PAD_R = 60;            // crown radius along the finger
 PAD_HALF_W = 5.0;
+PAD_T = 8.0;           // thickness of the moving tip (the stock tip is ~8.3)
+LEG_Z0 = -29.0;        // the dog-leg leaves the stock finger here...
+LEG_FRONT = -15.5;     // ...between its inner face...
+LEG_BACK = -29.7;      // ...and its back face (x at A_REF)
 
 SHANKS = [3.175, 4, 6];
 LEVER = -JAW_PIVOT[2]; // hinge to the middle of the grip, along z
@@ -82,17 +86,25 @@ module fixed_jaw() {
   }
 }
 
-// Moving jaw, in the tool frame at jaw angle a.
+// Moving jaw, in the tool frame at jaw angle a. The new tip is a dog-leg:
+// PAD_T thick and shifted towards the fixed finger, with the stock finger
+// behind it cut away, so the open jaw reaches no further from the bit than
+// the stock one did (the carousel's seats are spaced for that).
 module moving_jaw(a = A_REF) {
   xc = front_x(SHANK_REF);
   multmatrix(TOOL_FROM_JAW_JOINT) rotate([0, 0, (a - A_REF) * 180 / PI])
     multmatrix(JAW_JOINT_FROM_TOOL) difference() {
       union() {
-        moving_stock(A_REF);
+        difference() {
+          moving_stock(A_REF);
+          xz(20) polygon([
+            [xc - PAD_T, TIP_Z + 5], [xc - PAD_T, BLOCK_Z0], [LEG_BACK, LEG_Z0],
+            [-60, LEG_Z0], [-60, TIP_Z + 5]]);
+        }
         intersection() {
           xz(PAD_HALF_W) polygon([
-            [xc, BLOCK_Z0], [xc, TIP_Z], [-13, TIP_Z], [-17, BLOCK_Z0 - 2 * RAMP],
-            [-15, BLOCK_Z0 - 2 * RAMP]]);
+            [xc, BLOCK_Z0], [xc, TIP_Z], [xc - PAD_T, TIP_Z], [xc - PAD_T, BLOCK_Z0],
+            [LEG_BACK, LEG_Z0], [LEG_FRONT, LEG_Z0]]);
           // crown: one contact spot at mid grip (z = 0)
           translate([xc - PAD_R, 0, 0]) rotate([90, 0, 0])
             cylinder(r = PAD_R, h = 4 * PAD_HALF_W, center = true, $fn = 360);

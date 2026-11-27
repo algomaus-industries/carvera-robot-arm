@@ -144,11 +144,27 @@ def material(color):
 _mesh_cache = {}
 
 
+# The gripper's two parts are printed with V-groove fingertips (fab/jaws):
+# same frames as the official meshes they are cut from, in mm. fab/gen_fab.py
+# exports them.
+FAB_MESHES = {
+    "wrist_roll_follower_so101_v1": "jaws/out/wrist_roll_follower_vjaw.stl",
+    "moving_jaw_so101_v1": "jaws/out/moving_jaw_vjaw.stl",
+}
+
+
 def load_stl(stem):
-  """Imported, decimated mesh datablock for an official STL (cached)."""
+  """Imported, decimated mesh datablock for an official STL, or for the
+  fab/ part that replaces it (cached)."""
   if stem in _mesh_cache and _mesh_cache[stem].name in bpy.data.meshes:
     return _mesh_cache[stem]
-  bpy.ops.import_mesh.stl(filepath=os.path.join(MESHES, stem + ".stl"))
+  if stem in FAB_MESHES:
+    path = os.path.join(HERE, "..", "..", "fab", FAB_MESHES[stem])
+    if not os.path.exists(path):
+      raise SystemExit(f"{path} is missing: run python3 fab/gen_fab.py first")
+    bpy.ops.import_mesh.stl(filepath=path, global_scale=0.001)
+  else:
+    bpy.ops.import_mesh.stl(filepath=os.path.join(MESHES, stem + ".stl"))
   o = bpy.context.object
   mod = o.modifiers.new("dec", "DECIMATE")
   mod.ratio = DECIMATE
