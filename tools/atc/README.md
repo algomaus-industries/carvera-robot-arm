@@ -17,6 +17,7 @@ bazel run -c opt //tools/atc:move_bit -- --park        # arm home, cart away, ho
 bazel run -c opt //tools/atc:move_bit -- --dock        # hood open, cart in
 bazel run -c opt //tools/atc:move_bit -- --set_atc='1=ofl4_22,2=,6=bn4_12'   # see below
 bazel run -c opt //tools/atc:move_bit -- --list_json   # ATC contents as JSON
+bazel run -c opt //tools/atc:move_bit -- --from_gcode=$HOME/job.nc   # the bits a job needs, see below
 ```
 
 ## ATC picker
@@ -37,6 +38,43 @@ DISPLAY=:1 python3 tools/atc/atc_picker.py
 In the omts container it is also on the desktop and in the Applications
 menu as **ATC picker** (`~/.local/bin/atc-picker`, which builds `move_bit`
 first if needed and logs to `/tmp/atc-picker.log`).
+
+### Loading the ATC for a Makera Studio job
+
+Makera Studio writes a header into every G-code file it exports, with one
+line per tool: its number (= ATC slot), name and dimensions.
+[`gcode_tools.py`](gcode_tools.py) reads it and finds each tool in the bit
+catalogue. It needs only Python, so it runs anywhere:
+
+```bash
+python3 tools/atc/gcode_tools.py job.nc
+#   T2  3.175*0.8*5.5mm Corn      = corn18_0p8
+#   T3  3.175*1*7mm Corn          = corn18_1
+#   T4  3.175*2*10.5mm Corn       = corn18_2
+# move_bit --set_atc='2=corn18_0p8,3=corn18_1,4=corn18_2'
+```
+
+- `=`: a tool from Studio's own library. Each of its 129 tools is exactly
+  one bit of the catalogue (`tests/unit/test_gcode_tools.py` checks all of
+  them against `models/makera_bits/makera_studio_cutters.json`).
+- `~`: a custom tool (one you defined in Studio). It has no bit of its own,
+  so the closest bit of the same kind and shank is proposed. Check it, or
+  name the bit: `--map 2=fe18_1p5x8`.
+- `!`: something that stops the plan: a tool number above 6, two slots
+  wanting the same bit, a library tool the catalogue does not know, a
+  header tool the program never changes to, or G-code without a Studio
+  header (then name every tool's bit with `--map`).
+
+`move_bit --from_gcode=job.nc` does the same and then loads the ATC like
+`--set_atc`. Slots the job does not use stay as they are. It moves nothing
+while a `!` is open, and stops at a `~` unless `--gcode_map 2=<bit id>`
+names the bit or `--accept_closest` takes the proposal. In the picker,
+**From G-code...** fills in the job's slots; nothing moves until Apply.
+Studio keeps the files it sends to the machine in its `GCodes` folder
+(under Wine: `~/.wine-makera/drive_c/users/<you>/AppData/Roaming/MakeraStudio/GCodes`;
+`ATC_GCODE_DIR` sets where the picker's file dialog opens). `move_bit` and
+the picker run inside the omts container, so the file has to be reachable
+there.
 
 ### Keeping it in step with the real cell
 

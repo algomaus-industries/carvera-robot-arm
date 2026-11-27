@@ -68,7 +68,7 @@ from src.hardware.gripper import GripperInterface
 from src.hardware.machine import DioCncMachine
 from src.hardware.robot import Robot
 from models.bit_carousel import carousel_layout
-from tools.atc import so101_ik
+from tools.atc import gcode_tools, so101_ik
 
 GRID_OBJECT = "bit_grid"
 GRID_N = 10
@@ -800,6 +800,23 @@ def parse_set_atc(spec: str) -> dict[int, str | None]:
   return out
 
 
+def gcode_targets(path: str, maps: list[str], accept_closest: bool) -> dict[int, str | None]:
+  """ATC targets for a Makera Studio job (--from_gcode), or exits with why not.
+
+  Nothing moves unless every tool of the job has its bit: a wrong bit in a
+  slot is worse than an empty one.
+  """
+  job = gcode_tools.plan(path, gcode_tools.parse_map(maps))
+  print(f"Tools of {os.path.basename(path)}:\n{gcode_tools.report(job)}", flush=True)
+  if job.problems:
+    sys.exit("Not loading the ATC: fix the lines marked '!' above (--gcode_map N=<bit id>).")
+  if job.guesses and not accept_closest:
+    slots = ", ".join(f"T{n}" for n in job.guesses)
+    sys.exit(f"Not loading the ATC: {slots} are custom tools (~). Name their bits with "
+             "--gcode_map N=<bit id>, or pass --accept_closest to take the closest bits.")
+  return parse_set_atc(job.spec)
+
+
 def plan_set_atc(world: Any, targets: dict[int, str | None],
                  catalog: dict[str, dict]) -> list[tuple[str, str]]:
   """Moves that leave ATC slot n holding targets[n] (None: empty).
@@ -951,6 +968,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
   parser.add_argument("--set_atc", default="",
                       help="Make the ATC hold these bits, e.g. '1=bit_ofl4_22,2=,6=bn4_12' "
                            "(empty = empty slot; slots not named stay as they are).")
+  parser.add_argument("--from_gcode", default="",
+                      help="Load the ATC for a Makera Studio job: the G-code file's header "
+                           "says which bit is tool 1..6 (tools/atc/gcode_tools.py). Slots the "
+                           "job does not use stay as they are.")
+  parser.add_argument("--gcode_map", action="append", default=[],
+                      help="With --from_gcode: the bit for a tool number, e.g. 2=fe18_1p5x8 "
+                           "(repeatable); needed for custom tools.")
+  parser.add_argument("--accept_closest", action="store_true",
+                      help="With --from_gcode: for a custom tool, load the closest bit "
+                           "instead of stopping.")
   parser.add_argument("--list_json", action="store_true",
                       help="Print the ATC slots' bits and the carousel angle as JSON and exit.")
   parser.add_argument("--park", action="store_true",
@@ -1034,8 +1061,11 @@ def main(argv: Sequence[str] | None = None) -> None:
   # Each batch is planned on the world as the batch before left it, so
   # --fill_atc / --empty_atc see the slots the explicit --moves filled.
   batches = [lambda: [parse_move(m) for m in args.move]]
-  if args.set_atc:
-    targets = parse_set_atc(args.set_atc)
+  if args.from_gcode or args.set_atc:
+    targets = {}
+    if args.from_gcode:
+      targets.update(gcode_targets(args.from_gcode, args.gcode_map, args.accept_closest))
+    targets.update(parse_set_atc(args.set_atc))   # slots named by hand win
 
     def plan_set():
       moves = plan_set_atc(world, targets, load_bit_catalog())
@@ -1055,8 +1085,9 @@ def main(argv: Sequence[str] | None = None) -> None:
       sys.exit(1)
     ran = True
   if not ran:
-    print("[✓] The ATC already holds those bits." if args.set_atc else
-          "Nothing to do: give --move, --set_atc, --fill_atc, --empty_atc, --park, --dock or --list.")
+    print("[✓] The ATC already holds those bits." if args.set_atc or args.from_gcode else
+          "Nothing to do: give --move, --set_atc, --from_gcode, --fill_atc, --empty_atc, "
+          "--park, --dock or --list.")
 
 
 if __name__ == "__main__":

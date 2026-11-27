@@ -9,6 +9,19 @@ py_library(
 )
 
 py_library(
+    name = "gcode_tools",
+    srcs = ["gcode_tools.py"],
+    data = ["//models/makera_bits:makera_bits.json"],
+)
+
+py_binary(
+    name = "gcode_tools_bin",
+    srcs = ["gcode_tools.py"],
+    main = "gcode_tools.py",
+    deps = [":gcode_tools"],
+)
+
+py_library(
     name = "move_bit_lib",
     srcs = ["move_bit.py"],
     data = [
@@ -16,6 +29,7 @@ py_library(
         "//models/makera_bits:makera_bits.json",
     ],
     deps = [
+        ":gcode_tools",
         ":so101_ik",
         "//models/bit_carousel:carousel_layout",
         "//src/core:config",

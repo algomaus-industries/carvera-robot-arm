@@ -19,6 +19,10 @@ is. If you swap bits by hand, tick "I changed them by hand", pick what is
 really in the slots now and Apply: the world and the saved state follow,
 the arm does not move.
 
+"From G-code..." reads a job exported by Makera Studio and picks the bit of
+each tool the job uses (tools/atc/gcode_tools.py); slots the job does not
+use keep their choice. Nothing moves until Apply.
+
 move_bit is taken from bazel-bin (build it first: bazel build -c opt
 //tools/atc:move_bit) or set with MOVE_BIT.
 """
@@ -29,10 +33,14 @@ import queue
 import re
 import shlex
 import subprocess
+import sys
 import threading
 import time
 import tkinter as tk
-from tkinter import ttk
+from tkinter import filedialog, ttk
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gcode_tools  # noqa: E402  (plain import: the picker runs outside bazel)
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BITS_JSON = os.path.join(REPO, "models", "makera_bits", "makera_bits.json")
@@ -96,6 +104,7 @@ class Picker:
     self.apply_btn.pack(side="left")
     ttk.Button(buttons, text="Refresh", command=self.refresh).pack(side="left", padx=4)
     ttk.Button(buttons, text="Empty all", command=self.empty_all).pack(side="left")
+    ttk.Button(buttons, text="From G-code...", command=self.from_gcode).pack(side="left", padx=4)
     self.record_only = tk.BooleanVar(value=False)
     ttk.Checkbutton(buttons, text="I changed them by hand (record only)",
                     variable=self.record_only).pack(side="left", padx=6)
@@ -258,6 +267,32 @@ class Picker:
   def empty_all(self):
     for n in SLOTS:
       self.pick[n].set(EMPTY)
+
+  def from_gcode(self, path: str = ""):
+    """Picks the bits a Makera Studio job needs, tool number = ATC slot."""
+    path = path or filedialog.askopenfilename(
+      parent=self.root, title="G-code exported by Makera Studio",
+      initialdir=os.environ.get("ATC_GCODE_DIR", os.path.expanduser("~")),
+      filetypes=[("G-code", "*.nc *.gcode *.cnc *.tap"), ("All files", "*")])
+    if not path:
+      return
+    try:
+      job = gcode_tools.plan(path)
+    except OSError as e:
+      self.status.config(text=f"Cannot read {path}: {e}")
+      return
+    self.log.insert("end", f"{os.path.basename(path)}\n{gcode_tools.report(job)}\n")
+    self.log.see("end")
+    for n, bit in job.targets.items():
+      self.pick[n].set(self.label_of["bit_" + bit])
+    slots = ", ".join(f"T{n}" for n in sorted(job.targets)) or "no slot"
+    text = f"{os.path.basename(path)}: picked {slots}."
+    if job.guesses:
+      text += (" " + ", ".join(f"T{n}" for n in job.guesses) +
+               ": custom tool, closest bit picked - check it.")
+    if job.problems:
+      text += " Not picked: " + "; ".join(job.problems) + "."
+    self.status.config(text=text + " Nothing moves until Apply.")
 
   def apply(self):
     if self.busy:

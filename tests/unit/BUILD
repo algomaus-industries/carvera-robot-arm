@@ -83,6 +83,13 @@ py_test(
 )
 
 py_test(
+    name = "test_gcode_tools",
+    srcs = ["test_gcode_tools.py"],
+    data = ["//models/makera_bits:makera_studio_cutters.json"],
+    deps = ["//tools/atc:gcode_tools"],
+)
+
+py_test(
     name = "test_tray",
     srcs = ["test_tray.py"],
     deps = [

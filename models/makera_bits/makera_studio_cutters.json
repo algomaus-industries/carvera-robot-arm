@@ -1,5 +1,5 @@
 {
- "source": "Makera Studio tool library (makera_library.db, table t_MakeraCutterList), read 2026-11-26. Dimensions in mm.",
+ "source": "Makera Studio tool library (makera_library.db, table t_MakeraCutterList), read 2026-11-26. Dimensions in mm. g_ID is the tool id Studio writes into its G-code header (;@MKR|TOOL|...|id=).",
  "cutters": [
   {
    "cutterName": "3.175*1*3mm Ball Nose(Metal)",
@@ -11,7 +11,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 0.5,
+   "g_ID": "132112103803"
   },
   {
    "cutterName": "3.175*1*4mm Ball Nose",
@@ -23,7 +27,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 0.5,
+   "g_ID": "131012103804"
   },
   {
    "cutterName": "3.175*1.5*4.5mm Ball Nose(Metal)",
@@ -35,7 +43,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 0.75,
+   "g_ID": "132112153805"
   },
   {
    "cutterName": "3.175*1.5*8mm Ball Nose",
@@ -47,7 +59,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 0.75,
+   "g_ID": "131012153808"
   },
   {
    "cutterName": "3.175*10mm Ball Nose(Metal)",
@@ -59,7 +75,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.5875,
+   "g_ID": "132112313810"
   },
   {
    "cutterName": "3.175*2*12mm Ball Nose",
@@ -71,7 +91,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.0,
+   "g_ID": "131012203812"
   },
   {
    "cutterName": "3.175*2*6mm Ball Nose(Metal)",
@@ -83,7 +107,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.0,
+   "g_ID": "132112203806"
   },
   {
    "cutterName": "3.175*2.5*15mm Ball Nose",
@@ -95,7 +123,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.25,
+   "g_ID": "131012253815"
   },
   {
    "cutterName": "3.175*2.5*7.5mm Ball Nose(Metal)",
@@ -107,7 +139,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.25,
+   "g_ID": "132112253808"
   },
   {
    "cutterName": "3.175*22mm Ball Nose",
@@ -119,7 +155,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.5875,
+   "g_ID": "131012313822"
   },
   {
    "cutterName": "4*12mm Ball Nose",
@@ -131,7 +171,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 2.0,
+   "g_ID": "131022404512"
   },
   {
    "cutterName": "4*12mm Ball Nose(Metal)",
@@ -143,7 +187,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 2.0,
+   "g_ID": "132122405012"
   },
   {
    "cutterName": "4*22mm Ball Nose",
@@ -155,7 +203,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 2.0,
+   "g_ID": "131022404522"
   },
   {
    "cutterName": "4*32mm Ball Nose",
@@ -167,7 +219,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 2.0,
+   "g_ID": "131022406032"
   },
   {
    "cutterName": "6*12mm Ball Nose",
@@ -179,7 +235,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 3.0,
+   "g_ID": "131032605012"
   },
   {
    "cutterName": "6*18mm Ball Nose(Metal)",
@@ -191,7 +251,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 3.0,
+   "g_ID": "132132605018"
   },
   {
    "cutterName": "6*22mm Ball Nose",
@@ -203,7 +267,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 3.0,
+   "g_ID": "131032605022"
   },
   {
    "cutterName": "6*32mm Ball Nose",
@@ -215,7 +283,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 3.0,
+   "g_ID": "131032606032"
   },
   {
    "cutterName": "3.175*0.6*3mm Corn",
@@ -227,7 +299,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.6,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218063803"
   },
   {
    "cutterName": "3.175*0.7*4mm Corn",
@@ -239,7 +315,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.7,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218073804"
   },
   {
    "cutterName": "3.175*0.8*5.5mm Corn",
@@ -251,7 +331,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.8,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218083806"
   },
   {
    "cutterName": "3.175*0.9*6mm Corn",
@@ -263,7 +347,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.9,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218093806"
   },
   {
    "cutterName": "3.175*1*3mm Flat End",
@@ -275,7 +363,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 1.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011103803"
   },
   {
    "cutterName": "3.175*1*3mm Flat End(Metal)",
@@ -287,7 +379,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112111103803"
   },
   {
    "cutterName": "3.175*1*7mm Corn",
@@ -299,7 +395,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218103807"
   },
   {
    "cutterName": "3.175*1.1*7mm Corn",
@@ -311,7 +411,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218113807"
   },
   {
    "cutterName": "3.175*1.2*7mm Corn",
@@ -323,7 +427,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.2,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218123807"
   },
   {
    "cutterName": "3.175*1.3*7.5mm Corn",
@@ -335,7 +443,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.3,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218133808"
   },
   {
    "cutterName": "3.175*1.4*7.5mm Corn",
@@ -347,7 +459,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.4,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218143808"
   },
   {
    "cutterName": "3.175*1.5*6mm Flat End(Metal)",
@@ -359,7 +475,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112111153806"
   },
   {
    "cutterName": "3.175*1.5*8.5mm Corn",
@@ -371,7 +491,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218153809"
   },
   {
    "cutterName": "3.175*1.5*8mm Flat End",
@@ -383,7 +507,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 1.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011153808"
   },
   {
    "cutterName": "3.175*1.6*8.5mm Corn",
@@ -395,7 +523,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.6,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218163809"
   },
   {
    "cutterName": "3.175*1.7*9.5mm Corn",
@@ -407,7 +539,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.7,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218173810"
   },
   {
    "cutterName": "3.175*1.8*9.5mm Corn",
@@ -419,7 +555,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.8,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218183810"
   },
   {
    "cutterName": "3.175*1.9*9.5mm Corn",
@@ -431,7 +571,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.9,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218193810"
   },
   {
    "cutterName": "3.175*12mm Corn",
@@ -443,7 +587,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218313812"
   },
   {
    "cutterName": "3.175*12mm Flat End(Metal)",
@@ -455,7 +603,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112111313812"
   },
   {
    "cutterName": "3.175*17mm Flat End",
@@ -467,7 +619,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011313817"
   },
   {
    "cutterName": "3.175*2*10.5mm Corn",
@@ -479,7 +635,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218203811"
   },
   {
    "cutterName": "3.175*2*12mm Flat End",
@@ -491,7 +651,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 2.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011203812"
   },
   {
    "cutterName": "3.175*2*8mm Flat End(Metal)",
@@ -503,7 +667,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112111203808"
   },
   {
    "cutterName": "3.175*2.1*10.5mm Corn",
@@ -515,7 +683,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218213811"
   },
   {
    "cutterName": "3.175*2.4*10.5mm Corn",
@@ -527,7 +699,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.4,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218243811"
   },
   {
    "cutterName": "3.175*2.5*10.5mm Corn",
@@ -539,7 +715,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218253811"
   },
   {
    "cutterName": "3.175*2.5*12mm Flat End(Metal)",
@@ -551,7 +731,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112111253812"
   },
   {
    "cutterName": "3.175*2.5*15mm Flat End",
@@ -563,7 +747,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 2.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011253815"
   },
   {
    "cutterName": "3.175*25mm Flat End",
@@ -575,7 +763,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011313825"
   },
   {
    "cutterName": "3.175*3.0*12mm Corn",
@@ -587,7 +779,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 3.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111218303812"
   },
   {
    "cutterName": "3.175*32mm Flat End",
@@ -599,7 +795,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011313832"
   },
   {
    "cutterName": "3.175*42mm Flat End",
@@ -611,7 +811,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111011313842"
   },
   {
    "cutterName": "4*12mm Flat End(Metal)",
@@ -623,7 +827,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 4.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112121405012"
   },
   {
    "cutterName": "4*17mm Flat End(Metal)",
@@ -635,7 +843,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 4.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112121405017"
   },
   {
    "cutterName": "4*22mm Flat End",
@@ -647,7 +859,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 4.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111021404522"
   },
   {
    "cutterName": "4*22mm Flat End(Metal)",
@@ -659,7 +875,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 4.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112121405022"
   },
   {
    "cutterName": "4*25mm Flat End",
@@ -671,7 +891,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 4.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111021405025"
   },
   {
    "cutterName": "4*32mm Flat End",
@@ -683,7 +907,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 4.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111021405532"
   },
   {
    "cutterName": "6*17mm Flat End(Metal)",
@@ -695,7 +923,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 6.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112131605017"
   },
   {
    "cutterName": "6*22mm Flat End",
@@ -707,7 +939,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 6.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111031605022"
   },
   {
    "cutterName": "6*25mm Flat End",
@@ -719,7 +955,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 6.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111031605525"
   },
   {
    "cutterName": "6*25mm Flat End(Metal)",
@@ -731,7 +971,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 6.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112131605525"
   },
   {
    "cutterName": "6*30mm Flat End(Metal)",
@@ -743,7 +987,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 6.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "112131606030"
   },
   {
    "cutterName": "6*32mm Flat End",
@@ -755,7 +1003,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 6.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "111031606032"
   },
   {
    "cutterName": "3.175mm*90º Chamfer",
@@ -767,7 +1019,11 @@
    "cutterAngle": 90.0,
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "122111013890"
   },
   {
    "cutterName": "4mm*90º Chamfer",
@@ -779,7 +1035,11 @@
    "cutterAngle": 90.0,
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "122121015090"
   },
   {
    "cutterName": "6mm*90º Chamfer",
@@ -791,7 +1051,11 @@
    "cutterAngle": 90.0,
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "122131015090"
   },
   {
    "cutterName": "3.175*0.1mm*30º Engraving",
@@ -803,7 +1067,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.1,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121011013830"
   },
   {
    "cutterName": "3.175*0.1mm*60º Engraving(Metal)",
@@ -815,7 +1083,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.1,
+   "cutterHalfAngle": 30.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122111013860"
   },
   {
    "cutterName": "3.175*0.2mm*30º Engraving",
@@ -827,7 +1099,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.2,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121011023830"
   },
   {
    "cutterName": "3.175*0.2mm*30º Engraving(Metal)",
@@ -839,7 +1115,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.2,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122111023830"
   },
   {
    "cutterName": "3.175*0.3mm*30º Engraving",
@@ -851,7 +1131,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121011033830"
   },
   {
    "cutterName": "3.175*0.3mm*30º Engraving(Metal)",
@@ -863,7 +1147,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122111033830"
   },
   {
    "cutterName": "3.175*0.4mm*30º Engraving",
@@ -875,7 +1163,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.4,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121011043830"
   },
   {
    "cutterName": "3.175*0.4mm*30º Engraving(Metal)",
@@ -887,7 +1179,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.4,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122111043830"
   },
   {
    "cutterName": "3.175*0.5mm*30º Engraving",
@@ -899,7 +1195,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.5,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121011053830"
   },
   {
    "cutterName": "3.175*0.5mm*30º Engraving(Metal)",
@@ -911,7 +1211,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.5,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122111053830"
   },
   {
    "cutterName": "3.175mm Solder Mask Removal",
@@ -923,7 +1227,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122011034730"
   },
   {
    "cutterName": "4*0.1mm*30º Engraving",
@@ -935,7 +1243,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.1,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121021014230"
   },
   {
    "cutterName": "4*0.2mm*30º Engraving",
@@ -947,7 +1259,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.2,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121021024230"
   },
   {
    "cutterName": "4*0.3mm*30º Engraving",
@@ -959,7 +1275,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121021034230"
   },
   {
    "cutterName": "4*0.3mm*30º Engraving(Metal)",
@@ -971,7 +1291,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122121034530"
   },
   {
    "cutterName": "4*0.4mm*30º Engraving",
@@ -983,7 +1307,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.4,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121021044230"
   },
   {
    "cutterName": "4*0.4mm*30º Engraving(Metal)",
@@ -995,7 +1323,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.4,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122121044530"
   },
   {
    "cutterName": "4*0.5mm*30º Engraving",
@@ -1007,7 +1339,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.5,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121021054230"
   },
   {
    "cutterName": "4*0.5mm*30º Engraving(Metal)",
@@ -1019,7 +1355,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.5,
+   "cutterHalfAngle": 15.0,
+   "cutterCornerRadius": "",
+   "g_ID": "122121054530"
   },
   {
    "cutterName": "6*0.3mm*20º Engraving",
@@ -1031,7 +1371,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": 10.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121032035020"
   },
   {
    "cutterName": "6*0.4mm*20º Engraving",
@@ -1043,7 +1387,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.4,
+   "cutterHalfAngle": 10.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121032045020"
   },
   {
    "cutterName": "6*0.5mm*20º Engraving",
@@ -1055,7 +1403,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": 0.5,
+   "cutterHalfAngle": 10.0,
+   "cutterCornerRadius": "",
+   "g_ID": "121032055020"
   },
   {
    "cutterName": "3.175*0.2*3.5mm Drill",
@@ -1067,7 +1419,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.2,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212023804"
   },
   {
    "cutterName": "3.175*0.3*5.5mm Drill",
@@ -1079,7 +1435,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.3,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212033806"
   },
   {
    "cutterName": "3.175*0.4*7mm Drill",
@@ -1091,7 +1451,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.4,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212043807"
   },
   {
    "cutterName": "3.175*0.5*8.5mm Drill",
@@ -1103,7 +1467,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212053809"
   },
   {
    "cutterName": "3.175*0.6*9.5mm Drill",
@@ -1115,7 +1483,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.6,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212063810"
   },
   {
    "cutterName": "3.175*0.7*10mm Drill",
@@ -1127,7 +1499,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.7,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212073810"
   },
   {
    "cutterName": "3.175*0.8*10mm Drill",
@@ -1139,7 +1515,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.8,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212083810"
   },
   {
    "cutterName": "3.175*0.9*10mm Drill",
@@ -1151,7 +1531,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 0.9,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212093810"
   },
   {
    "cutterName": "3.175*1*10mm Drill",
@@ -1163,7 +1547,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212103810"
   },
   {
    "cutterName": "3.175*1.1*10mm Drill",
@@ -1175,7 +1563,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212113810"
   },
   {
    "cutterName": "3.175*1.2*10mm Drill",
@@ -1187,7 +1579,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.2,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212123810"
   },
   {
    "cutterName": "3.175*1.3*12mm Drill",
@@ -1199,7 +1595,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.3,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212133812"
   },
   {
    "cutterName": "3.175*1.4*12mm Drill",
@@ -1211,7 +1611,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.4,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212143812"
   },
   {
    "cutterName": "3.175*1.5*12mm Drill",
@@ -1223,7 +1627,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212153812"
   },
   {
    "cutterName": "3.175*1.6*12mm Drill",
@@ -1235,7 +1643,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.6,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212163812"
   },
   {
    "cutterName": "3.175*1.7*12mm Drill",
@@ -1247,7 +1659,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.7,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212173812"
   },
   {
    "cutterName": "3.175*1.8*12mm Drill",
@@ -1259,7 +1675,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.8,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212183812"
   },
   {
    "cutterName": "3.175*1.9*12mm Drill",
@@ -1271,7 +1691,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 1.9,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212193812"
   },
   {
    "cutterName": "3.175*12mm Drill",
@@ -1283,7 +1707,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 3.175,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212313812"
   },
   {
    "cutterName": "3.175*2*12mm Drill",
@@ -1295,7 +1723,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212203812"
   },
   {
    "cutterName": "3.175*2.1*12mm Drill",
@@ -1307,7 +1739,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.1,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212213812"
   },
   {
    "cutterName": "3.175*2.2*12mm Drill",
@@ -1319,7 +1755,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.2,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212223812"
   },
   {
    "cutterName": "3.175*2.3*12mm Drill",
@@ -1331,7 +1771,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.3,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212233812"
   },
   {
    "cutterName": "3.175*2.4*12mm Drill",
@@ -1343,7 +1787,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.4,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212243812"
   },
   {
    "cutterName": "3.175*2.5*12mm Drill",
@@ -1355,7 +1803,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.5,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212253812"
   },
   {
    "cutterName": "3.175*2.6*12mm Drill",
@@ -1367,7 +1819,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.6,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212263812"
   },
   {
    "cutterName": "3.175*2.7*12mm Drill",
@@ -1379,7 +1835,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.7,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212273812"
   },
   {
    "cutterName": "3.175*2.8*12mm Drill",
@@ -1391,7 +1851,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.8,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212283812"
   },
   {
    "cutterName": "3.175*2.9*12mm Drill",
@@ -1403,7 +1867,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 2.9,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212293812"
   },
   {
    "cutterName": "3.175*3*12mm Drill",
@@ -1415,7 +1883,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": 3.0,
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "142212303812"
   },
   {
    "cutterName": "3.175*M1*3mm Thread",
@@ -1427,7 +1899,11 @@
    "cutterAngle": "",
    "threadSpecification": 1.0,
    "pitch": 0.25,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152111073803"
   },
   {
    "cutterName": "3.175*M2*6mm Thread",
@@ -1439,7 +1915,11 @@
    "cutterAngle": "",
    "threadSpecification": 2.0,
    "pitch": 0.4,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152111153806"
   },
   {
    "cutterName": "3.175*M2.5*7.5mm Thread",
@@ -1451,7 +1931,11 @@
    "cutterAngle": "",
    "threadSpecification": 2.5,
    "pitch": 0.45,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152111193808"
   },
   {
    "cutterName": "3.175*M3*9mm Thread",
@@ -1463,7 +1947,11 @@
    "cutterAngle": "",
    "threadSpecification": 3.0,
    "pitch": 0.5,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152111243809"
   },
   {
    "cutterName": "3.175*M4*12mm Thread",
@@ -1475,7 +1963,11 @@
    "cutterAngle": "",
    "threadSpecification": 4.0,
    "pitch": 0.7,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152111313812"
   },
   {
    "cutterName": "3.175*M5*15mm Thread",
@@ -1487,7 +1979,11 @@
    "cutterAngle": "",
    "threadSpecification": 5.0,
    "pitch": 0.8,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152111403815"
   },
   {
    "cutterName": "6*M6*18mm Thread",
@@ -1499,7 +1995,11 @@
    "cutterAngle": "",
    "threadSpecification": 6.0,
    "pitch": 1.0,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152131485018"
   },
   {
    "cutterName": "6*M8*24mm Thread",
@@ -1511,7 +2011,11 @@
    "cutterAngle": "",
    "threadSpecification": 8.0,
    "pitch": 1.25,
-   "metalDuty": 1
+   "metalDuty": 1,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": "",
+   "g_ID": "152131605024"
   },
   {
    "cutterName": "6*0.5*30.5mm Ball Nose Engraving",
@@ -1523,7 +2027,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 0.25,
+   "g_ID": "161032055031"
   },
   {
    "cutterName": "6*1*30.5mm Ball Nose Engraving",
@@ -1535,7 +2043,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 0.5,
+   "g_ID": "161032105031"
   },
   {
    "cutterName": "6*2*30.5mm Ball Nose Engraving",
@@ -1547,7 +2059,11 @@
    "cutterAngle": "",
    "threadSpecification": "",
    "pitch": "",
-   "metalDuty": 0
+   "metalDuty": 0,
+   "cutterTipDiameter": "",
+   "cutterHalfAngle": "",
+   "cutterCornerRadius": 1.0,
+   "g_ID": "161032205031"
   }
  ]
 }
